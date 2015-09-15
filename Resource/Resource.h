@@ -2,12 +2,18 @@
 #define RESOURCE_H
 
 #include "resource_global.h"
+#include <QException>
 
-class RESOURCESHARED_EXPORT Resource
-{
+namespace KCloud{
 
-	public:
-		Resource();
-};
+	class ResourceHeaderData;
+	class ResourceData;
+	class ResourceManager;
+
+	class ResourceException : public QException{
+
+
+	};
+}
 
 #endif // RESOURCE_H
