@@ -13,12 +13,12 @@ namespace KCloud {
 
 		public:
 
-			typedef enum{
+			enum Type{
 				UserBasicException,
 				UserEmptyMailException,
 				UserEmptyHashException,
 				UserEmailPatternMismatchException
-			}Type;
+			};
 
 			virtual const char *	what()	const throw ();
 			virtual	Type			type()	const;
