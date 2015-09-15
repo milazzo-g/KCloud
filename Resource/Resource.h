@@ -11,8 +11,13 @@ namespace KCloud{
 	class ResourceManager;
 
 	class ResourceException : public QException{
-
-
+		typedef enum{
+			ResourceBasicException
+		}Type;
+		virtual const char *		what()	const throw ();
+		virtual Type				type()	const;
+		virtual ResourceException *	clone() const;
+		virtual void				raise() const;
 	};
 }
 
