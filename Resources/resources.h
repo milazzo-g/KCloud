@@ -16,7 +16,8 @@ namespace KCloud{
 		public:
 
 			enum Type{
-				UnknownException
+				UnknownException,
+				BadPathException
 			};
 
 			virtual const char *		what()	const throw ();
@@ -42,38 +43,33 @@ namespace KCloud{
 				PermUndef
 			};
 
-											ResourceHeader(const QString path, const QString owner) throw(ResourceException);
 											ResourceHeader(const ResourceHeader &cpy);
 
-			qint64							getCompressedSize() const;
 			qint64							getNaturalSize() const;
-			quint64							getParent() const;
+			qint64							getCompressedSize() const;
 			quint64							getId() const;
+			quint64							getParent() const;
 			QString							getName() const;
 			QString							getOwner() const;
 			QString							getSuffix() const;
 			ResourceType					getType() const;
 			ResourcePerm					getPermission(QString email) const;
 			QMap<QString, ResourcePerm>		getPermissionTable() const;
-
 			void							setOwner(const QString owner);
-			bool							updatePath(const QString path);
+			bool							delPermission(const QString user);
 			bool							addPermission(const QString user, const ResourcePerm perm);
-			bool							delPermission(const Qstring user);
 			bool							modPermission(const QString user, const ResourcePerm perm);
-
 
 		protected:
 
-			quint64							id;
-			QString							name;
-			ResourceType					basicType;
 			qint64							naturalSize;
 			qint64							compressedSize;
-			QMap<QString, ResourcePerm>		permissionTable;
+			quint64							id;
 			quint64							parent;
+			QString							name;
 			QString							owner;
-
+			ResourceType					basicType;
+			QMap<QString, ResourcePerm>		permissionTable;
 
 		private:
 
