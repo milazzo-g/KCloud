@@ -11,10 +11,12 @@ TEMPLATE = lib
 
 DEFINES += RESOURCES_LIBRARY
 
-SOURCES += resources.cpp
+SOURCES += resources.cpp \
+    FolderCompressor.cpp
 
 HEADERS += resources.h\
-        resources_global.h
+        resources_global.h \
+    FolderCompressor.h
 
 unix {
     target.path = /usr/lib

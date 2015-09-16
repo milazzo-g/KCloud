@@ -1,4 +1,5 @@
 #include "resources.h"
+#include "FolderCompressor.h"
 #include <QFileInfo>
 
 const char *KCloud::Exceptions::ResourceException::what() const{
@@ -27,11 +28,19 @@ class BadPathException : public KCloud::Exceptions::ResourceException{
 		virtual	Type			type()	const			{ return ResourceException::BadPathException;							}
 };
 
-class EmptyOwnerExceptio : public KCloud::Exceptions::ResourceException{
+class EmptyOwnerException : public KCloud::Exceptions::ResourceException{
 
 		virtual const char *	what()	const throw ()	{ return "ResourceException: The value passed is not a valid owner!";	}
 		virtual	Type			type()	const			{ return ResourceException::EmptyOwnerException;						}
 };
+
+KCloud::ResourceHeader::ResourceHeader(const QString owner) throw(Exceptions::ResourceException){
+
+	if(owner.isEmpty()){
+		throw EmptyOwnerException();
+	}
+	this->owner = owner;
+}
 
 KCloud::ResourceHeader::ResourceHeader(const KCloud::ResourceHeader &cpy){
 
@@ -132,6 +141,79 @@ bool KCloud::ResourceHeader::modPermission(const QString user, const KCloud::Res
 	return false;
 }
 
+KCloud::Resource::Resource(const QString path, const QString owner) throw(Exceptions::ResourceException) : ResourceHeader(owner){
+
+	QFileInfo info(path);
+
+	if(!info.exists()){
+		throw BadPathException();
+	}
+
+	this->path = path;
+
+	if(info.isFile()){
+
+		compressionFlag = true;
+		basicType = File;
+		compressedSize = info.size();
+		file = new QFile(path);
+	}else{
+
+		compressionFlag = false;
+		basicType = Dir;
+		file = NULL;
+	}
+	name = info.fileName();
+	naturalSize = info.size();
+
+}
+
+bool KCloud::Resource::compress(QString destPath) throw(Exceptions::ResourceException){
+
+	if(destPath.isEmpty()){
+		throw BadPathException();
+	}
+	if(!compressionFlag){
+		FolderCompressor compressor;
+		compressionFlag = compressor.compressFolder(path, destPath);
+		return compressionFlag;
+	}else{
+		return true;
+	}
+}
+
+bool KCloud::Resource::unCompress(QString destPath) throw(Exceptions::ResourceException){
+
+	if(destPath.isEmpty()){
+		throw BadPathException();
+	}
+	QFileInfo info(*file);
+
+	if(compressionFlag){
+		FolderCompressor compressor;
+		compressionFlag = !compressor.decompressFolder(info.absoluteFilePath(), destPath);
+		return !compressionFlag;
+	}else{
+		return true;
+	}
+}
+
+bool KCloud::Resource::deleteTempFile(){
+
+	if(compressionFlag){
+		return file->remove();
+	}
+	return false;
+}
+
+QFile *KCloud::Resource::getFile(){
+
+	if(!file){
+		return NULL;
+	}
+	return file;
+}
+
 QDataStream &KCloud::operator <<(QDataStream &out, const KCloud::ResourceHeader &res){
 
 	out << res.naturalSize << res.compressedSize << res.id << res.parent << res.name << res.owner << res.basicType << res.permissionTable;
@@ -166,37 +248,4 @@ QDataStream &KCloud::operator >>(QDataStream &inp, KCloud::ResourceHeader::Resou
 
 	inp >> (qint32 &)res;
 	return inp;
-}
-
-KCloud::Resource::Resource(const QString path, const QString owner) throw(Exceptions::ResourceException){
-
-	QFileInfo info(path);
-
-	if(!info.exists()){
-		throw BadPathException();
-	}
-
-	if(owner.isEmpty()){
-		throw EmptyOwnerExceptio();
-	}
-
-	file = new QFile(path);
-	this->owner = owner;
-
-}
-
-bool KCloud::Resource::compress(){
-
-}
-
-bool KCloud::Resource::unCompress(){
-
-}
-
-bool KCloud::Resource::deleteTempFile(){
-
-}
-
-QFile *KCloud::Resource::getFile(){
-
 }

@@ -52,8 +52,8 @@ namespace KCloud{
 				PermUndef
 			};
 
+											ResourceHeader(const QString owner) throw(Exceptions::ResourceException);
 											ResourceHeader(const ResourceHeader &cpy);
-
 			qint64							getNaturalSize() const;
 			qint64							getCompressedSize() const;
 			qint64							getNetworkSize() const;
@@ -86,15 +86,16 @@ namespace KCloud{
 	class RESOURCESSHARED_EXPORT Resource : ResourceHeader{
 
 		public:
-						Resource(const QString path, const QString owner) throw(Exceptions::ResourceException);
-			bool		compress();
-			bool		unCompress();
-			bool		deleteTempFile();
-			QFile *		getFile();
-			bool		open() = 0;
+									Resource(const QString path, const QString owner) throw(Exceptions::ResourceException);
+						bool		compress(QString destPath) throw(Exceptions::ResourceException);
+						bool		unCompress(QString destPath) throw(Exceptions::ResourceException);
+						bool		deleteTempFile();
+						QFile *		getFile();
+			virtual		bool		open() = 0;
 
 		private:
 			QFile *		file;
+			QString		path;
 			bool		compressionFlag;
 	};
 
