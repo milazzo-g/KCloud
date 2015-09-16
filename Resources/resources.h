@@ -21,7 +21,8 @@ namespace KCloud{
 
 				enum Type{
 					UnknownException,
-					BadPathException
+					BadPathException,
+					EmptyOwnerException
 				};
 
 				virtual const char *		what()	const throw ();
@@ -85,7 +86,7 @@ namespace KCloud{
 	class RESOURCESSHARED_EXPORT Resource : ResourceHeader{
 
 		public:
-						Resource(const QString path, const QString owner);
+						Resource(const QString path, const QString owner) throw(Exceptions::ResourceException);
 			bool		compress();
 			bool		unCompress();
 			bool		deleteTempFile();

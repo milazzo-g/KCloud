@@ -1,4 +1,37 @@
 #include "resources.h"
+#include <QFileInfo>
+
+const char *KCloud::Exceptions::ResourceException::what() const{
+
+	return "ResourceException: Unknown Exception Occured!";
+}
+
+KCloud::Exceptions::ResourceException::Type KCloud::Exceptions::ResourceException::type() const{
+
+	return UnknownException;
+}
+
+KCloud::Exceptions::ResourceException *KCloud::Exceptions::ResourceException::clone() const{
+
+	return new ResourceException(*this);
+}
+
+void KCloud::Exceptions::ResourceException::raise() const{
+
+	throw *this;
+}
+
+class BadPathException : public KCloud::Exceptions::ResourceException{
+
+		virtual const char *	what()	const throw ()	{ return "ResourceException: The value passed is not a valid path!";	}
+		virtual	Type			type()	const			{ return ResourceException::BadPathException;							}
+};
+
+class EmptyOwnerExceptio : public KCloud::Exceptions::ResourceException{
+
+		virtual const char *	what()	const throw ()	{ return "ResourceException: The value passed is not a valid owner!";	}
+		virtual	Type			type()	const			{ return ResourceException::EmptyOwnerException;						}
+};
 
 KCloud::ResourceHeader::ResourceHeader(const KCloud::ResourceHeader &cpy){
 
@@ -135,7 +168,20 @@ QDataStream &KCloud::operator >>(QDataStream &inp, KCloud::ResourceHeader::Resou
 	return inp;
 }
 
-KCloud::Resource::Resource(const QString path, const QString owner){
+KCloud::Resource::Resource(const QString path, const QString owner) throw(Exceptions::ResourceException){
+
+	QFileInfo info(path);
+
+	if(!info.exists()){
+		throw BadPathException();
+	}
+
+	if(owner.isEmpty()){
+		throw EmptyOwnerExceptio();
+	}
+
+	file = new QFile(path);
+	this->owner = owner;
 
 }
 
@@ -154,4 +200,3 @@ bool KCloud::Resource::deleteTempFile(){
 QFile *KCloud::Resource::getFile(){
 
 }
-
