@@ -1,6 +1,7 @@
 #include "resources.h"
 #include "FolderCompressor.h"
 #include <QFileInfo>
+#define EXTENSION ".kcomp"
 
 const char *KCloud::Exceptions::ResourceException::what() const{
 
@@ -175,7 +176,7 @@ bool KCloud::Resource::compress(QString destPath) throw(Exceptions::ResourceExce
 	}
 	if(!compressionFlag){
 		FolderCompressor compressor;
-		compressionFlag = compressor.compressFolder(path, destPath);
+		compressionFlag = compressor.compressFolder(path, destPath + EXTENSION);
 		return compressionFlag;
 	}else{
 		return true;
