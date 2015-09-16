@@ -2,33 +2,42 @@
 #define RESOURCES_H
 
 #include "resources_global.h"
+#include <QByteArray>
+#include <QDataStream>
 #include <QException>
 #include <QString>
+#include <QFile>
 #include <QMap>
-
 
 namespace KCloud{
 
 	class ResourcesManager;
 
-	class RESOURCESSHARED_EXPORT ResourceException : public QException{
+	namespace Exceptions{
 
-		public:
+		class RESOURCESSHARED_EXPORT ResourceException : public QException{
 
-			enum Type{
-				UnknownException,
-				BadPathException
-			};
+			public:
 
-			virtual const char *		what()	const throw ();
-			virtual	Type				type()	const;
-			virtual ResourceException * clone() const;
-			virtual void				raise() const;
-	};
+				enum Type{
+					UnknownException,
+					BadPathException,
+					EmptyOwnerException
+				};
+
+				virtual const char *		what()	const throw ();
+				virtual	Type				type()	const;
+				virtual ResourceException * clone() const;
+				virtual void				raise() const;
+		};
+
+	}
 
 	class RESOURCESSHARED_EXPORT ResourceHeader{
 
-			friend class ResourcesManager;
+			friend class	 ResourcesManager;
+			friend			QDataStream &operator <<(QDataStream &out, const ResourceHeader &res);
+			friend			QDataStream &operator >>(QDataStream &inp, ResourceHeader &res);
 
 		public:
 
@@ -43,10 +52,11 @@ namespace KCloud{
 				PermUndef
 			};
 
+											ResourceHeader(const QString owner) throw(Exceptions::ResourceException);
 											ResourceHeader(const ResourceHeader &cpy);
-
 			qint64							getNaturalSize() const;
 			qint64							getCompressedSize() const;
+			qint64							getNetworkSize() const;
 			quint64							getId() const;
 			quint64							getParent() const;
 			QString							getName() const;
@@ -71,10 +81,30 @@ namespace KCloud{
 			ResourceType					basicType;
 			QMap<QString, ResourcePerm>		permissionTable;
 
-		private:
-
-
 	};
+
+	class RESOURCESSHARED_EXPORT Resource : ResourceHeader{
+
+		public:
+									Resource(const QString path, const QString owner) throw(Exceptions::ResourceException);
+						bool		compress(QString destPath) throw(Exceptions::ResourceException);
+						bool		unCompress(QString destPath) throw(Exceptions::ResourceException);
+						bool		deleteTempFile();
+						QFile *		getFile();
+			virtual		bool		open() = 0;
+
+		private:
+			QFile *		file;
+			QString		path;
+			bool		compressionFlag;
+	};
+
+	QDataStream &operator <<(QDataStream &out, const ResourceHeader &res);
+	QDataStream &operator >>(QDataStream &inp, ResourceHeader &res);
+	QDataStream &operator <<(QDataStream &out, ResourceHeader::ResourceType &res);
+	QDataStream &operator >>(QDataStream &inp, ResourceHeader::ResourceType &res);
+	QDataStream &operator <<(QDataStream &out, ResourceHeader::ResourcePerm &res);
+	QDataStream &operator >>(QDataStream &inp, ResourceHeader::ResourcePerm &res);
 }
 
 
