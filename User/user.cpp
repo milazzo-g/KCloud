@@ -4,8 +4,8 @@
 
 
 const qint64	KCloud::User::totalSpace = 4294967296;
-const QString	KCloud::User::emailRegEx = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b"
-										   "";
+const QString	KCloud::User::emailRegEx = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b";
+
 const char *KCloud::Exceptions::UserException::what() const throw (){
 	return "UserException: Unknown Exception Occured!";
 }
