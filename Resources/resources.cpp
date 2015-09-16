@@ -1,6 +1,5 @@
 #include "resources.h"
 
-
 KCloud::ResourceHeader::ResourceHeader(const KCloud::ResourceHeader &cpy){
 
 	this->id = cpy.id;
@@ -16,6 +15,14 @@ KCloud::ResourceHeader::ResourceHeader(const KCloud::ResourceHeader &cpy){
 qint64 KCloud::ResourceHeader::getCompressedSize() const{
 
 	return compressedSize;
+}
+
+qint64 KCloud::ResourceHeader::getNetworkSize() const{
+
+	QByteArray	buff;
+	QDataStream test(&buff, QIODevice::ReadWrite);
+	test << *this;
+	return buff.size();
 }
 
 qint64 KCloud::ResourceHeader::getNaturalSize() const{
@@ -91,3 +98,60 @@ bool KCloud::ResourceHeader::modPermission(const QString user, const KCloud::Res
 	}
 	return false;
 }
+
+QDataStream &KCloud::operator <<(QDataStream &out, const KCloud::ResourceHeader &res){
+
+	out << res.naturalSize << res.compressedSize << res.id << res.parent << res.name << res.owner << res.basicType << res.permissionTable;
+	return out;
+}
+
+QDataStream &KCloud::operator >>(QDataStream &inp, KCloud::ResourceHeader &res){
+
+	inp >> res.naturalSize >> res.compressedSize >> res.id >> res.parent >> res.name >> res.owner >> res.basicType >> res.permissionTable;
+	return inp;
+}
+
+QDataStream &KCloud::operator <<(QDataStream &out, KCloud::ResourceHeader::ResourceType &res){
+
+	out << (qint32)res;
+	return out;
+}
+
+QDataStream &KCloud::operator >>(QDataStream &inp, KCloud::ResourceHeader::ResourceType &res){
+
+	inp >> (qint32 &)res;
+	return inp;
+}
+
+QDataStream &KCloud::operator <<(QDataStream &out, KCloud::ResourceHeader::ResourcePerm &res){
+
+	out << (qint32)res;
+	return out;
+}
+
+QDataStream &KCloud::operator >>(QDataStream &inp, KCloud::ResourceHeader::ResourcePerm &res){
+
+	inp >> (qint32 &)res;
+	return inp;
+}
+
+KCloud::Resource::Resource(const QString path, const QString owner){
+
+}
+
+bool KCloud::Resource::compress(){
+
+}
+
+bool KCloud::Resource::unCompress(){
+
+}
+
+bool KCloud::Resource::deleteTempFile(){
+
+}
+
+QFile *KCloud::Resource::getFile(){
+
+}
+
