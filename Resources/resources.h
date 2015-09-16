@@ -42,7 +42,25 @@ namespace KCloud{
 				PermUndef
 			};
 
-			ResourceHeader();
+											ResourceHeader(const QString path, const QString owner) throw(ResourceException);
+											ResourceHeader(const ResourceHeader &cpy);
+
+			qint64							getCompressedSize() const;
+			qint64							getNaturalSize() const;
+			quint64							getParent() const;
+			quint64							getId() const;
+			QString							getName() const;
+			QString							getOwner() const;
+			QString							getSuffix() const;
+			ResourceType					getType() const;
+			ResourcePerm					getPermission(QString email) const;
+			QMap<QString, ResourcePerm>		getPermissionTable() const;
+
+			void							setOwner(const QString owner);
+			bool							updatePath(const QString path);
+			bool							addPermission(const QString user, const ResourcePerm perm);
+			bool							delPermission(const Qstring user);
+			bool							modPermission(const QString user, const ResourcePerm perm);
 
 
 		protected:
