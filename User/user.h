@@ -18,7 +18,7 @@ namespace KCloud{
 					EmailPatternMismatch,
 					EmptyEmail,
 					EmptyPassword,
-					HashToLong,
+					HashSize,
 					NegativeSpace
 				};
 				virtual const char *	what()	const throw ();
@@ -68,8 +68,6 @@ namespace KCloud{
 
 	QDataStream &operator <<(QDataStream &out, const User &usr);
 	QDataStream &operator >>(QDataStream &inp, User &usr);
-	QDataStream &operator <<(QDataStream &out, User::Mode &mod);
-	QDataStream &operator >>(QDataStream &inp, User::Mode &mod);
 }
 
 
