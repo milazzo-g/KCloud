@@ -86,16 +86,19 @@ bool KCloud::Resource::newFile(const QString path){
 
 void KCloud::Resource::behaviorOnSend(const qint64 dim){
 
+	qDebug() << "Client: inviati " << dim << " bytes";
 	packetSize -= dim;
-	if(dim == 0){
+	if(packetSize == 0){
 		currentBlock++;
 
 		if(currentBlock > packetsOnSend + 1){
+			qDebug() << "Client: dentro if";
 			disconnect(channel, SIGNAL(bytesWritten(qint64)), this, SLOT(behaviorOnSend(qint64)));
 			disconnect(this, SIGNAL(changeBlockOnSend(qint64)), this, SLOT(send(qint64)));
 			clear();
 			emit objectSended();
 		}else{
+			qDebug() << "Client: dentro else";
 			emit changeBlockOnSend(currentBlock);
 		}
 	}
@@ -107,6 +110,7 @@ void KCloud::Resource::behaviorOnRecv(){
 		if(channel->bytesAvailable() < (qint64)sizeof(packetSize)){
 			return;
 		}
+		fileOpen();
 		QDataStream stream(channel);
 		stream >> packetSize;
 		currentBlock++;
@@ -124,20 +128,36 @@ void KCloud::Resource::send(const qint64 block){
 
 	currentBlock = block;
 	if(currentBlock == 0){
+		fileOpen();
 		QDataStream	stream(channel);
 		bytesToSend			= calculateNetworkSize();
 		packetsOnSend		= bytesToSend / __1MB__;
 		spareBytesOnSend	= bytesToSend % __1MB__;
 		packetSize			= sizeof(bytesToSend);
+		qDebug() << "---------------- CLIENT BLOCCO " << currentBlock << " -------------------";
+		qDebug() << "Client: valore bytesToSend      = " << bytesToSend;
+		qDebug() << "Client: valore packetsOnSend    = " << packetsOnSend;
+		qDebug() << "Client: valore spareBytesOnSend = " << spareBytesOnSend;
+		qDebug() << "Client: valore packetSize       = " << packetSize;
 		stream << bytesToSend;
 		return;
 	}
 	if(currentBlock <= packetsOnSend){
 		packetSize = __1MB__;
 		channel->write(file->read(packetSize));
+		qDebug() << "---------------- CLIENT BLOCCO " << currentBlock << " -------------------";
+		qDebug() << "Client: valore bytesToSend      = " << bytesToSend;
+		qDebug() << "Client: valore packetsOnSend    = " << packetsOnSend;
+		qDebug() << "Client: valore spareBytesOnSend = " << spareBytesOnSend;
+		qDebug() << "Client: valore packetSize       = " << packetSize;
 	}else{
 		packetSize = spareBytesOnSend;
 		channel->write(file->read(spareBytesOnSend));
+		qDebug() << "---------------- CLIENT BLOCCO " << currentBlock << " -------------------";
+		qDebug() << "Client: valore bytesToSend      = " << bytesToSend;
+		qDebug() << "Client: valore packetsOnSend    = " << packetsOnSend;
+		qDebug() << "Client: valore spareBytesOnSend = " << spareBytesOnSend;
+		qDebug() << "Client: valore packetSize       = " << packetSize;
 	}
 }
 
