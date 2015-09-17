@@ -11,9 +11,9 @@ void RootServer::incomingConnection(qintptr socketDescriptor){
 
 	out << "Nuova Connessione Accettata!";
 	WorkerServer * tmp = new WorkerServer(socketDescriptor, this);
-	connect(tmp, SIGNAL(finished()), this, SLOT(deleteLater()));
+	//connect(tmp, SIGNAL(finished()), this, SLOT(deleteLater()));
 	tmp->start();
-	threads << tmp;
+	//threads << tmp;
 }
 
 
@@ -34,9 +34,10 @@ WorkerServer::~WorkerServer(){
 void WorkerServer::run(){
 
 	out << "Nuovo Thread!";
-	packet = new Resource(this);
+	packet = new Resource();
+	packet->moveToThread(this);
 	Resource * tmp = reinterpret_cast<Resource *>(packet);
-	tmp->newFile("/home/giuseppe/Scrivania/TestRicezione.txt");
+	tmp->newFile("/home/giuseppe/Scrivania/TestRicezione.pdf");
 	tmp->receiveFrom(*channel);
 	connect(packet, SIGNAL(objectReceived()), this, SLOT(end()));
 	exec();

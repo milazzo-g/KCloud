@@ -113,10 +113,12 @@ void KCloud::Resource::behaviorOnRecv(){
 		fileOpen();
 		QDataStream stream(channel);
 		stream >> packetSize;
+		qDebug() << "Ricevuta dimensione packetSize " << packetSize;
 		currentBlock++;
 	}
 
 	packetSize -= file->write(channel->readAll());
+	qDebug() << "Rimanenti " << packetSize << " bytes";
 	if(packetSize == 0){
 		disconnect(channel, SIGNAL(readyRead()), this, SLOT(behaviorOnRecv()));
 		clear();

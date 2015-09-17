@@ -3,24 +3,19 @@
 #include "client.h"
 #include <QTimer>
 #include <QTextStream>
-
+#include "rootserver.h"
 using namespace KCloud;
 
 int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
+//	RootServer * server = new RootServer(&a);
 
-	ClientServerApplication * server;
-	ClientServerApplication * client;
+//	server->listen(QHostAddress::Any, 5000);
 
-	server = new Server(&a);
-	server->start();
-
-	client = new Client(&a);
-	client->start();
-
-	QTimer::singleShot(1000, server, SLOT(work()));
-	QTimer::singleShot(4000, client, SLOT(work()));
+	ClientServerApplication * s = new Server(&a);
+	s->start();
+	QTimer::singleShot(1000, s, SLOT(work()));
 
 	return a.exec();
 }

@@ -47,7 +47,7 @@ class WorkerServer : public QThread{
 		void end();
 
 	private:
-		QTcpSocket *	channel;
+		QTcpSocket	*	channel;
 		NetObject *		packet;
 };
 
