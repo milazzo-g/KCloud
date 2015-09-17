@@ -2,6 +2,8 @@
 #include <QFileInfo>
 #include <QDebug>
 
+#define __1MB__ 1048576
+
 KCloud::NetObject::NetObject(QObject *parent) : QObject(parent){
 
 	clear();
@@ -53,12 +55,12 @@ void KCloud::Resource::sendThrough(QTcpSocket &sock){
 	connect(channel, SIGNAL(bytesWritten(qint64)), this, SLOT(behaviorOnSend(qint64)), Qt::UniqueConnection);
 	connect(this, SIGNAL(changeBlockOnSend(qint64)), this, SLOT(send(qint64)), Qt::UniqueConnection);
 	send();
-
 }
 
 void KCloud::Resource::receiveFrom(QTcpSocket &sock){
-	Q_UNUSED(sock);
 
+	channel = &sock;
+	connect(channel, SIGNAL(readyRead()), this, SLOT(behaviorOnRecv()), Qt::UniqueConnection);
 }
 
 bool KCloud::Resource::setFile(const QString path){
@@ -69,15 +71,29 @@ bool KCloud::Resource::setFile(const QString path){
 	}
 	clear();
 	file = new QFile(path);
-	return file->open(QIODevice::ReadWrite);
+	return true;
+}
+
+bool KCloud::Resource::newFile(const QString path){
+
+	QFileInfo info(path);
+	if(info.exists()){
+		return false;
+	}
+	file = new QFile(path);
+	return true;
 }
 
 void KCloud::Resource::behaviorOnSend(const qint64 dim){
+
 	packetSize -= dim;
 	if(dim == 0){
 		currentBlock++;
 
 		if(currentBlock > packetsOnSend + 1){
+			disconnect(channel, SIGNAL(bytesWritten(qint64)), this, SLOT(behaviorOnSend(qint64)));
+			disconnect(this, SIGNAL(changeBlockOnSend(qint64)), this, SLOT(send(qint64)));
+			clear();
 			emit objectSended();
 		}else{
 			emit changeBlockOnSend(currentBlock);
@@ -85,8 +101,23 @@ void KCloud::Resource::behaviorOnSend(const qint64 dim){
 	}
 }
 
-void KCloud::Resource::behaviorOnRecv(const qint64 dim){
-	Q_UNUSED(dim);
+void KCloud::Resource::behaviorOnRecv(){
+
+	if(currentBlock == 0){
+		if(channel->bytesAvailable() < (qint64)sizeof(packetSize)){
+			return;
+		}
+		QDataStream stream(channel);
+		stream >> packetSize;
+		currentBlock++;
+	}
+
+	packetSize -= file->write(channel->readAll());
+	if(packetSize == 0){
+		disconnect(channel, SIGNAL(readyRead()), this, SLOT(behaviorOnRecv()));
+		clear();
+		emit objectReceived();
+	}
 }
 
 void KCloud::Resource::send(const qint64 block){
@@ -95,24 +126,31 @@ void KCloud::Resource::send(const qint64 block){
 	if(currentBlock == 0){
 		QDataStream	stream(channel);
 		bytesToSend			= calculateNetworkSize();
-		packetsOnSend		= bytesToSend / 4096;
-		spareBytesOnSend	= bytesToSend % 4096;
-		packetSize			= sizeof(qint64);
+		packetsOnSend		= bytesToSend / __1MB__;
+		spareBytesOnSend	= bytesToSend % __1MB__;
+		packetSize			= sizeof(bytesToSend);
 		stream << bytesToSend;
+		return;
 	}
 	if(currentBlock <= packetsOnSend){
-		packetSize = 4096;
-		channel->write(file->read(4096));
+		packetSize = __1MB__;
+		channel->write(file->read(packetSize));
 	}else{
 		packetSize = spareBytesOnSend;
 		channel->write(file->read(spareBytesOnSend));
 	}
-	if(currentBlock == )
-
 }
 
 void KCloud::Resource::recv(const qint64 block){
+	Q_UNUSED(block)
+}
 
+bool KCloud::Resource::fileOpen(){
+
+	if(file){
+		return file->open(QIODevice::ReadWrite);
+	}
+	return false;
 }
 
 qint64 KCloud::Resource::calculateNetworkSize(){
@@ -130,5 +168,4 @@ void KCloud::Resource::clear(){
 		file->close();
 		delete file;
 	}
-	buff.clear();
 }

@@ -31,7 +31,7 @@ namespace KCloud{
 
 		protected slots:
 			virtual		void	behaviorOnSend(const qint64 dim)= 0;
-			virtual		void	behaviorOnRecv(const qint64 dim)= 0;
+			virtual		void	behaviorOnRecv()= 0;
 			virtual		void	send(const qint64 block = 0) = 0;
 			virtual		void	recv(const qint64 block = 0) = 0;
 
@@ -65,17 +65,18 @@ namespace KCloud{
 
 		public slots:
 						bool	setFile(const QString path);
+						bool	newFile(const QString path);
 		protected slots:
 			virtual		void	behaviorOnSend(const qint64 dim);
-			virtual		void	behaviorOnRecv(const qint64 dim);
+			virtual		void	behaviorOnRecv();
 			virtual		void	send(const qint64 block = 0);
 			virtual		void	recv(const qint64 block = 0);
+						bool	fileOpen();
 		protected:
 			virtual		qint64	calculateNetworkSize();
 			virtual		void	clear();
 		private:
 						QFile *		file;
-						QByteArray	buff;
 
 	};
 
