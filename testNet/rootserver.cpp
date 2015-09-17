@@ -11,7 +11,7 @@ void RootServer::incomingConnection(qintptr socketDescriptor){
 
 	out << "Nuova Connessione Accettata!";
 	WorkerServer * tmp = new WorkerServer(socketDescriptor, this);
-	//connect(tmp, SIGNAL(finished()), this, SLOT(deleteLater()));
+	connect(tmp, SIGNAL(finished()), tmp, SLOT(deleteLater()));
 	tmp->start();
 	//threads << tmp;
 }
@@ -21,6 +21,9 @@ WorkerServer::WorkerServer(int socketDescriptor, QObject *parent) : QThread(pare
 
 	channel = new QTcpSocket(this);
 	channel->setSocketDescriptor(socketDescriptor);
+	packet = new Resource(this);
+	Resource * tmp = reinterpret_cast<Resource *>(packet);
+	tmp->newFile("/home/giuseppe/Scrivania/TestRicezione.pdf");
 }
 
 WorkerServer::~WorkerServer(){
@@ -34,11 +37,7 @@ WorkerServer::~WorkerServer(){
 void WorkerServer::run(){
 
 	out << "Nuovo Thread!";
-	packet = new Resource();
-	packet->moveToThread(this);
-	Resource * tmp = reinterpret_cast<Resource *>(packet);
-	tmp->newFile("/home/giuseppe/Scrivania/TestRicezione.pdf");
-	tmp->receiveFrom(*channel);
+	packet->receiveFrom(*channel);
 	connect(packet, SIGNAL(objectReceived()), this, SLOT(end()));
 	exec();
 }
@@ -48,3 +47,5 @@ void WorkerServer::end(){
 	out << "Thread: risorsa ricevuta";
 	this->quit();
 }
+
+

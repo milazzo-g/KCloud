@@ -37,7 +37,7 @@ class WorkerServer : public QThread{
 		explicit	WorkerServer(int socketDescriptor, QObject *parent = 0);
 					~WorkerServer();
 	signals:
-
+		void alloca();
 	public slots:
 
 	protected:
@@ -45,6 +45,7 @@ class WorkerServer : public QThread{
 
 	private slots:
 		void end();
+		void allocaRisorsa();
 
 	private:
 		QTcpSocket	*	channel;
