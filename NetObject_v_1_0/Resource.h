@@ -13,25 +13,30 @@ namespace KCloud{
 
 	class Resource : public NetObject{
 			Q_OBJECT
+
 		public:
 			explicit				Resource(QObject *parent = 0);
 			explicit				Resource(const QString &path, QObject *parent = 0);		//LANCIA ECCEZIONI
 
-						QString		getPath() const;
-						void		setPath(const QString &path);
-						void		from(const QString &path);							//LANCIA ECCEZIONI
-						void		to(const QString &path);
-						void		setWorkingDir(const QString &path);
-						QString		getWorkingDir() const;
+						QString		getResourcePath() const;
+						void		setResourcePath(const QString &path);
+						QString		getZipName() const;
+						void		setZipName(const QString &path, likanhsdlòkas = klajsbndasdas);
+						QString		getZipPath() const;
+
+						void		setZipDir(const QString &path);
+						QString		getZipDir() const;
+
 			virtual		void		clear();											/**/
 			virtual		void		prepareForSend();									/**/
 			virtual		void		prepareForRecv();
 						void		compress();
 						void		decompress();
 		//	virtual		void		open();
+
 		protected slots:
-			virtual		void		send(const qint64 block = 0);
-			virtual		void		recv();
+						virtual		void		send(const qint64 block = 0);
+						virtual		void		recv();
 			virtual		void		behaviorOnSend(const qint64 dim);
 
 		protected:
@@ -41,13 +46,15 @@ namespace KCloud{
 						bool		isCompressed() const;
 
 		private:
-						void checkFilePath() const; //LANCIA ECCEZIONE
-						void checkWorkingDir() const;//LANCIA ECCEZIONE
+						void		checkFilePath() const; //LANCIA ECCEZIONE
+						void		checkWorkingDir() const;//LANCIA ECCEZIONE
 
 			bool		compressionFlag;
-			QString		workingDir;
-			QString		filePath;
-			QFile *		file;
+			QString		resourcePath;
+			QString		zipDir;
+			QString		zipName;
+			QFile *		zipFile;
+			QString		m_author;
 	};
 
 }
