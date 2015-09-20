@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['resource',['Resource',['../class_k_cloud_1_1_resource.html',1,'KCloud']]],
-  ['rootserver',['RootServer',['../class_root_server.html',1,'']]]
+  ['leavesocket',['leaveSocket',['../class_k_cloud_1_1_net_object.html#a6d1a31ad0d46aebc29940737c288234a',1,'KCloud::NetObject']]]
 ];

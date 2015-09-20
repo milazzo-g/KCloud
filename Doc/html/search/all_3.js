@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['netobject',['NetObject',['../class_k_cloud_1_1_net_object.html',1,'KCloud']]],
-  ['netobject',['NetObject',['../class_k_cloud_1_1_net_object.html#aa793065ebe235c8173e70ee041353345',1,'KCloud::NetObject']]]
+  ['isready',['isReady',['../class_k_cloud_1_1_net_object.html#a93e9cf7c27cce29a0c97fc23195f4352',1,'KCloud::NetObject']]]
 ];
