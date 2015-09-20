@@ -9,8 +9,10 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    NetObject.cpp
+    NetObject.cpp \
+    Resource.cpp
 
 HEADERS += \
-    NetObject.h
+    NetObject.h \
+    Resource.h
 

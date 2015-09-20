@@ -1,32 +1,66 @@
 #include "NetObject.h"
 
-NetObject::NetObject(QObject *parent) : QObject(parent)
-{
+KCloud::NetObject::NetObject(QObject *parent) : QObject(parent){
 
+	clear();
+	setBytesPerPacket();
+	setNotReady();
 }
-
 
 qint64 KCloud::NetObject::getNetworkSize(){
 	return calculateNetworkSize();
 }
 
 void KCloud::NetObject::clear(){
-	bytesPerPacket	= 0;
 	bytesCounter	= 0;
 	packets			= 0;
 	spareBytes		= 0;
 	currentBlock	= 0;
 	channel			= NULL;
+	setNotReady();
 }
 
-void KCloud::NetObject::prepare(){
+void KCloud::NetObject::prepareForSend(){
 	clear();
 	packets		= getNetworkSize() / bytesPerPacket;
 	spareBytes	= getNetworkSize() % bytesPerPacket;
+
+	if(!packets){
+		bytesCounter = spareBytes;
+	}else{
+		bytesCounter = getBytesPerPacket();
+	}
+
 	setReady();
 }
 
 void KCloud::NetObject::sendThrough(QTcpSocket *sock){
+
+	if(isReady()){
+		if(sock && sock->isOpen()){
+			channel = sock;
+			connect(channel, SIGNAL(bytesWritten(qint64)), this, SLOT(behaviorOnSend(qint64)), Qt::UniqueConnection);
+			connect(this, SIGNAL(changeBlock(qint64)), this, SLOT(send(qint64)), Qt::UniqueConnection);
+			connect(this, SIGNAL(objectSended()), this, SLOT(leaveSocket()), Qt::UniqueConnection);
+			send();
+		}else{
+			//lanciare eccezione perchè la socket è NULL oppure perchè non ci si può scrivere
+		}
+	}else{
+		//lanciare eccezione perchè il pacchetto non è pronto
+	}
+}
+
+void KCloud::NetObject::receiveFrom(QTcpSocket *sock){
+
+	clear();
+	if(sock && sock->isOpen()){
+		channel = sock;
+		connect(channel,	SIGNAL(readyRead()),		this, SLOT(recv()),			Qt::UniqueConnection);
+		connect(this,		SIGNAL(objectReceived()),	this, SLOT(leaveSocket()),	Qt::UniqueConnection);
+	}else{
+		//lanciare eccezione perchè la socket è NULL oppure perchè non ci si può leggere
+	}
 
 }
 
@@ -76,3 +110,33 @@ void KCloud::NetObject::setBytesPerPacket(KCloud::NetObject::Payload payload){
 			break;
 	}
 }
+
+qint64 KCloud::NetObject::getBytesPerPacket() const{
+
+	return bytesPerPacket;
+}
+
+void KCloud::NetObject::leaveSocket(){
+
+	disconnect(channel, SIGNAL(bytesWritten(qint64)),	this, SLOT(behaviorOnSend(qint64))	);
+	disconnect(channel, SIGNAL(readyRead()),			this, SLOT(recv())					);
+	disconnect(this,	SIGNAL(changeBlock(qint64)),	this, SLOT(send(qint64))			);
+	clear();
+}
+
+void KCloud::NetObject::setReady(){
+
+	readyFlag = true;
+}
+
+void KCloud::NetObject::setNotReady(){
+
+	readyFlag = false;
+}
+
+bool KCloud::NetObject::isReady() const{
+
+	return readyFlag;
+}
+
+

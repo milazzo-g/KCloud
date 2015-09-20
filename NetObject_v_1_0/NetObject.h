@@ -24,15 +24,16 @@ namespace KCloud{
 			Payload_1MB
 		};
 
-		explicit NetObject(QObject *parent = 0);
+		explicit				NetObject(QObject *parent = 0);							 //LANCIA ECCEZIONI
 
-					qint64		getNetworkSize();
-					void		clear();
-					void		prepare();
-					void		sendThrough(QTcpSocket * sock);
-					void		receiveFrom(QTcpSocket * sock);
-					void		setBytesPerPacket(Payload payload = Payload_512KB);
-					qint64		getBytesPerPacket() const;
+					qint64		getNetworkSize();									/**/
+		virtual		void		clear();											/**/
+		virtual		void		prepareForSend();									/**/
+		virtual		void		prepareForRecv() = 0;
+					void		sendThrough(QTcpSocket * sock);						/**/ //LANCIA ECCEZIONI
+					void		receiveFrom(QTcpSocket * sock);						/**/ //LANCIA ECCEZIONI
+					void		setBytesPerPacket(Payload payload = Payload_512KB);	/**/ //LANCIA ECCEZIONI
+					qint64		getBytesPerPacket() const;							/**/
 	signals:
 					void		objectSended();
 					void		objectReceived();
@@ -40,21 +41,25 @@ namespace KCloud{
 	public slots:
 
 	protected slots:
-		virtual		void		send(const qint64 dim) = 0;
-		virtual		void		recv(const qint64 dim) = 0;
+		virtual		void		send(const qint64 block = 0) = 0;
+		virtual		void		recv() = 0;
+		virtual		void		behaviorOnSend(const qint64 dim) = 0;
+		virtual		void		leaveSocket();										/**/
+
 
 	protected:
-					void		setReady();
-					void		setNotReady();
-					bool		isReady();
+					void		setReady();											/**/
+					void		setNotReady();										/**/
+					bool		isReady() const;											/**/
 		virtual		qint64		calculateNetworkSize() = 0;
 
-					qint64		bytesPerPacket;
-					qint64		bytesCounter;
-					qint64		packets;
-					qint64		spareBytes;
-					qint64		currentBlock;
-					QTcpSocket *channel;
+					bool		readyFlag;			//
+					qint64		bytesPerPacket;		//
+					qint64		bytesCounter;		//
+					qint64		packets;			//
+					qint64		spareBytes;			//
+					qint64		currentBlock;		//
+					QTcpSocket *channel;			//
 	};
 }
 
