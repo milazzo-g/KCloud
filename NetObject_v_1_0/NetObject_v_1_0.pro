@@ -10,11 +10,9 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     NetObject.cpp \
-    Resource.cpp \
-    FolderCompressor.cpp
+    Resource.cpp
 
 HEADERS += \
     NetObject.h \
-    Resource.h \
-    FolderCompressor.h
+    Resource.h
 

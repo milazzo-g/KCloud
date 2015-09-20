@@ -12,8 +12,6 @@ int main(int argc, char *argv[])
 	Resource r("/home/giuseppe/Scrivania/UML/KCloud.vpp");
 	r.setWorkingDir("/home/giuseppe/Scrivania/pippo");
 	r.prepareForSend();
-	FolderCompressor compress;
-	compress.decompressFolder("/home/giuseppe/Scrivania/pippo/KCloud.vpp.kcomp", "/home/giuseppe/Scrivania/pippo/KCloud.vpp");
 
     return a.exec();
 }

@@ -2,7 +2,6 @@
 #define RESOURCE_H
 
 #include "NetObject.h"
-#include "FolderCompressor.h"
 
 #include <QFile>
 #include <QString>

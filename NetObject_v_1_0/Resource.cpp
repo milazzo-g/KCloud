@@ -59,10 +59,7 @@ void KCloud::Resource::compress(){
 	if(QFileInfo(getPath()).isFile()){
 		QFile::copy(getPath(), newPath);
 	}else{
-		FolderCompressor compressor;
-		if(!compressor.compressFolder(getPath(),newPath)){
-			//lanciare eccezione compressione
-		}
+
 	}
 	setPath(newPath);
 	setCompressed();
