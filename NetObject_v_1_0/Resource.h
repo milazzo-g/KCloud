@@ -2,11 +2,14 @@
 #define RESOURCE_H
 
 #include "NetObject.h"
+#include "JlCompress.h"
 
+#include <QDir>
 #include <QFile>
 #include <QString>
 #include <QFileInfo>
 #include <QByteArray>
+#include <QDataStream>
 #include <QTemporaryFile>
 
 namespace KCloud{
@@ -16,45 +19,45 @@ namespace KCloud{
 
 		public:
 			explicit				Resource(QObject *parent = 0);
-			explicit				Resource(const QString &path, QObject *parent = 0);		//LANCIA ECCEZIONI
+									Resource(const QString &path, QObject *parent = 0);		//LANCIA ECCEZIONI
 
 						QString		getResourcePath() const;
-						void		setResourcePath(const QString &path);
 						QString		getZipName() const;
-						void		setZipName(const QString &path, likanhsdlòkas = klajsbndasdas);
 						QString		getZipPath() const;
+						void		setResourcePath(const QString &path);
+						void		setZipName(const QString &path, const QString &ext = "");
 
-						void		setZipDir(const QString &path);
+						void		setZipDir(const QString &path);							// LANCIA ECCEZIONE
 						QString		getZipDir() const;
 
-			virtual		void		clear();											/**/
-			virtual		void		prepareForSend();									/**/
-			virtual		void		prepareForRecv();
-						void		compress();
-						void		decompress();
+			virtual		void		clear();
+			virtual		void		prepareForSend();										// LANCIA ECCEZIONE
+			virtual		void		prepareForRecv();										// LANCIA ECCEZIONE
+						void		compress();												// LANCIA ECCEZIONE
+						void		decompress(const bool autoRemove = true);											// LANCIA ECCEZIONE
 		//	virtual		void		open();
 
 		protected slots:
-						virtual		void		send(const qint64 block = 0);
-						virtual		void		recv();
-			virtual		void		behaviorOnSend(const qint64 dim);
+			virtual		void		send(const qint64 block = 0);
+			virtual		void		recv();
+			virtual		void		behaviorOnSend(const qint64 dim);						// LANCIA ECCEZIONE
 
 		protected:
-			virtual		qint64		calculateNetworkSize();
+			virtual		qint64		calculateNetworkSize();									// LANCIA ECCEZIONE
 						void		setCompressed();
 						void		setNotCompressed();
 						bool		isCompressed() const;
 
 		private:
-						void		checkFilePath() const; //LANCIA ECCEZIONE
-						void		checkWorkingDir() const;//LANCIA ECCEZIONE
+						void		checkResource();										// LANCIA ECCEZIONE
+						void		checkDir();												// LANCIA ECCEZIONE
+						void		checkZip();												// LANCIA ECCEZIONE
 
-			bool		compressionFlag;
-			QString		resourcePath;
-			QString		zipDir;
-			QString		zipName;
-			QFile *		zipFile;
-			QString		m_author;
+			bool		m_compressionFlag;
+			QString		m_resourcePath;
+			QString		m_zipDir;
+			QString		m_zipName;
+			QFile *		m_zipFile;
 	};
 
 }

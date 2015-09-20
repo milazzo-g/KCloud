@@ -20,19 +20,19 @@ namespace KCloud{
 		 * \brief	Dimensione dei pacchetti per l'invio e la ricezione.
 		 */
 		enum Payload{
-			Payload_128B,	/**< Setta il pacchetto a 128 byte. */
-			Payload_256B,	/**< Setta il pacchetto a 256 byte. */
-			Payload_512B,	/**< Setta il pacchetto a 512 byte. */
-			Payload_1KB,	/**< Setta il pacchetto a 1 Kbyte (1024 byte). */
-			Payload_2KB,	/**< Setta il pacchetto a 2 Kbyte (2048 byte). */
-			Payload_5KB,	/**< Setta il pacchetto a 5 Kbyte (5120 byte). */
-			Payload_10KB,	/**< Setta il pacchetto a 10 Kbyte (10240 byte). */
-			Payload_20KB,	/**< Setta il pacchetto a 20 Kbyte (20480 byte). */
-			Payload_50KB,	/**< Setta il pacchetto a 50 Kbyte (51200 byte). */
-			Payload_128KB,	/**< Setta il pacchetto a 128 Kbyte (131072 byte). */
-			Payload_256KB,	/**< Setta il pacchetto a 256 Kbyte (262144 byte). */
-			Payload_512KB,	/**< Setta il pacchetto a 512 Kbyte (524288 byte). */
-			Payload_1MB		/**< Setta il pacchetto a 1 Mbyte (1048576 byte). */
+			Payload_128B,	/**< Dimensione pacchetto: 128 byte. */
+			Payload_256B,	/**< Dimensione pacchetto: 256 byte. */
+			Payload_512B,	/**< Dimensione pacchetto: 512 byte. */
+			Payload_1KB,	/**< Dimensione pacchetto: 1 Kbyte (1024 byte). */
+			Payload_2KB,	/**< Dimensione pacchetto: 2 Kbyte (2048 byte). */
+			Payload_5KB,	/**< Dimensione pacchetto: 5 Kbyte (5120 byte). */
+			Payload_10KB,	/**< Dimensione pacchetto: 10 Kbyte (10240 byte). */
+			Payload_20KB,	/**< Dimensione pacchetto: 20 Kbyte (20480 byte). */
+			Payload_50KB,	/**< Dimensione pacchetto: 50 Kbyte (51200 byte). */
+			Payload_128KB,	/**< Dimensione pacchetto: 128 Kbyte (131072 byte). */
+			Payload_256KB,	/**< Dimensione pacchetto: 256 Kbyte (262144 byte). */
+			Payload_512KB,	/**< Dimensione pacchetto: 512 Kbyte (524288 byte). */
+			Payload_1MB		/**< Dimensione pacchetto: 1 Mbyte (1048576 byte). */
 		};
 
 		/*!
@@ -71,18 +71,18 @@ namespace KCloud{
 		* \details	Dopo aver controllato che l'oggetto sia pronto per essere inviato (vedi {@link isReady()}) e la socket non punti a NULL
 		*			o sia chiusa, connette i segnali e gli slot per l'invio del pacchetto.
 		*/
-					void		sendThrough(QTcpSocket * sock);
+					void		sendThrough(QTcpSocket * sock);								// LANCIA ECCEZIONE
 		/*!
 		* \brief	Riceve l'oggetto attraverso una socket TCP.
 		* \param	sock socket da cui l'oggetto deve essere ricevuto.
 		* \details	Dopo aver chiamato {@link clear()} controlla lo stato della socket e connette i segnali per la ricezione.
 		*/
-					void		receiveFrom(QTcpSocket * sock);
+					void		receiveFrom(QTcpSocket * sock);								// LANCIA ECCEZIONE
 		/*!
 		* \brief	Setta la dimensione dei pacchetti.
 		* \param	payload vedi {@link Payload}
 		*/
-					void		setBytesPerPacket(Payload payload = Payload_512KB);
+					void		setBytesPerPacket(Payload payload = Payload_512KB);			// LANCIA ECCEZIONE
 		/*!
 		* \return	Il numero di bytes per pacchetto.
 		*/
@@ -125,7 +125,7 @@ namespace KCloud{
 		 *			per cui tramite questo slot è possibile decrementare il numero dei bytes da scrivere (vedi {@link m_bytesCounter})
 		 *			di modo che, quando tutto il pacchetto è stato inviato, si può inviare un nuovo pacchetto tramite {@link changeBlock()}.
 		 */
-		virtual		void		behaviorOnSend(const qint64 dim) = 0;
+		virtual		void		behaviorOnSend(const qint64 dim) = 0;						// LANCIA ECCEZIONE
 		/*!
 		 * \brief	Lascia la socket.
 		 * \details	Chiamato di automaticamente tramite {@link objectSended()} ed {@link objectReceived()}.

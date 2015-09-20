@@ -12,25 +12,19 @@ qint64 KCloud::NetObject::getNetworkSize(){
 }
 
 void KCloud::NetObject::clear(){
-	bytesCounter	= 0;
-	packets			= 0;
-	spareBytes		= 0;
-	currentBlock	= 0;
-	channel			= NULL;
+	m_bytesCounter	= 0;
+	m_packets		= 0;
+	m_spareBytes	= 0;
+	m_currentBlock	= 0;
+	m_channel		= NULL;
 	setNotReady();
 }
 
 void KCloud::NetObject::prepareForSend(){
 	clear();
-	packets		= getNetworkSize() / bytesPerPacket;
-	spareBytes	= getNetworkSize() % bytesPerPacket;
-
-	if(!packets){
-		bytesCounter = spareBytes;
-	}else{
-		bytesCounter = getBytesPerPacket();
-	}
-
+	m_packets		= getNetworkSize() / getBytesPerPacket();
+	m_spareBytes	= getNetworkSize() % getBytesPerPacket();
+	m_bytesCounter  = (qint64)sizeof(getNetworkSize());
 	setReady();
 }
 
@@ -38,8 +32,8 @@ void KCloud::NetObject::sendThrough(QTcpSocket *sock){
 
 	if(isReady()){
 		if(sock && sock->isOpen()){
-			channel = sock;
-			connect(channel, SIGNAL(bytesWritten(qint64)), this, SLOT(behaviorOnSend(qint64)), Qt::UniqueConnection);
+			m_channel = sock;
+			connect(m_channel, SIGNAL(bytesWritten(qint64)), this, SLOT(behaviorOnSend(qint64)), Qt::UniqueConnection);
 			connect(this, SIGNAL(changeBlock(qint64)), this, SLOT(send(qint64)), Qt::UniqueConnection);
 			connect(this, SIGNAL(objectSended()), this, SLOT(leaveSocket()), Qt::UniqueConnection);
 			send();
@@ -55,8 +49,8 @@ void KCloud::NetObject::receiveFrom(QTcpSocket *sock){
 
 	clear();
 	if(sock && sock->isOpen()){
-		channel = sock;
-		connect(channel,	SIGNAL(readyRead()),		this, SLOT(recv()),			Qt::UniqueConnection);
+		m_channel = sock;
+		connect(m_channel,	SIGNAL(readyRead()),		this, SLOT(recv()),			Qt::UniqueConnection);
 		connect(this,		SIGNAL(objectReceived()),	this, SLOT(leaveSocket()),	Qt::UniqueConnection);
 	}else{
 		//lanciare eccezione perchè la socket è NULL oppure perchè non ci si può leggere
@@ -67,43 +61,43 @@ void KCloud::NetObject::receiveFrom(QTcpSocket *sock){
 void KCloud::NetObject::setBytesPerPacket(KCloud::NetObject::Payload payload){
 	switch (payload) {
 		case Payload_128B:
-			bytesPerPacket = 128;
+			m_bytesPerPacket = 128;
 			return;
 		case Payload_256B:
-			bytesPerPacket = 256;
+			m_bytesPerPacket = 256;
 			return;
 		case Payload_512B:
-			bytesPerPacket = 512;
+			m_bytesPerPacket = 512;
 			return;
 		case Payload_1KB:
-			bytesPerPacket = 1024;
+			m_bytesPerPacket = 1024;
 			return;
 		case Payload_2KB:
-			bytesPerPacket = 2048;
+			m_bytesPerPacket = 2048;
 			return;
 		case Payload_5KB:
-			bytesPerPacket = 5120;
+			m_bytesPerPacket = 5120;
 			return;
 		case Payload_10KB:
-			bytesPerPacket = 10240;
+			m_bytesPerPacket = 10240;
 			return;
 		case Payload_20KB:
-			bytesPerPacket = 20480;
+			m_bytesPerPacket = 20480;
 			return;
 		case Payload_50KB:
-			bytesPerPacket = 51200;
+			m_bytesPerPacket = 51200;
 			return;
 		case Payload_128KB:
-			bytesPerPacket = 131072;
+			m_bytesPerPacket = 131072;
 			return;
 		case Payload_256KB:
-			bytesPerPacket = 262144;
+			m_bytesPerPacket = 262144;
 			return;
 		case Payload_512KB:
-			bytesPerPacket = 524288;
+			m_bytesPerPacket = 524288;
 			return;
 		case Payload_1MB:
-			bytesPerPacket = 1048576;
+			m_bytesPerPacket = 1048576;
 			return;
 		default:
 			//lanciare eccezione sconosciuta!
@@ -113,30 +107,30 @@ void KCloud::NetObject::setBytesPerPacket(KCloud::NetObject::Payload payload){
 
 qint64 KCloud::NetObject::getBytesPerPacket() const{
 
-	return bytesPerPacket;
+	return m_bytesPerPacket;
 }
 
 void KCloud::NetObject::leaveSocket(){
 
-	disconnect(channel, SIGNAL(bytesWritten(qint64)),	this, SLOT(behaviorOnSend(qint64))	);
-	disconnect(channel, SIGNAL(readyRead()),			this, SLOT(recv())					);
-	disconnect(this,	SIGNAL(changeBlock(qint64)),	this, SLOT(send(qint64))			);
+	disconnect(m_channel,	SIGNAL(bytesWritten(qint64)),	this, SLOT(behaviorOnSend(qint64))	);
+	disconnect(m_channel,	SIGNAL(readyRead()),			this, SLOT(recv())					);
+	disconnect(this,		SIGNAL(changeBlock(qint64)),	this, SLOT(send(qint64))			);
 	clear();
 }
 
 void KCloud::NetObject::setReady(){
 
-	readyFlag = true;
+	m_readyFlag = true;
 }
 
 void KCloud::NetObject::setNotReady(){
 
-	readyFlag = false;
+	m_readyFlag = false;
 }
 
 bool KCloud::NetObject::isReady() const{
 
-	return readyFlag;
+	return m_readyFlag;
 }
 
 

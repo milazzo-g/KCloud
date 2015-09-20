@@ -1,124 +1,215 @@
 #include "Resource.h"
-#define COMPRESSED_EXT ".kcomp"
 
-KCloud::Resource::Resource(QObject *parent)
-{
+#define ZIP	".zip"
+
+KCloud::Resource::Resource(QObject *parent) : NetObject(parent){
 
 }
 
-KCloud::Resource::Resource(const QString &path, QObject *parent) : NetObject(parent){
+QString KCloud::Resource::getResourcePath() const{
 
-	clear();
-	setPath(path);
+	return m_resourcePath;
 }
 
-QString KCloud::Resource::getPath() const{
+QString KCloud::Resource::getZipName() const{
 
-	return filePath;
+	return m_zipName;
 }
 
-void KCloud::Resource::setWorkingDir(const QString &path){
+QString KCloud::Resource::getZipPath() const{
 
-	QFileInfo info(path);
-	if(info.exists() && info.isDir()){
-		workingDir = path;
-		return;
+	//eventualmente sistemare per winzoz
+	QString zip;
+	zip += getZipDir();
+	zip += "/";
+	zip += getZipName();
+	return zip;
+}
+
+void KCloud::Resource::setResourcePath(const QString &path){
+
+	m_resourcePath = path;
+	checkResource();
+}
+
+void KCloud::Resource::setZipName(const QString &path, const QString &ext){
+
+	m_zipName = path;
+	if(!m_zipName.contains(ZIP)){
+		if(ext == ""){
+			m_zipName += ZIP;
+		}else{
+			m_zipName += ext;
+		}
 	}
-	//lancia eccezione perchè il file non esiste
 }
 
-QString KCloud::Resource::getWorkingDir() const{
+void KCloud::Resource::setZipDir(const QString &path){
 
-	return workingDir;
+	m_zipDir = path;
+	checkDir();
+}
+
+QString KCloud::Resource::getZipDir() const{
+
+	return m_zipDir;
 }
 
 void KCloud::Resource::clear(){
 
 	NetObject::clear();
+	setNotCompressed();
+	m_resourcePath.clear();
+	m_zipDir.clear();
+	m_zipName.clear();
+	if(m_zipFile){
+		m_zipFile->close();
+		delete m_zipFile;
+	}
 }
 
 void KCloud::Resource::prepareForSend(){
 
-	NetObject::clear();
-	compress();
-	file = new QFile(getPath());
-	file->open(QIODevice::ReadOnly);
-	NetObject::prepareForSend();
+	checkZip();
+	if(isCompressed()){
+		m_zipFile = new QFile(getZipPath());
+		m_zipFile->open(QIODevice::ReadOnly);
+		NetObject::prepareForSend();
+	}else{
+		// LANCIA ECCEZIONE
+	}
 }
 
 void KCloud::Resource::prepareForRecv(){
 
+	m_zipFile = new QTemporaryFile(this);
+	m_zipFile->open(QIODevice::WriteOnly);
+	setReady();
 }
 
 void KCloud::Resource::compress(){
 
-	checkFilePath();
-	checkWorkingDir();
-	QString newPath =  getWorkingDir() + QString("/") + QString(QFileInfo(getPath()).fileName() + COMPRESSED_EXT);
+	checkResource();
+	checkDir();
+	if(QFileInfo(getResourcePath()).isDir()){
 
-	if(QFileInfo(getPath()).isFile()){
-		QFile::copy(getPath(), newPath);
-	}else{
-
+		JlCompress::compressDir(getResourcePath(), getZipPath());
+		return;
 	}
-	setPath(newPath);
-	setCompressed();
+	JlCompress::compressFile(getResourcePath(), getZipPath());
+}
+
+void KCloud::Resource::decompress(const bool autoRemove){
+
+	checkZip();
+	JlCompress::extractDir(getZipPath(), getZipDir());
+	if(autoRemove){
+		m_zipFile->remove();
+	}
 }
 
 void KCloud::Resource::send(const qint64 block){
 
+	if(!block){
+		QDataStream stream(m_channel);
+		stream << getNetworkSize();
+		return;
+	}
+	if(block <= m_packets){
+		m_bytesCounter = getBytesPerPacket();
+		m_channel->write(m_zipFile->read(getBytesPerPacket()));
+		return;
+	}
+	if(block == m_packets + 1){
+		m_bytesCounter = m_spareBytes;
+		m_channel->write(m_zipFile->read(m_bytesCounter));
+		return;
+	}
 }
 
 void KCloud::Resource::recv(){
 
-}
+	if(m_currentBlock == 0){
 
-qint64 KCloud::Resource::calculateNetworkSize(){
-
-	if(isCompressed()){
-		return QFileInfo(getPath()).size();
+		if(m_channel->bytesAvailable() < (qint64)sizeof(m_bytesCounter)){
+			return;
+		}
+		QDataStream stream(m_channel);
+		stream >> m_bytesCounter;
+		m_currentBlock++;
 	}
-	// LANCIA ECCEZIONI
-}
+	m_bytesCounter -= m_zipFile->write(m_channel->readAll());
 
-void KCloud::Resource::setCompressed(){
+	if(m_bytesCounter == 0){
 
-	compressionFlag = true;
-}
-
-void KCloud::Resource::setNotCompressed(){
-
-	compressionFlag = false;
-}
-
-bool KCloud::Resource::isCompressed() const{
-
-	return compressionFlag;
+		m_zipFile->close();
+		m_zipFile->rename(getZipPath());
+		emit objectReceived();
+	}else if(m_bytesCounter < 0){
+		//lanciare eccezione
+	}
 }
 
 void KCloud::Resource::behaviorOnSend(const qint64 dim){
 
-}
+	m_bytesCounter -= dim;
+	if(m_bytesCounter == 0){
 
-void KCloud::Resource::checkFilePath() const{
-	if(!(QFileInfo(getPath()).exists())){
-		//lancia eccezione perchè il file non esiste
+		m_currentBlock++;
+		if(m_currentBlock == m_packets + 2){
+			m_zipFile->close();
+			emit objectSended();
+		}else{
+			emit changeBlock(m_currentBlock);
+		}
+
+	}else if(m_bytesCounter < 0){
+
+		//lanciare eccezione
 	}
 }
 
-void KCloud::Resource::checkWorkingDir() const{
+qint64 KCloud::Resource::calculateNetworkSize(){
 
-	QFileInfo info(getWorkingDir());
-	if(info.exists() && info.isDir()){
-		return;
-	}
-	//lancia eccezione perchè il file non esiste
+	checkZip();
+	return QFileInfo(getZipPath()).size();
 }
 
-void KCloud::Resource::setPath(const QString &path){
+void KCloud::Resource::setCompressed(){
 
-	if(!(QFileInfo(path).exists())){
-		//lancia eccezione perchè il file non esiste
+	m_compressionFlag = true;
+}
+
+void KCloud::Resource::setNotCompressed(){
+
+	m_compressionFlag = false;
+}
+
+bool KCloud::Resource::isCompressed() const{
+
+	return m_compressionFlag;
+}
+
+void KCloud::Resource::checkResource(){
+	if(!(QFileInfo(m_resourcePath).exists())){
+		m_resourcePath.clear();
+		// LANCIA ECCEZIONE
 	}
-	filePath = path;
+}
+
+void KCloud::Resource::checkDir(){
+	if(!(QFileInfo(m_zipDir).exists()) || QFileInfo(m_zipDir).isFile()){
+		m_zipDir.clear();
+		// LANCIA ECCEZIONE
+	}
+}
+
+void KCloud::Resource::checkZip(){
+
+	QDir dir(getZipDir());
+
+	checkDir();
+	if(!dir.entryList().contains(getZipName())){
+		// LANCIA ECCEZIONE
+	}
 }
