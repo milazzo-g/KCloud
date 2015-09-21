@@ -52,7 +52,7 @@ namespace KCloud{
 		 * \details	Setta a zero {@link m_bytesCounter}, {@link m_packets}, {@link m_spareBytes}, {@link m_currentBlock}, mette
 		 *			il puntatore alla socket {@link m_channel} a NULL, ed infine setta l'oggetto stesso come non pronto (vedi {@link setNotReady()})
 		 */
-		virtual		void		clear();
+					void		clear();
 		/*!
 		 * \brief	Inizializza i dati per poter avviare la trasmissione.
 		 * \details	Dopo aver chiamato {@link clear()}, setta il numero dei pacchetti {@link m_packets} facendo la divisione tra la dimensione

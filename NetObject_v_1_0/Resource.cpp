@@ -1,5 +1,5 @@
 #include "Resource.h"
-
+#include <QThread>
 #define ZIP	".zip"
 
 KCloud::Resource::Resource(QObject *parent) : NetObject(parent){
@@ -97,6 +97,8 @@ void KCloud::Resource::prepareForRecv(){
 	m_zipFile = new QTemporaryFile(this);
 	m_zipFile->open(QIODevice::WriteOnly);
 	setReady();
+	qDebug() << "void KCloud::Resource::prepareForRecv() -> OK!";
+	qDebug() << "void KCloud::Resource::prepareForRecv() -> " << m_zipFile->fileName();
 }
 
 void KCloud::Resource::compress(){
@@ -180,16 +182,19 @@ void KCloud::Resource::recv(){
 		QDataStream stream(m_channel);
 		stream >> m_bytesCounter;
 		m_currentBlock++;
-	}
-	m_bytesCounter -= m_zipFile->write(m_channel->readAll());
+		qDebug() << "Dimensione ricevuta: " << m_bytesCounter << " bytes";
+	}else{
+		qDebug() << "<< RICEVUTI : " << m_channel->bytesAvailable() << " bytes";
+		m_bytesCounter -= m_zipFile->write(m_channel->readAll());
+		qDebug() << ">> RIMANENTI: " << m_bytesCounter << " bytes";
+		if(m_bytesCounter == 0){
 
-	if(m_bytesCounter == 0){
-
-		m_zipFile->close();
-		m_zipFile->rename(getZipPath());
-		emit objectReceived();
-	}else if(m_bytesCounter < 0){
-		//lanciare eccezione
+			m_zipFile->close();
+			m_zipFile->rename(getZipPath());
+			emit objectReceived();
+		}else if(m_bytesCounter < 0){
+			//lanciare eccezione
+		}
 	}
 }
 

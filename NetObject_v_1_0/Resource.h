@@ -30,7 +30,7 @@ namespace KCloud{
 						void		setZipDir(const QString &path);							// LANCIA ECCEZIONE
 						QString		getZipDir() const;
 
-			virtual		void		clear();
+						void		clear();
 			virtual		void		prepareForSend();										// LANCIA ECCEZIONE
 			virtual		void		prepareForRecv();										// LANCIA ECCEZIONE
 						void		compress();												// LANCIA ECCEZIONE

@@ -4,6 +4,7 @@ QT -= gui
 
 TARGET = NetObject_v_1_0
 CONFIG += console
+CONFIG += debug
 CONFIG -= app_bundle
 
 TEMPLATE = app
@@ -19,9 +20,11 @@ HEADERS += \
     clientserver.h
 
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../LIBS/quazip-0.7.1_build/lib/release/ -lquazip
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../LIBS/quazip-0.7.1_build/lib/debug/ -lquazip
-else:unix: LIBS += -L$$PWD/../../LIBS/quazip-0.7.1_build/lib/ -lquazip
 
-INCLUDEPATH += $$PWD/../../LIBS/quazip-0.7.1_build/include
-DEPENDPATH += $$PWD/../../LIBS/quazip-0.7.1_build/include
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Desktop/Quazip/lib/release/ -lquazip.1.0.0
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../Desktop/Quazip/lib/debug/ -lquazip.1.0.0
+else:unix: LIBS += -L$$PWD/../../../Desktop/Quazip/lib/ -lquazip.1.0.0
+
+INCLUDEPATH += $$PWD/../../../Desktop/Quazip/include
+DEPENDPATH += $$PWD/../../../Desktop/Quazip/include

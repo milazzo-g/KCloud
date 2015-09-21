@@ -4,6 +4,7 @@
 #include "NetObject.h"
 #include "Resource.h"
 
+#include <QList>
 #include <QThread>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -21,10 +22,8 @@ class ClientServer : public QThread{
 	public slots:
 
 	protected:
-
 		QTcpSocket *channel;
 		KCloud::Resource *res;
-
 };
 
 class WorkerServer : public ClientServer{
@@ -33,8 +32,9 @@ class WorkerServer : public ClientServer{
 	public:
 		explicit WorkerServer(int fd, QObject *parent = 0);
 
-	protected:
-	//	void	run();
+	protected slots:
+		void notificaBytes();
+		void notificaRicezione();
 
 };
 
@@ -53,7 +53,6 @@ class Client : public ClientServer{
 
 
 	protected:
-		void	run();
 
 	private:
 
@@ -64,14 +63,13 @@ class Client : public ClientServer{
 
 class MainServer : public QTcpServer{
 	Q_OBJECT
-
 	public:
 		explicit MainServer(QObject *parent = 0);
 
 	protected:
 		void incomingConnection(qintptr sock);
-
-
+	private:
+		QList<WorkerServer *> threads;
 };
 
 
