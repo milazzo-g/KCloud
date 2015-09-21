@@ -22,6 +22,8 @@ namespace KCloud{
 							QString			lastSqlError() const;
 		protected:
 							QSqlQuery		m_query;
+							QString			m_lastDriverError;
+							QString			m_lastSqlError;
 
 		private:
 			const static	QString			m_username;
@@ -31,8 +33,6 @@ namespace KCloud{
 			const static	int				m_hostport;
 							QSqlDatabase	m_db;
 							bool			m_openFlag;
-							QString			m_lastDriverError;
-							QString			m_lastSqlError;
 
 	};
 }
