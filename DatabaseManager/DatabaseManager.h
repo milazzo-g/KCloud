@@ -13,29 +13,26 @@ namespace KCloud{
 	class DatabaseManager : public QObject{
 			Q_OBJECT
 		public:
-			explicit		DatabaseManager(QObject *parent = 0);
-							DatabaseManager(const QString &userName,
-											const QString &password,
-											const QString &hostAddr,
-											const quint16 &hostPort,
-											const QString &dataName,
-											QObject * parent = 0);
+			explicit						DatabaseManager(QObject *parent = 0);
 
-					void	setConnectionParameters(const QString &userName,
-													const QString &password,
-													const QString &hostAddr,
-													const quint16 &hostPort,
-													const QString &dataName);
-					bool	testConnection();
-
-		signals:
-
-		public slots:
+							bool			open();
+							bool			isOpen() const;
+							void			close();
+							QString			lastDriverError() const;
+							QString			lastSqlError() const;
+		protected:
+							QSqlQuery		m_query;
 
 		private:
-			QSqlDatabase	m_db;
-			QString			m_lastSqlErrorString;
-			QSqlError		m_lastSqlError;
+			const static	QString			m_username;
+			const static	QString			m_password;
+			const static	QString			m_hostname;
+			const static	QString			m_database;
+			const static	int				m_hostport;
+							QSqlDatabase	m_db;
+							bool			m_openFlag;
+							QString			m_lastDriverError;
+							QString			m_lastSqlError;
 
 	};
 }
