@@ -12,7 +12,7 @@ MainServer::MainServer(QObject *parent) : QTcpServer(parent){
 void MainServer::incomingConnection(qintptr sock){
 
 	qDebug() << "Nuova connessione accettata!";
-	threads << new WorkerServer(fd, this);
+	threads << new WorkerServer(sock, this);
 	threads.last()->start();
 }
 
