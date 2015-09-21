@@ -1,6 +1,14 @@
 #include "User.h"
 #define HASHLENGTH	32
 
+bool KCloud::User::checkMail(const QString &mail){
+
+	QString strPatt = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b";
+	QRegExp control(strPatt, Qt::CaseInsensitive, QRegExp::RegExp);
+
+	return control.exactMatch(mail);
+}
+
 KCloud::User::User(QObject *parent) : QObject(parent){
 
 	clear();
@@ -37,10 +45,7 @@ void KCloud::User::setUnLogged(){
 
 void KCloud::User::setEmail(const QString &email){
 
-	QString strPatt = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b";
-	QRegExp control(strPatt, Qt::CaseInsensitive, QRegExp::RegExp);
-
-	if(control.exactMatch(email)){
+	if(User::checkMail(email)){
 		m_email = email;
 	}else{
 		//lanciare eccezione

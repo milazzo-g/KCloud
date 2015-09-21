@@ -24,6 +24,7 @@ namespace KCloud{
 				Encrypt,
 				NotEncrypt
 			};
+			static	bool	checkMail(const QString &mail);			//lancia eccezioni
 
 			explicit	User(QObject *parent = 0);
 						User(const QString &mail, const QString &password, PwdMode mode = Encrypt, QObject *parent = 0);
