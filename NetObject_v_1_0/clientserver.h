@@ -53,7 +53,7 @@ class Client : public ClientServer{
 
 
 	protected:
-
+		void	run();
 	private:
 
 		QString host;
