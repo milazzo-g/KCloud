@@ -13,15 +13,17 @@ SOURCES += main.cpp \
     NetObject.cpp \
     Resource.cpp \
     clientserver.cpp \
-    Commandpacket.cpp
+    Commandpacket.cpp \
+    ResourceHeader.cpp \
+    User.cpp
 
 HEADERS += \
     NetObject.h \
     Resource.h \
     clientserver.h \
-    Commandpacket.h
-
-
+    Commandpacket.h \
+    ResourceHeader.h \
+    User.h
 
 linux{
     message("Utilizzo configurazione Linux")
