@@ -20,9 +20,21 @@ WorkerServer::WorkerServer(int fd, QObject *parent) : ClientServer(parent){
 
 	channel->setSocketDescriptor(fd);
 	qDebug() << "Thread costruito!";
-	KCloud::Resource * tmp = reinterpret_cast<KCloud::Resource *>(res);
-	tmp->setZipDir("/home/giuseppe/Scrivania");
-	tmp->setZipName("testTrasmissione1");
+	res->setZipDir("/home/giuseppe/Scrivania");
+	res->setZipName("testTrasmissione1");
+	res->prepareForRecv();
+	res->receiveFrom(channel);
+	connect(channel, SIGNAL(readyRead()), this, SLOT(notificaBytes()));
+	connect(res, SIGNAL(objectReceived()), this, SLOT(notificaRicezione()));
+	qDebug() << "Connect eseguite!";
+}
+
+void WorkerServer::notificaBytes(){
+	qDebug() << "Ricevuti " << channel->bytesAvailable();
+}
+
+void WorkerServer::notificaRicezione(){
+	qDebug() << "******* RICEVUTO *******";
 }
 
 

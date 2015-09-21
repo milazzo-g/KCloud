@@ -4,6 +4,7 @@ QT -= gui
 
 TARGET = NetObject_v_1_0
 CONFIG += console
+CONFIG += debug
 CONFIG -= app_bundle
 
 TEMPLATE = app

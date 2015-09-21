@@ -52,6 +52,7 @@ void KCloud::NetObject::receiveFrom(QTcpSocket *sock){
 		m_channel = sock;
 		connect(m_channel,	SIGNAL(readyRead()),		this, SLOT(recv()),			Qt::UniqueConnection);
 		connect(this,		SIGNAL(objectReceived()),	this, SLOT(leaveSocket()),	Qt::UniqueConnection);
+		qDebug() << "void KCloud::NetObject::receiveFrom(QTcpSocket *sock)- > OK!";
 	}else{
 		//lanciare eccezione perchè la socket è NULL oppure perchè non ci si può leggere
 	}

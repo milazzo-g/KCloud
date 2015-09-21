@@ -30,8 +30,10 @@ class WorkerServer : public ClientServer{
 	public:
 		explicit WorkerServer(int fd, QObject *parent = 0);
 
-	protected:
-		void	run();
+	protected slots:
+		void notificaBytes();
+		void notificaRicezione();
+
 
 };
 
@@ -45,7 +47,6 @@ class Client : public ClientServer{
 		void sendData();
 
 	protected:
-		void	run();
 
 	private:
 
