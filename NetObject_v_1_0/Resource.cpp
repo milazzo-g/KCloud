@@ -64,7 +64,6 @@ void KCloud::Resource::clear(){
 	m_zipName.clear();
 	if(m_zipFile){
 		m_zipFile->close();
-		qDebug() << "ho fatto danno DIOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO";
 
 		delete m_zipFile;
 	}
@@ -74,17 +73,12 @@ void KCloud::Resource::prepareForSend(){
 
 	compress();
 	checkZip();
-	qDebug() << "path risorsa = " << getResourcePath();
-	qDebug() << "Path file zip = " << getZipPath();
 
 	if(isCompressed()){
 		m_zipFile = new QFile(getZipPath());
 		m_zipFile->open(QIODevice::ReadOnly);
-		qDebug() << "filezip...." << m_zipFile->isOpen();
 
 		NetObject::prepareForSend();
-		qDebug() << "prepare for send";
-		qDebug() << "numero pacchetti ====== " << m_packets;
 
 	}else{
 		qDebug() << "non compresso";
@@ -98,7 +92,6 @@ void KCloud::Resource::prepareForRecv(){
 	m_zipFile->open(QIODevice::WriteOnly);
 	setReady();
 	qDebug() << "void KCloud::Resource::prepareForRecv() -> OK!";
-	qDebug() << "void KCloud::Resource::prepareForRecv() -> " << m_zipFile->fileName();
 }
 
 void KCloud::Resource::compress(){
@@ -135,38 +128,20 @@ bool KCloud::Resource::removeZipFile(){
 
 void KCloud::Resource::send(const qint64 block){
 
-	qDebug() << "Chiamata send con val = " << block;
-	qDebug() << "numero Packet = " << m_packets;
+	qDebug() << "Numero Packet rimanenti = " << m_packets;
 	if(block == 0){
 		QDataStream stream(m_channel);
 		stream << getNetworkSize();
-		qDebug() << "Dimensione da inviare= " << getNetworkSize();
+		qDebug() << "Dimensione da inviare = " << getNetworkSize();
 		return;
 	}
 	if(block <= m_packets){
 		m_bytesCounter = getBytesPerPacket();
-		if(m_zipFile){
-			qDebug() << "file non null";
-		}else{
-			qDebug() << "file null !!!!!!!!!!!!!!!!!!!!!!!!!";
-		}
-		qDebug() << "Stato file zip: "<< m_zipFile->isOpen();
 		m_channel->write(m_zipFile->read(getBytesPerPacket()));
 		return;
 	}
-
 	if(block == m_packets + 1){
 		m_bytesCounter = m_spareBytes;
-
-		if(m_zipFile == NULL){
-			qDebug() << "file null";
-		}else{
-			qDebug() << "file non null";
-		}
-
-		qDebug() << "porco dio" << m_zipFile->fileName();
-		qDebug() << "Stato file zip: "<< m_zipFile->isOpen();
-
 		m_channel->write(m_zipFile->read(m_bytesCounter));
 		return;
 	}
@@ -187,8 +162,8 @@ void KCloud::Resource::recv(){
 		qDebug() << "<< RICEVUTI : " << m_channel->bytesAvailable() << " bytes";
 		m_bytesCounter -= m_zipFile->write(m_channel->readAll());
 		qDebug() << ">> RIMANENTI: " << m_bytesCounter << " bytes";
-		if(m_bytesCounter == 0){
 
+		if(m_bytesCounter == 0){
 			m_zipFile->close();
 			m_zipFile->rename(getZipPath());
 			emit objectReceived();

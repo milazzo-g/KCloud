@@ -5,7 +5,6 @@ ClientServer::ClientServer(QObject *parent) : QThread(parent), channel(new QTcpS
 
 }
 
-
 MainServer::MainServer(QObject *parent) : QTcpServer(parent){
 }
 
@@ -36,7 +35,6 @@ void WorkerServer::notificaBytes(){
 void WorkerServer::notificaRicezione(){
 	qDebug() << "******* RICEVUTO *******";
 }
-
 
 Client::Client(const QString &host, const quint16 &port, QObject *parent) : ClientServer(parent){
 

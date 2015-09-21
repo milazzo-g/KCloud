@@ -10,7 +10,6 @@
 #include <QTcpSocket>
 #include <QAbstractSocket>
 
-
 class ClientServer : public QThread{
 	Q_OBJECT
 
@@ -37,7 +36,6 @@ class WorkerServer : public ClientServer{
 		void notificaRicezione();
 
 };
-
 
 class Client : public ClientServer{
 	Q_OBJECT
@@ -71,6 +69,5 @@ class MainServer : public QTcpServer{
 	private:
 		QList<WorkerServer *> threads;
 };
-
 
 #endif // CLIENTSERVER_H

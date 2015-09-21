@@ -12,15 +12,14 @@ TEMPLATE = app
 SOURCES += main.cpp \
     NetObject.cpp \
     Resource.cpp \
-    clientserver.cpp
+    clientserver.cpp \
+    Commandpacket.cpp
 
 HEADERS += \
     NetObject.h \
     Resource.h \
-    clientserver.h
-
-
-
+    clientserver.h \
+    Commandpacket.h
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Desktop/Quazip/lib/release/ -lquazip.1.0.0
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../Desktop/Quazip/lib/debug/ -lquazip.1.0.0
