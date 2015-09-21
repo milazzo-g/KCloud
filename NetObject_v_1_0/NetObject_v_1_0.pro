@@ -21,9 +21,16 @@ HEADERS += \
     clientserver.h \
     Commandpacket.h
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../Desktop/Quazip/lib/release/ -lquazip.1.0.0
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../Desktop/Quazip/lib/debug/ -lquazip.1.0.0
-else:unix: LIBS += -L$$PWD/../../../Desktop/Quazip/lib/ -lquazip.1.0.0
 
-INCLUDEPATH += $$PWD/../../../Desktop/Quazip/include
-DEPENDPATH += $$PWD/../../../Desktop/Quazip/include
+
+unix:!macx{
+    LIBS += -L$$PWD/../LIBS/quazip-0.7.1_build/linux/lib/ -lquazip
+    INCLUDEPATH += $$PWD/../LIBS/quazip-0.7.1_build/linux/include
+    DEPENDPATH += $$PWD/../LIBS/quazip-0.7.1_build/linux/include
+}
+unix:{
+    LIBS += -L$$PWD/../LIBS/quazip-0.7.1_build/mac/lib/ -lquazip
+    INCLUDEPATH += $$PWD/../LIBS/quazip-0.7.1_build/mac/include
+    DEPENDPATH += $$PWD/../LIBS/quazip-0.7.1_build/mac/include
+}
+
