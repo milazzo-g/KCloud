@@ -4,8 +4,6 @@
 #include <QException>
 #include <QString>
 
-#include <c++/v1/type_traits>
-
 namespace KCloud{
 
 	class Exception : public QException{

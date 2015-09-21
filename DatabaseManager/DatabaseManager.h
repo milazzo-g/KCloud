@@ -8,6 +8,7 @@
 #include <QSqlDriver>
 #include <QStringList>
 #include <QSqlDatabase>
+
 namespace KCloud{
 
 	class DatabaseManager : public QObject{
@@ -33,6 +34,20 @@ namespace KCloud{
 			const static	int				m_hostport;
 							QSqlDatabase	m_db;
 							bool			m_openFlag;
+
+	};
+
+	class UsersManager : public DatabaseManager{
+			Q_OBJECT
+		public:
+			enum UsersManagerAnswer{
+				UserOK,
+				UserNotFound,
+				UserWrongHash
+			};
+			explicit						UsersManager(QObject *parent = 0);
+						UsersManagerAnswer	checkLogin(const User &usr);
+						User				getUser();
 
 	};
 }
