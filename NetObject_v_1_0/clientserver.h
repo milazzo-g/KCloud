@@ -14,11 +14,9 @@ class ClientServer : public QThread{
 	public:
 		explicit ClientServer(QObject *parent = 0);
 
-
 	signals:
 
 	public slots:
-
 
 	protected:
 
@@ -34,8 +32,7 @@ class WorkerServer : public ClientServer{
 		explicit WorkerServer(int fd, QObject *parent = 0);
 
 	protected:
-		void run();
-
+		void	run();
 
 };
 
@@ -44,12 +41,11 @@ class Client : public ClientServer{
 	Q_OBJECT
 
 	public:
-		explicit Client(QObject *parent = 0);
-		QString address;
-		quint16 port;
+		Client(const QString &host, const quint16 &port, QObject *parent = 0);
 
 	protected:
-		void run();
+		void	run();
+	private:
 
 };
 
