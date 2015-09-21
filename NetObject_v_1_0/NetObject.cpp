@@ -21,10 +21,14 @@ void KCloud::NetObject::clear(){
 }
 
 void KCloud::NetObject::prepareForSend(){
-	clear();
+	NetObject::clear();
+	qDebug() << "bytePerPacket = " << getBytesPerPacket();
 	m_packets		= getNetworkSize() / getBytesPerPacket();
 	m_spareBytes	= getNetworkSize() % getBytesPerPacket();
 	m_bytesCounter  = (qint64)sizeof(getNetworkSize());
+	qDebug() << "m_packets = " << m_packets;
+	qDebug() << "m_spareBytes = " << m_spareBytes;
+
 	setReady();
 }
 
@@ -36,11 +40,14 @@ void KCloud::NetObject::sendThrough(QTcpSocket *sock){
 			connect(m_channel, SIGNAL(bytesWritten(qint64)), this, SLOT(behaviorOnSend(qint64)), Qt::UniqueConnection);
 			connect(this, SIGNAL(changeBlock(qint64)), this, SLOT(send(qint64)), Qt::UniqueConnection);
 			connect(this, SIGNAL(objectSended()), this, SLOT(leaveSocket()), Qt::UniqueConnection);
+			qDebug() << "chiamo send(0)";
 			send();
 		}else{
+			qDebug() << "socket = NULL";
 			//lanciare eccezione perchè la socket è NULL oppure perchè non ci si può scrivere
 		}
 	}else{
+		qDebug() << "pacchetto non pronto";
 		//lanciare eccezione perchè il pacchetto non è pronto
 	}
 }

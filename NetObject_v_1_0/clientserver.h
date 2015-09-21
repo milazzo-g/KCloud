@@ -7,6 +7,8 @@
 #include <QThread>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QAbstractSocket>
+
 
 class ClientServer : public QThread{
 	Q_OBJECT
@@ -32,7 +34,7 @@ class WorkerServer : public ClientServer{
 		explicit WorkerServer(int fd, QObject *parent = 0);
 
 	protected:
-		void	run();
+	//	void	run();
 
 };
 
@@ -42,8 +44,13 @@ class Client : public ClientServer{
 
 	public:
 		Client(const QString &host, const quint16 &port, QObject *parent = 0);
-		void init();
-		void sendData();
+
+	public slots:
+		void	init();
+		void	finish();
+		void	sendData();
+		void	handleStateChange(QAbstractSocket::SocketState state);
+
 
 	protected:
 		void	run();

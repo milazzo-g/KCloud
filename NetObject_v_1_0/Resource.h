@@ -25,7 +25,7 @@ namespace KCloud{
 						QString		getZipName() const;
 						QString		getZipPath() const;
 						void		setResourcePath(const QString &path);
-						void		setZipName(const QString &path, const QString &ext = "");
+						void		setZipName(const QString &name, const QString &ext = "");
 
 						void		setZipDir(const QString &path);							// LANCIA ECCEZIONE
 						QString		getZipDir() const;
@@ -35,7 +35,7 @@ namespace KCloud{
 			virtual		void		prepareForRecv();										// LANCIA ECCEZIONE
 						void		compress();												// LANCIA ECCEZIONE
 						void		decompress(const bool autoRemove = true);				// LANCIA ECCEZIONE
-						bool		removeZipFile();
+						bool		removeZipFile();										// LANCIA ECCEZIONE
 		//	virtual		void		open();
 
 		protected slots:

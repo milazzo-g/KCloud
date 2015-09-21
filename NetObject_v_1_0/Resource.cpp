@@ -32,9 +32,9 @@ void KCloud::Resource::setResourcePath(const QString &path){
 	checkResource();
 }
 
-void KCloud::Resource::setZipName(const QString &path, const QString &ext){
+void KCloud::Resource::setZipName(const QString &name, const QString &ext){
 
-	m_zipName = path;
+	m_zipName = name;
 	if(!m_zipName.contains(ZIP)){
 		if(ext == ""){
 			m_zipName += ZIP;
@@ -64,6 +64,8 @@ void KCloud::Resource::clear(){
 	m_zipName.clear();
 	if(m_zipFile){
 		m_zipFile->close();
+		qDebug() << "ho fatto danno DIOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO";
+
 		delete m_zipFile;
 	}
 }
@@ -72,11 +74,20 @@ void KCloud::Resource::prepareForSend(){
 
 	compress();
 	checkZip();
+	qDebug() << "path risorsa = " << getResourcePath();
+	qDebug() << "Path file zip = " << getZipPath();
+
 	if(isCompressed()){
 		m_zipFile = new QFile(getZipPath());
 		m_zipFile->open(QIODevice::ReadOnly);
+		qDebug() << "filezip...." << m_zipFile->isOpen();
+
 		NetObject::prepareForSend();
+		qDebug() << "prepare for send";
+		qDebug() << "numero pacchetti ====== " << m_packets;
+
 	}else{
+		qDebug() << "non compresso";
 		// LANCIA ECCEZIONE
 	}
 }
@@ -94,10 +105,12 @@ void KCloud::Resource::compress(){
 	checkDir();
 	if(QFileInfo(getResourcePath()).isDir()){
 
-		JlCompress::compressDir(getResourcePath(), getZipPath());
+		JlCompress::compressDir(getZipPath(), getResourcePath());
+		setCompressed();
 		return;
 	}
-	JlCompress::compressFile(getResourcePath(), getZipPath());
+	JlCompress::compressFile(getZipPath(), getResourcePath());
+	setCompressed();
 }
 
 void KCloud::Resource::decompress(const bool autoRemove){
@@ -120,18 +133,38 @@ bool KCloud::Resource::removeZipFile(){
 
 void KCloud::Resource::send(const qint64 block){
 
-	if(!block){
+	qDebug() << "Chiamata send con val = " << block;
+	qDebug() << "numero Packet = " << m_packets;
+	if(block == 0){
 		QDataStream stream(m_channel);
 		stream << getNetworkSize();
+		qDebug() << "Dimensione da inviare= " << getNetworkSize();
 		return;
 	}
 	if(block <= m_packets){
 		m_bytesCounter = getBytesPerPacket();
+		if(m_zipFile){
+			qDebug() << "file non null";
+		}else{
+			qDebug() << "file null !!!!!!!!!!!!!!!!!!!!!!!!!";
+		}
+		qDebug() << "Stato file zip: "<< m_zipFile->isOpen();
 		m_channel->write(m_zipFile->read(getBytesPerPacket()));
 		return;
 	}
+
 	if(block == m_packets + 1){
 		m_bytesCounter = m_spareBytes;
+
+		if(m_zipFile == NULL){
+			qDebug() << "file null";
+		}else{
+			qDebug() << "file non null";
+		}
+
+		qDebug() << "porco dio" << m_zipFile->fileName();
+		qDebug() << "Stato file zip: "<< m_zipFile->isOpen();
+
 		m_channel->write(m_zipFile->read(m_bytesCounter));
 		return;
 	}
