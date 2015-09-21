@@ -16,7 +16,8 @@ SOURCES += main.cpp \
     clientserver.cpp \
     Commandpacket.cpp \
     ResourceHeader.cpp \
-    User.cpp
+    User.cpp \
+    ../Exceptions/Exceptions.cpp
 
 HEADERS += \
     NetObject.h \
@@ -24,7 +25,8 @@ HEADERS += \
     clientserver.h \
     Commandpacket.h \
     ResourceHeader.h \
-    User.h
+    User.h \
+    ../Exceptions/Exceptions.h
 
 linux{
     message("Utilizzo configurazione Linux")
