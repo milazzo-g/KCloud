@@ -6,6 +6,7 @@
 #include <QRegExp>
 #include <QDataStream>
 #include <QCryptographicHash>
+#include "../Exceptions/Exceptions.h"
 
 namespace KCloud{
 
@@ -24,7 +25,7 @@ namespace KCloud{
 				Encrypt,
 				NotEncrypt
 			};
-			static	bool	checkMail(const QString &mail);			//lancia eccezioni
+			static	void checkMail(const QString &mail) throw (UserException);
 
 			explicit	User(QObject *parent = 0);
 						User(const QString &mail, const QString &password, PwdMode mode = Encrypt, QObject *parent = 0);
@@ -33,8 +34,8 @@ namespace KCloud{
 				void	clear();
 				void	setLogged();
 				void	setUnLogged();
-				void	setEmail(const QString &email);
-				void	setHash(const QString &password, PwdMode mode = Encrypt);
+				void	setEmail(const QString &email) throw (UserException);
+				void	setHash(const QString &password, PwdMode mode = Encrypt) throw (UserException);
 				qint64	getSpace() const;
 				QString getEmail() const;
 				QString getHash() const;

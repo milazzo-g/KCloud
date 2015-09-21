@@ -2,9 +2,13 @@
 #define RESOURCEHEADER_H
 
 #include <QMap>
+#include <QDir>
 #include <QObject>
 #include <QString>
+#include <QFileInfo>
 #include <QDataStream>
+#include <QFileInfoList>
+
 #include "User.h"
 
 namespace KCloud{
@@ -25,30 +29,34 @@ namespace KCloud{
 				PermUndef
 			};
 
+			enum ResourceType{
+				Dir,
+				File
+			};
 
 			explicit								ResourceHeader(QObject *parent = 0);
 													ResourceHeader(const QString &path,
 																   const User &sessionUser,
 																   const quint64 &parentId,
 																   const QMap<QString, ResourcePerm> &permissionTable = QMap<QString, ResourcePerm>(),
-																   ResourcePerm publicPerm = PermUndef);
-
+																   ResourcePerm publicPerm = PermUndef,
+																   QObject *parent = 0) throw (ResourceException, UserException);
+						void						clear();
 						void						setParentId(const quint64 &id);
-						void						setOwner(const QString &owner);
-						void						setPublicPerm(ResourcePerm publicPerm = PermUndef);
-						void						setPermissionTable(const QMap<QString, ResourcePerm>	&permissioTable = QMap<QString, ResourcePerm>());
-						bool						addPermission(const QString &mail, ResourcePerm perm);
-						bool						modPermission(const QString &mail, ResourcePerm perm);
-						bool						delPermission(const QString &mail);
-						bool						setPublicPermission(ResourcePerm perm = PermUndef);
+						void						setOwner(const User &sessionUser);
+						void						setPermissionTable(const QMap<QString, ResourcePerm> &permissioTable = QMap<QString, ResourcePerm>());
+						bool						addPermission(const QString &mail, ResourcePerm perm) throw(UserException);
+						bool						modPermission(const QString &mail, ResourcePerm perm) throw(UserException);
+						bool						delPermission(const QString &mail) throw(UserException);
+						void						setPublicPermission(ResourcePerm perm = PermUndef);
 						qint64						getSize() const;
 						quint64						getId() const;
 						quint64						getParentId() const;
 						QString						getOwner() const;
+						ResourceType				getType() const;
 						ResourcePerm				getPublicPermission();
-						ResourcePerm				getPermission(const QString &mail);
+						ResourcePerm				getPermission(const QString &mail) throw(UserException);
 						QMap<QString, ResourcePerm>	getPermissionTable() const;
-
 
 		signals:
 
@@ -60,8 +68,10 @@ namespace KCloud{
 						quint64						m_parentId;
 						QString						m_owner;
 						ResourcePerm				m_publicPerm;
+						ResourceType				m_type;
 						QMap<QString, ResourcePerm>	m_permissionTable;
 
+						qint64						calculateDirSize(const QString &path);
 
     };
 
@@ -69,6 +79,8 @@ namespace KCloud{
 	QDataStream &operator>>(QDataStream &inp, ResourceHeader &tmp);
 	QDataStream &operator<<(QDataStream &out, const ResourceHeader::ResourcePerm &tmp);
 	QDataStream &operator>>(QDataStream &inp, ResourceHeader::ResourcePerm &tmp);
+	QDataStream &operator<<(QDataStream &out, const ResourceHeader::ResourceType &tmp);
+	QDataStream &operator>>(QDataStream &inp, ResourceHeader::ResourceType &tmp);
 
 }
 

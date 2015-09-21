@@ -1,12 +1,16 @@
 #include "User.h"
 #define HASHLENGTH	32
 
-bool KCloud::User::checkMail(const QString &mail){
+void KCloud::User::checkMail(const QString &mail) throw (UserException){
 
 	QString strPatt = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b";
 	QRegExp control(strPatt, Qt::CaseInsensitive, QRegExp::RegExp);
 
-	return control.exactMatch(mail);
+	if(!control.exactMatch(mail)){
+
+		throw BadMailException();
+	}
+	return;
 }
 
 KCloud::User::User(QObject *parent) : QObject(parent){
@@ -43,29 +47,29 @@ void KCloud::User::setUnLogged(){
 	m_state = false;
 }
 
-void KCloud::User::setEmail(const QString &email){
+void KCloud::User::setEmail(const QString &email) throw (UserException){
 
-	if(User::checkMail(email)){
-		m_email = email;
-	}else{
-		//lanciare eccezione
-	}
+	User::checkMail(email);
+	m_email = email;
 }
 
-void KCloud::User::setHash(const QString &password, KCloud::User::PwdMode mode){
+void KCloud::User::setHash(const QString &password, KCloud::User::PwdMode mode) throw (UserException){
 
 	if(password.isEmpty()){
-		//lanciare eccezione
+
+		throw EmptyPasswordException();
 	}
 	if(mode == Encrypt){
 		m_hash = QCryptographicHash::hash(password.toLocal8Bit(), QCryptographicHash::Md5).toHex();
 	}else if(mode == NotEncrypt){
 		if(password.length() != HASHLENGTH){
-			//lanciare eccezione
+
+			throw BadHashLengthException();
 		}
 		m_hash = password;
 	}else{
-		//lancio eccezione enum
+
+		throw UnknownException();
 	}
 }
 
