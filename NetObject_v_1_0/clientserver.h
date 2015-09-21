@@ -21,7 +21,7 @@ class ClientServer : public QThread{
 	protected:
 
 		QTcpSocket *channel;
-		KCloud::NetObject *res;
+		KCloud::Resource *res;
 
 };
 
@@ -42,10 +42,16 @@ class Client : public ClientServer{
 
 	public:
 		Client(const QString &host, const quint16 &port, QObject *parent = 0);
+		void init();
+		void sendData();
 
 	protected:
 		void	run();
+
 	private:
+
+		QString host;
+		quint16 port;
 
 };
 

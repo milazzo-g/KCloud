@@ -70,6 +70,7 @@ void KCloud::Resource::clear(){
 
 void KCloud::Resource::prepareForSend(){
 
+	compress();
 	checkZip();
 	if(isCompressed()){
 		m_zipFile = new QFile(getZipPath());
@@ -106,6 +107,15 @@ void KCloud::Resource::decompress(const bool autoRemove){
 	if(autoRemove){
 		m_zipFile->remove();
 	}
+}
+
+bool KCloud::Resource::removeZipFile(){
+
+	checkZip();
+	if(m_zipFile){
+		return m_zipFile->remove();
+	}
+	return false;
 }
 
 void KCloud::Resource::send(const qint64 block){

@@ -19,3 +19,20 @@ WorkerServer::WorkerServer(int fd, QObject *parent) : ClientServer(parent){
 	channel->setSocketDescriptor(fd);
 
 }
+
+
+Client::Client(const QString &host, const quint16 &port, QObject *parent) : ClientServer(parent){
+
+	this->host = host;
+	this->port = port;
+}
+
+void Client::init(){
+
+	channel->connectToHost(host, port);
+	if(channel->isOpen()){
+		qDebug() << "Connessione stabilita";
+	}else{
+		qDebug() << "Connessione fallita";
+	}
+}

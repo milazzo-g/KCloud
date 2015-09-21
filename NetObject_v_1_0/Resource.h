@@ -34,7 +34,8 @@ namespace KCloud{
 			virtual		void		prepareForSend();										// LANCIA ECCEZIONE
 			virtual		void		prepareForRecv();										// LANCIA ECCEZIONE
 						void		compress();												// LANCIA ECCEZIONE
-						void		decompress(const bool autoRemove = true);											// LANCIA ECCEZIONE
+						void		decompress(const bool autoRemove = true);				// LANCIA ECCEZIONE
+						bool		removeZipFile();
 		//	virtual		void		open();
 
 		protected slots:
