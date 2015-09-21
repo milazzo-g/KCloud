@@ -19,6 +19,7 @@ namespace KCloud{
 
 			enum Type{
 				//User
+				UserBadMail
 
 				//Resource
 
@@ -28,10 +29,25 @@ namespace KCloud{
 			};
 
 			virtual const char *		what()		const throw ()	= 0;
-			virtual ExceptionSubclass	subclass()	const			= 0;
 			virtual	Type				type()		const			= 0;
+			virtual ExceptionSubclass	subclass()	const			= 0;
 			virtual Exception *			clone()		const;
 			virtual void				raise()		const;
 	};
+
+	class UserException : public Exception{
+
+		public:
+			virtual ExceptionSubclass	subclass()	const;
+	};
+
+	class BadMailException : public UserException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+
 }
 #endif // EXCEPTION_H
