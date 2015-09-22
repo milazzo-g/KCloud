@@ -19,40 +19,39 @@ namespace KCloud{
 
 		public:
 			explicit				Resource(QObject *parent = 0);
-									Resource(const QString &path, QObject *parent = 0);		//LANCIA ECCEZIONI
 
 						QString		getResourcePath() const;
 						QString		getZipName() const;
 						QString		getZipPath() const;
-						void		setResourcePath(const QString &path);
+						void		setResourcePath(const QString &path) throw(Exception);
 						void		setZipName(const QString &name, const QString &ext = "");
 
-						void		setZipDir(const QString &path);							// LANCIA ECCEZIONE
+						void		setZipDir(const QString &path) throw(Exception);
 						QString		getZipDir() const;
 
 						void		clear();
-			virtual		void		prepareForSend();										// LANCIA ECCEZIONE
-			virtual		void		prepareForRecv();										// LANCIA ECCEZIONE
-						void		compress();												// LANCIA ECCEZIONE
-						void		decompress(const bool autoRemove = true);				// LANCIA ECCEZIONE
-						bool		removeZipFile();										// LANCIA ECCEZIONE
+			virtual		void		prepareForSend() throw(Exception);
+			virtual		void		prepareForRecv();
+						void		compress() throw(Exception);
+						void		decompress(const bool autoRemove = true) throw(Exception);
+						bool		removeZipFile() throw(Exception);
 		//	virtual		void		open();
 
 		protected slots:
 			virtual		void		send(const qint64 block = 0);
-			virtual		void		recv();
-			virtual		void		behaviorOnSend(const qint64 dim);						// LANCIA ECCEZIONE
+			virtual		void		recv() throw(Exception);
+			virtual		void		behaviorOnSend(const qint64 dim) throw(Exception);
 
 		protected:
-			virtual		qint64		calculateNetworkSize();									// LANCIA ECCEZIONE
+			virtual		qint64		calculateNetworkSize() throw(Exception);
 						void		setCompressed();
 						void		setNotCompressed();
 						bool		isCompressed() const;
 
 		private:
-						void		checkResource();										// LANCIA ECCEZIONE
-						void		checkDir();												// LANCIA ECCEZIONE
-						void		checkZip();												// LANCIA ECCEZIONE
+						void		checkResource() throw(Exception);
+						void		checkDir() throw(Exception);
+						void		checkZip() throw(Exception);
 
 			bool		m_compressionFlag;
 			QString		m_resourcePath;
