@@ -3,16 +3,18 @@
 
 #include <QObject>
 #include <QString>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QSqlDriver>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlDriver>
 #include <QStringList>
-#include <QSqlDatabase>
+#include <QtSql/QSqlDatabase>
+
+#include "../NetObject_v_1_0/User.h"
 
 namespace KCloud{
 
 	class DatabaseManager : public QObject{
-			Q_OBJECT
+		Q_OBJECT
 		public:
 			explicit						DatabaseManager(QObject *parent = 0);
 
@@ -38,7 +40,7 @@ namespace KCloud{
 	};
 
 	class UsersManager : public DatabaseManager{
-			Q_OBJECT
+		Q_OBJECT
 		public:
 			enum UsersManagerAnswer{
 				UserOK,
@@ -50,6 +52,17 @@ namespace KCloud{
 						User				getUser();
 
 	};
+
+	class ResourcesManager : public DatabaseManager{
+		Q_OBJECT
+		public:
+			enum ResourcesManagerAnswer{
+				UserOK,
+				UserNotFound,
+				UserWrongHash
+			};
+			explicit						ResourcesManager(QObject *parent = 0);
+	}
 }
 
 #endif // DATABASEMANAGER_H
