@@ -1,0 +1,12 @@
+#ifndef NETOBJECT_GLOBAL_H
+#define NETOBJECT_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(NETOBJECT_LIBRARY)
+#  define NETOBJECTSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define NETOBJECTSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // NETOBJECT_GLOBAL_H

@@ -1,0 +1,12 @@
+#ifndef EXCEPTIONS_GLOBAL_H
+#define EXCEPTIONS_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(EXCEPTIONS_LIBRARY)
+#  define EXCEPTIONSSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define EXCEPTIONSSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // EXCEPTIONS_GLOBAL_H

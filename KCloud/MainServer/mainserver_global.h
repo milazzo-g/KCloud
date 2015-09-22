@@ -1,0 +1,12 @@
+#ifndef MAINSERVER_GLOBAL_H
+#define MAINSERVER_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(MAINSERVER_LIBRARY)
+#  define MAINSERVERSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define MAINSERVERSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // MAINSERVER_GLOBAL_H
