@@ -10,7 +10,7 @@ KCloud::ResourceHeader::ResourceHeader(const QString &path,
 									   const quint64 &parentId,
 									   const QMap<QString, KCloud::ResourceHeader::ResourcePerm> &permissionTable,
 									   KCloud::ResourceHeader::ResourcePerm publicPerm,
-									   QObject *parent) throw (ResourceException, UserException) : ResourceHeader(parent){
+									   QObject *parent) throw (Exception) : ResourceHeader(parent){
 
 	if(path.isEmpty()){
 
@@ -60,7 +60,7 @@ void KCloud::ResourceHeader::setPermissionTable(const QMap<QString, KCloud::Reso
 	m_permissionTable = permissioTable;
 }
 
-bool KCloud::ResourceHeader::addPermission(const QString &mail, KCloud::ResourceHeader::ResourcePerm perm) throw(UserException){
+bool KCloud::ResourceHeader::addPermission(const QString &mail, KCloud::ResourceHeader::ResourcePerm perm) throw(Exception){
 
 	User::checkMail(mail);
 	if(m_permissionTable.contains(mail)){
@@ -73,7 +73,7 @@ bool KCloud::ResourceHeader::addPermission(const QString &mail, KCloud::Resource
 	}
 }
 
-bool KCloud::ResourceHeader::modPermission(const QString &mail, KCloud::ResourceHeader::ResourcePerm perm) throw(UserException){
+bool KCloud::ResourceHeader::modPermission(const QString &mail, KCloud::ResourceHeader::ResourcePerm perm) throw(Exception){
 
 	User::checkMail(mail);
 	if(m_permissionTable.contains(mail)){
@@ -86,7 +86,7 @@ bool KCloud::ResourceHeader::modPermission(const QString &mail, KCloud::Resource
 	}
 }
 
-bool KCloud::ResourceHeader::delPermission(const QString &mail) throw(UserException){
+bool KCloud::ResourceHeader::delPermission(const QString &mail) throw(Exception){
 
 	User::checkMail(mail);
 	if(m_permissionTable.contains(mail)){
@@ -134,7 +134,7 @@ KCloud::ResourceHeader::ResourcePerm KCloud::ResourceHeader::getPublicPermission
 	return m_publicPerm;
 }
 
-KCloud::ResourceHeader::ResourcePerm KCloud::ResourceHeader::getPermission(const QString &mail) throw(UserException){
+KCloud::ResourceHeader::ResourcePerm KCloud::ResourceHeader::getPermission(const QString &mail) throw(Exception){
 
 	User::checkMail(mail);
 	if(m_permissionTable.contains(mail)){

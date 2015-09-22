@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTcpSocket>
+#include "../Exceptions/Exceptions.h"
 
 /*!
  *		Namespace delle librerie.
@@ -60,7 +61,7 @@ namespace KCloud{
 		 *			rimanenti {@link m_spareBytes} con il resto della divisione tra i due precedenti, ed infine, inizializza anche il contatore
 		 *			dei bytes {@link m_bytesCounter} con il valore oppportuno in base al numero dei pacchetti.
 		 */
-		virtual		void		prepareForSend();
+		virtual		void		prepareForSend() throw(Exception);
 		/*!
 		 * \brief	Non implementata.
 		 */
@@ -71,18 +72,18 @@ namespace KCloud{
 		* \details	Dopo aver controllato che l'oggetto sia pronto per essere inviato (vedi {@link isReady()}) e la socket non punti a NULL
 		*			o sia chiusa, connette i segnali e gli slot per l'invio del pacchetto.
 		*/
-					void		sendThrough(QTcpSocket * sock);								// LANCIA ECCEZIONE
+					void		sendThrough(QTcpSocket * sock) throw(Exception);
 		/*!
 		* \brief	Riceve l'oggetto attraverso una socket TCP.
 		* \param	sock socket da cui l'oggetto deve essere ricevuto.
 		* \details	Dopo aver chiamato {@link clear()} controlla lo stato della socket e connette i segnali per la ricezione.
 		*/
-					void		receiveFrom(QTcpSocket * sock);								// LANCIA ECCEZIONE
+					void		receiveFrom(QTcpSocket * sock) throw(Exception);
 		/*!
 		* \brief	Setta la dimensione dei pacchetti.
 		* \param	payload vedi {@link Payload}
 		*/
-					void		setBytesPerPacket(Payload payload = Payload_512KB);			// LANCIA ECCEZIONE
+					void		setBytesPerPacket(Payload payload = Payload_512KB) throw(Exception);
 		/*!
 		* \return	Il numero di bytes per pacchetto.
 		*/
@@ -116,7 +117,7 @@ namespace KCloud{
 		 * \details	Questo slot è chiamato automaticamente da {@link receiveFrom()}, implementandolo è possibile
 		 *			ricevere l'oggetto da una socket.
 		 */
-		virtual		void		recv() = 0;
+		virtual		void		recv() throw(Exception) = 0;
 		/*!
 		 * \brief	Stabilisce come devono essere gestiti i segnali della socket in scrittura.
 		 * \param	dim numero di bytes scritti sulla socket.
@@ -125,7 +126,7 @@ namespace KCloud{
 		 *			per cui tramite questo slot è possibile decrementare il numero dei bytes da scrivere (vedi {@link m_bytesCounter})
 		 *			di modo che, quando tutto il pacchetto è stato inviato, si può inviare un nuovo pacchetto tramite {@link changeBlock()}.
 		 */
-		virtual		void		behaviorOnSend(const qint64 dim) = 0;						// LANCIA ECCEZIONE
+		virtual		void		behaviorOnSend(const qint64 dim) throw(Exception) = 0;
 		/*!
 		 * \brief	Lascia la socket.
 		 * \details	Chiamato di automaticamente tramite {@link objectSended()} ed {@link objectReceived()}.
@@ -152,7 +153,7 @@ namespace KCloud{
 		 * \return	Il numero di bytes che devono essere traferiti.
 		 * \details	Trattandosi di una funzione virtuale pura deve essere implementata nelle sottoclassi.
 		 */
-		virtual		qint64		calculateNetworkSize() = 0;
+		virtual		qint64		calculateNetworkSize() throw(Exception) = 0;
 
 					bool		m_readyFlag;		/**< Flag che memorizza lo stato dell'oggetto.*/
 					qint64		m_bytesPerPacket;	/**< Numero di bytes per pacchetto.*/
