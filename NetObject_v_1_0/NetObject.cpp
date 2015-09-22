@@ -20,7 +20,7 @@ void KCloud::NetObject::clear(){
 	setNotReady();
 }
 
-void KCloud::NetObject::prepareForSend(){
+void KCloud::NetObject::prepareForSend() throw(Exception){
 	NetObject::clear();
 	m_packets		= getNetworkSize() / getBytesPerPacket();
 	m_spareBytes	= getNetworkSize() % getBytesPerPacket();
@@ -28,7 +28,7 @@ void KCloud::NetObject::prepareForSend(){
 	setReady();
 }
 
-void KCloud::NetObject::sendThrough(QTcpSocket *sock){
+void KCloud::NetObject::sendThrough(QTcpSocket *sock) throw(Exception){
 
 	if(isReady()){
 		if(sock && sock->isOpen()){
@@ -38,30 +38,30 @@ void KCloud::NetObject::sendThrough(QTcpSocket *sock){
 			connect(this, SIGNAL(objectSended()), this, SLOT(leaveSocket()), Qt::UniqueConnection);
 			send();
 		}else{
-			qDebug() << "socket = NULL";
-			//lanciare eccezione perchè la socket è NULL oppure perchè non ci si può scrivere
+
+			throw InvalidSocket();
 		}
 	}else{
-		qDebug() << "pacchetto non pronto";
-		//lanciare eccezione perchè il pacchetto non è pronto
+
+		throw NotReadyException();
 	}
 }
 
-void KCloud::NetObject::receiveFrom(QTcpSocket *sock){
+void KCloud::NetObject::receiveFrom(QTcpSocket *sock) throw(Exception){
 
 	clear();
 	if(sock && sock->isOpen()){
 		m_channel = sock;
 		connect(m_channel,	SIGNAL(readyRead()),		this, SLOT(recv()),			Qt::UniqueConnection);
 		connect(this,		SIGNAL(objectReceived()),	this, SLOT(leaveSocket()),	Qt::UniqueConnection);
-		qDebug() << "void KCloud::NetObject::receiveFrom(QTcpSocket *sock)- > OK!";
 	}else{
-		//lanciare eccezione perchè la socket è NULL oppure perchè non ci si può leggere
+
+		throw InvalidSocket();
 	}
 
 }
 
-void KCloud::NetObject::setBytesPerPacket(KCloud::NetObject::Payload payload){
+void KCloud::NetObject::setBytesPerPacket(KCloud::NetObject::Payload payload) throw(Exception){
 	switch (payload) {
 		case Payload_128B:
 			m_bytesPerPacket = 128;
@@ -103,7 +103,7 @@ void KCloud::NetObject::setBytesPerPacket(KCloud::NetObject::Payload payload){
 			m_bytesPerPacket = 1048576;
 			return;
 		default:
-			//lanciare eccezione sconosciuta!
+			throw UnknownException();
 			break;
 	}
 }

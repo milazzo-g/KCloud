@@ -1,7 +1,7 @@
 #include "User.h"
 #define HASHLENGTH	32
 
-void KCloud::User::checkMail(const QString &mail) throw (UserException){
+void KCloud::User::checkMail(const QString &mail) throw (Exception){
 
 	QString strPatt = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b";
 	QRegExp control(strPatt, Qt::CaseInsensitive, QRegExp::RegExp);
@@ -47,13 +47,13 @@ void KCloud::User::setUnLogged(){
 	m_state = false;
 }
 
-void KCloud::User::setEmail(const QString &email) throw (UserException){
+void KCloud::User::setEmail(const QString &email) throw (Exception){
 
 	User::checkMail(email);
 	m_email = email;
 }
 
-void KCloud::User::setHash(const QString &password, KCloud::User::PwdMode mode) throw (UserException){
+void KCloud::User::setHash(const QString &password, KCloud::User::PwdMode mode) throw (Exception){
 
 	if(password.isEmpty()){
 

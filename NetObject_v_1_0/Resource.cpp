@@ -26,7 +26,11 @@ QString KCloud::Resource::getZipPath() const{
 	return zip;
 }
 
-void KCloud::Resource::setResourcePath(const QString &path){
+void KCloud::Resource::setResourcePath(const QString &path) throw(Exception){
+
+	if(path.isEmpty()){
+		throw EmptyPathException();
+	}
 
 	m_resourcePath = path;
 	checkResource();
@@ -44,7 +48,11 @@ void KCloud::Resource::setZipName(const QString &name, const QString &ext){
 	}
 }
 
-void KCloud::Resource::setZipDir(const QString &path){
+void KCloud::Resource::setZipDir(const QString &path) throw(Exception){
+
+	if(path.isEmpty()){
+		throw EmptyPathException();
+	}
 
 	m_zipDir = path;
 	checkDir();
@@ -69,7 +77,7 @@ void KCloud::Resource::clear(){
 	}
 }
 
-void KCloud::Resource::prepareForSend(){
+void KCloud::Resource::prepareForSend() throw(Exception){
 
 	compress();
 	checkZip();
@@ -79,10 +87,6 @@ void KCloud::Resource::prepareForSend(){
 		m_zipFile->open(QIODevice::ReadOnly);
 
 		NetObject::prepareForSend();
-
-	}else{
-		qDebug() << "non compresso";
-		// LANCIA ECCEZIONE
 	}
 }
 
@@ -94,30 +98,48 @@ void KCloud::Resource::prepareForRecv(){
 	qDebug() << "void KCloud::Resource::prepareForRecv() -> OK!";
 }
 
-void KCloud::Resource::compress(){
+void KCloud::Resource::compress() throw(Exception){
 
 	checkResource();
 	checkDir();
 	if(QFileInfo(getResourcePath()).isDir()){
 
-		JlCompress::compressDir(getZipPath(), getResourcePath());
+		if(JlCompress::compressDir(getZipPath(), getResourcePath())){
+
+			setCompressed();
+			return;
+		}else{
+
+			throw ZippingErrorException();
+		}
+
+	}
+
+	if(JlCompress::compressFile(getZipPath(), getResourcePath())){
+
 		setCompressed();
 		return;
+	}else{
+
+		throw ZippingErrorException();
 	}
-	JlCompress::compressFile(getZipPath(), getResourcePath());
-	setCompressed();
 }
 
-void KCloud::Resource::decompress(const bool autoRemove){
+void KCloud::Resource::decompress(const bool autoRemove) throw(Exception){
 
 	checkZip();
-	JlCompress::extractDir(getZipPath(), getZipDir());
-	if(autoRemove){
+	QStringList tmp;
+	tmp = JlCompress::extractDir(getZipPath(), getZipDir());
+	 if(autoRemove){
 		m_zipFile->remove();
+	}
+	if(tmp.isEmpty()){
+
+		throw UnZippingErrorException();
 	}
 }
 
-bool KCloud::Resource::removeZipFile(){
+bool KCloud::Resource::removeZipFile() throw(Exception){
 
 	checkZip();
 	if(m_zipFile){
@@ -147,7 +169,7 @@ void KCloud::Resource::send(const qint64 block){
 	}
 }
 
-void KCloud::Resource::recv(){
+void KCloud::Resource::recv() throw(Exception){
 
 	if(m_currentBlock == 0){
 
@@ -168,12 +190,13 @@ void KCloud::Resource::recv(){
 			m_zipFile->rename(getZipPath());
 			emit objectReceived();
 		}else if(m_bytesCounter < 0){
-			//lanciare eccezione
+
+			throw UntrustedBytesCounter();
 		}
 	}
 }
 
-void KCloud::Resource::behaviorOnSend(const qint64 dim){
+void KCloud::Resource::behaviorOnSend(const qint64 dim) throw(Exception){
 
 	m_bytesCounter -= dim;
 	if(m_bytesCounter == 0){
@@ -188,11 +211,11 @@ void KCloud::Resource::behaviorOnSend(const qint64 dim){
 
 	}else if(m_bytesCounter < 0){
 
-		//lanciare eccezione
+		throw UntrustedBytesCounter();
 	}
 }
 
-qint64 KCloud::Resource::calculateNetworkSize(){
+qint64 KCloud::Resource::calculateNetworkSize() throw(Exception){
 
 	checkZip();
 	return QFileInfo(getZipPath()).size();
@@ -213,26 +236,27 @@ bool KCloud::Resource::isCompressed() const{
 	return m_compressionFlag;
 }
 
-void KCloud::Resource::checkResource(){
+void KCloud::Resource::checkResource() throw(Exception){
 	if(!(QFileInfo(m_resourcePath).exists())){
 		m_resourcePath.clear();
-		// LANCIA ECCEZIONE
+		throw BadPathException();
 	}
 }
 
-void KCloud::Resource::checkDir(){
+void KCloud::Resource::checkDir() throw(Exception){
 	if(!(QFileInfo(m_zipDir).exists()) || QFileInfo(m_zipDir).isFile()){
 		m_zipDir.clear();
-		// LANCIA ECCEZIONE
+		throw BadPathException();
 	}
 }
 
-void KCloud::Resource::checkZip(){
+void KCloud::Resource::checkZip() throw(Exception){
 
 	QDir dir(getZipDir());
 
 	checkDir();
 	if(!dir.entryList().contains(getZipName())){
-		// LANCIA ECCEZIONE
+
+		throw AlreadyFileNameInUseException();
 	}
 }

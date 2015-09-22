@@ -25,7 +25,7 @@ namespace KCloud{
 				Encrypt,
 				NotEncrypt
 			};
-			static	void checkMail(const QString &mail) throw (UserException);
+			static	void checkMail(const QString &mail) throw (Exception);
 
 			explicit	User(QObject *parent = 0);
 						User(const QString &mail, const QString &password, PwdMode mode = Encrypt, QObject *parent = 0);
@@ -34,8 +34,8 @@ namespace KCloud{
 				void	clear();
 				void	setLogged();
 				void	setUnLogged();
-				void	setEmail(const QString &email) throw (UserException);
-				void	setHash(const QString &password, PwdMode mode = Encrypt) throw (UserException);
+				void	setEmail(const QString &email) throw (Exception);
+				void	setHash(const QString &password, PwdMode mode = Encrypt) throw (Exception);
 				qint64	getSpace() const;
 				QString getEmail() const;
 				QString getHash() const;
