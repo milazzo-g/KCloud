@@ -3,5 +3,10 @@
 KCloud::Engine::Engine(QObject *parent) : QThread(parent){
 	m_socket	= new QTcpSocket(this);
 	m_resource	= new Resource(this);
-	m_packet	= new CommandPacket(this);
+    m_packet	= new CommandPacket(this);
+}
+
+KCloud::Engine::~Engine()
+{
+
 }
