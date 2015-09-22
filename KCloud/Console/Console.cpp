@@ -1,6 +1,13 @@
 #include "Console.h"
 #include <QDebug>
 
+const QString KCloud::Console::Red("\033[1;31m");
+const QString KCloud::Console::Blue("\033[1;34m");
+const QString KCloud::Console::Green("\033[1;32");
+const QString KCloud::Console::Cyan("\033[1;36");
+const QString KCloud::Console::Yellow("\033[1;33");
+const QString KCloud::Console::Reset("\033[0m");
+
 KCloud::Console::Console(QObject *parent) : QThread(parent), m_notitier(fileno(stdin), QSocketNotifier::Read){
 
 	connect(&m_notitier, SIGNAL(activated(int)), this, SLOT(processNewInput()));

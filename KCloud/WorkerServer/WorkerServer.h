@@ -1,6 +1,12 @@
 #ifndef WORKERSERVER_H
 #define WORKERSERVER_H
 
+/*
+ *
+ * GIUSEPPE
+ *
+ */
+
 #include "workerserver_global.h"
 
 #include "../ResourcesManager/ResourcesManager.h"

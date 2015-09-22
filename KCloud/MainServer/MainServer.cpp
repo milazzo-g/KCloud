@@ -12,7 +12,7 @@ KCloud::MainServer::MainServer(QObject *parent) : QTcpServer(parent){
 
 	connect(m_console, SIGNAL(input(QString)), this, SLOT(execCommand(QString)));
 	m_console->start();
-	m_console->output("MainServer: Spawned!");
+	m_console->output(Console::Blue + QString("MainServer:") + Console::Reset + QString(" Spawned!"));
 }
 
 KCloud::MainServer::~MainServer(){

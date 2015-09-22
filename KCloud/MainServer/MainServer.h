@@ -1,6 +1,12 @@
 #ifndef MAINSERVER_H
 #define MAINSERVER_H
 
+/*
+ *
+ * GIUSEPPE
+ *
+ */
+
 #include "mainserver_global.h"
 
 #include <QObject>
