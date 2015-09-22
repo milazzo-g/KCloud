@@ -1,6 +1,12 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+/*
+ *
+ * GIUSEPPE
+ *
+ */
+
 #include "engine_global.h"
 #include <QObject>
 #include <QThread>
