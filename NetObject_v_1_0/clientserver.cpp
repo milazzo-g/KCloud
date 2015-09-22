@@ -19,7 +19,7 @@ WorkerServer::WorkerServer(int fd, QObject *parent) : ClientServer(parent){
 
 	channel->setSocketDescriptor(fd);
 	qDebug() << "Thread costruito!";
-	res->setZipDir("/home/giuseppe/Scrivania");
+	res->setZipDir("/Users/Danilo/Desktop");
 	res->setZipName("testTrasmissione1");
 	res->prepareForRecv();
 	res->receiveFrom(channel);

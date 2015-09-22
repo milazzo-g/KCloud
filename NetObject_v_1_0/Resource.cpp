@@ -150,7 +150,7 @@ bool KCloud::Resource::removeZipFile() throw(Exception){
 
 void KCloud::Resource::send(const qint64 block){
 
-	qDebug() << "Numero Packet rimanenti = " << m_packets;
+	qDebug() << "Numero Packet rimanenti = " << m_packets - block + 1;
 	if(block == 0){
 		QDataStream stream(m_channel);
 		stream << getNetworkSize();
