@@ -14,6 +14,7 @@ namespace KCloud{
 				Basic,
 				User,
 				Resource,
+				NetObject,
 				Database
 				//varie ed eventuali
 			};
@@ -27,7 +28,14 @@ namespace KCloud{
 				//Resource
 				ResourceEmptyPath,
 				ResourceBadPath,
+				ResourceAlreadyFileNameInUse,
+				ResourceZippingError,
+				ResourceUnZippingError,
+				ResourceNotReady,
 
+				//NetObject
+				NetObjectInvalidSocket,
+				NetObjectUntrustedBytesCounter,
 				//Database
 
 				//varie ed eventuali l'importante è dargli un nome con il commmento
@@ -42,6 +50,10 @@ namespace KCloud{
 			virtual void				raise()		const;
 	};
 
+	/*
+	 *		Eccezioni utente
+	 *
+	*/
 	class UserException : public Exception{
 
 		public:
@@ -69,13 +81,10 @@ namespace KCloud{
 			virtual	Type				type()		const;
 	};
 
-	class UnknownException : public UserException{
-
-		public:
-			virtual const char *		what()		const throw ();
-			virtual	Type				type()		const;
-	};
-
+	/*
+	 *		Eccezioni risorse
+	 *
+	*/
 	class ResourceException : public Exception{
 
 		public:
@@ -92,6 +101,71 @@ namespace KCloud{
 	class BadPathException : public ResourceException{
 
 		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class AlreadyFileNameInUseException : public ResourceException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class ZippingErrorException : public ResourceException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class UnZippingErrorException : public ResourceException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class NotReadyException : public ResourceException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	/*
+	 *		Eccezioni NetObject
+	 *
+	*/
+
+	class NetObjectException : public Exception{
+
+		public:
+			virtual ExceptionSubclass	subclass()	const;
+	};
+
+	class InvalidSocket : public NetObjectException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class UntrustedBytesCounter : public NetObjectException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	/*
+	 *		Eccezioni base
+	 *
+	*/
+	class UnknownException : public Exception{
+
+		public:
+			virtual ExceptionSubclass	subclass()	const;
 			virtual const char *		what()		const throw ();
 			virtual	Type				type()		const;
 	};
