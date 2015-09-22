@@ -4,7 +4,7 @@
 #include "netobject_global.h"
 
 #include <QObject>
-#include <QTcpSocket>
+#include <QtNetwork/QTcpSocket>
 #include "../Exceptions/Exceptions.h"
 
 namespace KCloud{

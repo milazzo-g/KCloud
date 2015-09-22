@@ -11,6 +11,7 @@
 
 #include "../ResourcesManager/ResourcesManager.h"
 #include "../UsersManager/UsersManager.h"
+#include "../Console/Console.h"
 #include "../Engine/Engine.h"
 
 namespace KCloud{
@@ -20,7 +21,12 @@ namespace KCloud{
 		public:
 											WorkerServer(int sd, QObject *parent = 0);
 											~WorkerServer();
+		signals:
+						void				consoleOutRequest(QString msg);
+		protected:
+						void				run();
 		private:
+						void				clog(const QString &log);
 						UsersManager		m_usersManager;
 						ResourcesManager	m_resourcesManager;
 

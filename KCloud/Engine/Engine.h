@@ -10,8 +10,8 @@
 #include "engine_global.h"
 #include <QObject>
 #include <QThread>
-#include <QTcpSocket>
-#include <QAbstractSocket>
+#include <QtNetwork/QTcpSocket>
+#include <QtNetwork/QAbstractSocket>
 
 #include "../User/User.h"
 #include "../Resource/Resource.h"
@@ -29,6 +29,10 @@ namespace KCloud{
 						void				userLogout();
 						void				socketStateChanged(QAbstractSocket::SocketState stat);
 		protected slots:
+						void				sendCommand();
+						void				sendResource();
+						void				receiveCommand();
+						void				receiveResource();
 			virtual		void				parse()				= 0;
 			virtual		void				login()				= 0;
 			virtual		void				logout()			= 0;

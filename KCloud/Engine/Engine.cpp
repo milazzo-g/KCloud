@@ -16,6 +16,30 @@ KCloud::Engine::~Engine(){
 	qDebug() << "Engine: stopped!";
 }
 
+void KCloud::Engine::sendCommand(){
+
+	m_packet->prepareForSend();
+	m_packet->sendThrough(m_socket);
+}
+
+void KCloud::Engine::sendResource(){
+
+	m_resource->prepareForSend();
+	m_resource->sendThrough(m_socket);
+}
+
+void KCloud::Engine::receiveCommand(){
+
+	m_packet->prepareForRecv();
+	m_packet->receiveFrom(m_socket);
+}
+
+void KCloud::Engine::receiveResource(){
+
+	m_resource->prepareForRecv();
+	m_resource->receiveFrom(m_socket);
+}
+
 void KCloud::Engine::notifySocketState(QAbstractSocket::SocketState stat){
 
 	emit socketStateChanged(stat);

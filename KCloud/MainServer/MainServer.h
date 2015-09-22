@@ -9,26 +9,32 @@
 
 #include "mainserver_global.h"
 
+#include <QList>
 #include <QObject>
-#include <QtNetwork/QTcpServer>
 #include <QCoreApplication>
+#include <QtNetwork/QTcpServer>
+
 #include "../Console/Console.h"
+#include "../WorkerServer/WorkerServer.h"
 
 namespace KCloud{
 
 	class MAINSERVERSHARED_EXPORT MainServer : public QTcpServer{
 		Q_OBJECT
 		public:
-			explicit						MainServer(QObject *parent = 0);
-											~MainServer();
+			explicit							MainServer(QObject *parent = 0);
+												~MainServer();
 
 		public slots:
-						void				execCommand(const QString &cmd);
-
+						void					execCommand(const QString &cmd);
+		protected:
+						void					incomingConnection(qintptr handle);
 		private:
-						QCoreApplication *	m_coreApplication;
-						Console	*			m_console;
+						void					clog(const QString &log);
 
+						QList<WorkerServer *>	m_clientsHandlers;
+						QCoreApplication *		m_coreApplication;
+						Console	*				m_console;
 	};
 }
 

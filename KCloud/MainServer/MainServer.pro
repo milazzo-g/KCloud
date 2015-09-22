@@ -28,3 +28,10 @@ else:unix: LIBS += -L$$OUT_PWD/../Console/ -lConsole
 
 INCLUDEPATH += $$PWD/../Console
 DEPENDPATH += $$PWD/../Console
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../WorkerServer/release/ -lWorkerServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../WorkerServer/debug/ -lWorkerServer
+else:unix: LIBS += -L$$OUT_PWD/../WorkerServer/ -lWorkerServer
+
+INCLUDEPATH += $$PWD/../WorkerServer
+DEPENDPATH += $$PWD/../WorkerServer
