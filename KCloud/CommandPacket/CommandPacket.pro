@@ -43,3 +43,10 @@ else:unix: LIBS += -L$$OUT_PWD/../User/ -lUser
 
 INCLUDEPATH += $$PWD/../User
 DEPENDPATH += $$PWD/../User
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Exceptions/release/ -lExceptions
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Exceptions/debug/ -lExceptions
+else:unix: LIBS += -L$$OUT_PWD/../Exceptions/ -lExceptions
+
+INCLUDEPATH += $$PWD/../Exceptions
+DEPENDPATH += $$PWD/../Exceptions
