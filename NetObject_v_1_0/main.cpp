@@ -6,7 +6,7 @@
 
 using namespace KCloud;
 
-#define CLIENT
+//#define CLIENT
 
 int main(int argc, char *argv[]){
     QCoreApplication a(argc, argv);
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
 		QTimer::singleShot(3000, &cl, SLOT(sendData()));
 	#else
 		MainServer * serv = new MainServer(&a);
-		serv->listen(QHostAddress::Any, 5000);
+		serv->listen(QHostAddress::Any, 1995);
 	#endif
 	return a.exec();
 }

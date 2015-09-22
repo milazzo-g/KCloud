@@ -1,6 +1,15 @@
 #include "User.h"
 #define HASHLENGTH	32
 
+KCloud::User &KCloud::User::operator =(const KCloud::User &usr){
+
+	m_state = usr.m_state;
+	m_space = usr.m_space;
+	m_email = usr.m_email;
+	m_hash	= usr.m_hash;
+	return *this;
+}
+
 void KCloud::User::checkMail(const QString &mail) throw (Exception){
 
 	QString strPatt = "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b";
@@ -16,6 +25,11 @@ void KCloud::User::checkMail(const QString &mail) throw (Exception){
 KCloud::User::User(QObject *parent) : QObject(parent){
 
 	clear();
+}
+
+KCloud::User::User(const KCloud::User &usr) : QObject(usr.parent()){
+
+	*this = usr;
 }
 
 KCloud::User::User(const QString &mail, const QString &password, KCloud::User::PwdMode mode, QObject *parent) : User(parent){
