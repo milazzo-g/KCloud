@@ -17,6 +17,7 @@ namespace KCloud{
 				UserWrongHash
 			};
 			explicit						UsersManager(QObject *parent = 0);
+                                            ~UsersManager();
 						UsersManagerAnswer	checkLogin(const User &usr);
 						User				getUser();
 

@@ -5,7 +5,6 @@
 #-------------------------------------------------
 
 QT       += sql
-
 QT       -= gui
 
 TARGET = DatabaseManager

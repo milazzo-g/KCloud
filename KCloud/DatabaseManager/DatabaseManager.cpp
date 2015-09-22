@@ -22,7 +22,12 @@ KCloud::DatabaseManager::DatabaseManager(QObject *parent) : QObject(parent){
 	m_db.setPort(m_hostport);
 	m_openFlag = false;
 	m_lastDriverError.clear();
-	m_lastSqlError.clear();
+    m_lastSqlError.clear();
+}
+
+KCloud::DatabaseManager::~DatabaseManager()
+{
+
 }
 
 bool KCloud::DatabaseManager::open(){

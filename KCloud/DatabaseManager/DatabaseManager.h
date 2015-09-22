@@ -17,7 +17,7 @@ namespace KCloud{
 		Q_OBJECT
 		public:
 			explicit						DatabaseManager(QObject *parent = 0);
-
+                                            ~DatabaseManager();
 							bool			open();
 							bool			isOpen() const;
 							void			close();

@@ -29,6 +29,13 @@ else:unix: LIBS += -L$$OUT_PWD/../NetObject/ -lNetObject
 INCLUDEPATH += $$PWD/../NetObject
 DEPENDPATH += $$PWD/../NetObject
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Exceptions/release/ -lExceptions
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Exceptions/debug/ -lExceptions
+else:unix: LIBS += -L$$OUT_PWD/../Exceptions/ -lExceptions
+
+INCLUDEPATH += $$PWD/../Exceptions
+DEPENDPATH += $$PWD/../Exceptions
+
 linux{
     message("Utilizzo configurazione Linux")
     LIBS += -L$$PWD/../LIBS/quazip-0.7.1_build/linux/ -lquazip
@@ -42,7 +49,7 @@ macx{
 INCLUDEPATH += $$PWD/../LIBS/quazip-0.7.1_build/include
 DEPENDPATH += $$PWD/../LIBS/quazip-0.7.1_build/include
 
-
-
-
+DISTFILES += \
+    moc_Resource.o \
+    Resource.o
 

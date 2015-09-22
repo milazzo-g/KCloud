@@ -15,6 +15,7 @@ namespace KCloud{
 				UserWrongHash
 			};
 			explicit						ResourcesManager(QObject *parent = 0);
+                                            ~ResourcesManager();
 	};
 }
 
