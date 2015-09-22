@@ -15,6 +15,7 @@ namespace KCloud{
 		Q_OBJECT
 		public:
 			explicit						Engine(QObject *parent = 0);
+											~Engine();
 
 		signals:
 
