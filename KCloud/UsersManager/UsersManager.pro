@@ -36,3 +36,10 @@ else:unix: LIBS += -L$$OUT_PWD/../DatabaseManager/ -lDatabaseManager
 
 INCLUDEPATH += $$PWD/../DatabaseManager
 DEPENDPATH += $$PWD/../DatabaseManager
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Exceptions/release/ -lExceptions
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Exceptions/debug/ -lExceptions
+else:unix: LIBS += -L$$OUT_PWD/../Exceptions/ -lExceptions
+
+INCLUDEPATH += $$PWD/../Exceptions
+DEPENDPATH += $$PWD/../Exceptions

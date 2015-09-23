@@ -258,3 +258,28 @@ KCloud::Exception::Type KCloud::UnreachableServer::type() const{
 
 	return ClientUnreachableServer;
 }
+
+KCloud::Exception::ExceptionSubclass KCloud::DatabaseException::subclass() const{
+
+	return Database;
+}
+
+const char *KCloud::OpenFailure::what() const  throw (){
+
+	return "DatabaseException : Can't open database!";
+}
+
+KCloud::Exception::Type KCloud::OpenFailure::type() const{
+
+	return DatabaseNotOpen;
+}
+
+const char *KCloud::QueryFailure::what() const throw(){
+
+	return "DatabaseException : Failed to exec SQL statement!";
+}
+
+KCloud::Exception::Type KCloud::QueryFailure::type() const{
+
+	return DatabaseQueryError;
+}

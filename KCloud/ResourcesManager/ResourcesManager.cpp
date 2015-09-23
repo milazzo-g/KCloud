@@ -1,6 +1,6 @@
 #include "ResourcesManager.h"
 
-KCloud::ResourcesManager::ResourcesManager(QObject *parent) : DatabaseManager(parent){
+KCloud::ResourcesManager::ResourcesManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
 
 }
 

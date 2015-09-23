@@ -10,6 +10,7 @@
 #include "engine_global.h"
 #include <QObject>
 #include <QThread>
+#include <QCryptographicHash>
 #include <QtNetwork/QTcpSocket>
 #include <QtNetwork/QAbstractSocket>
 

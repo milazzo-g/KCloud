@@ -1,6 +1,7 @@
 #include <QCoreApplication>
 #include "../Client/Client.h"
 #include "../MainServer/MainServer.h"
+#include "../UsersManager/UsersManager.h"
 
 using namespace KCloud;
 
@@ -17,16 +18,16 @@ int main(int argc, char *argv[]){
 
 	QCoreApplication a(argc, argv);
 
-	bool mode = SERVER;
+//	bool mode = SERVER;
 
-	if(mode == SERVER){
-		MainServer *server	= new MainServer(&a);
-		server->listen(QHostAddress::Any, 8000);
-	}else{
-		Client *	client = new Client(Client::AsConsoleThread, &a);
-		client->start();
-	}
-
+//	if(mode == SERVER){
+//		MainServer *server	= new MainServer(&a);
+//		server->listen(QHostAddress::Any, 8000);
+//	}else{
+//		Client *	client = new Client(Client::AsConsoleThread, &a);
+//		client->start();
+//	}
+//	DatabaseManager m("pippo", &a);
 
 	return a.exec();
 }

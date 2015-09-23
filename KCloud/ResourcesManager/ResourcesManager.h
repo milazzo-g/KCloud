@@ -14,7 +14,7 @@ namespace KCloud{
 				UserNotFound,
 				UserWrongHash
 			};
-			explicit						ResourcesManager(QObject *parent = 0);
+			explicit						ResourcesManager(const QString &name, QObject *parent = 0);
                                             ~ResourcesManager();
 	};
 }

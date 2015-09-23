@@ -16,7 +16,7 @@ namespace KCloud{
 	class DATABASEMANAGERSHARED_EXPORT DatabaseManager : public QObject{
 		Q_OBJECT
 		public:
-			explicit						DatabaseManager(QObject *parent = 0);
+			explicit						DatabaseManager(const QString &name, QObject *parent = 0);
                                             ~DatabaseManager();
 							bool			open();
 							bool			isOpen() const;
