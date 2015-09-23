@@ -248,3 +248,13 @@ KCloud::Exception::Type KCloud::NullUserPointer::type() const{
 
 	return ClientNullUserPointer;
 }
+
+const char *KCloud::UnreachableServer::what() const throw (){
+
+	return "ClientException : Server unreachable!";
+}
+
+KCloud::Exception::Type KCloud::UnreachableServer::type() const{
+
+	return ClientUnreachableServer;
+}

@@ -26,8 +26,10 @@ namespace KCloud{
 												~MainServer();
 		protected:
 						void					incomingConnection(qintptr handle);
-		private:
+
+		private slots:
 						void					execCommand(const QString &cmd);
+		private:
 						void					clog(const QString &log);
 
 						QList<WorkerServer *>	m_clientsHandlers;

@@ -38,7 +38,7 @@ void KCloud::Client::parse(){
 					break;
 
 				case CommandPacket::AlreadyLogged:
-					clog(QString("Errore nel login, il server riporta: ") + m_packet->getLastError());
+					clog(QString("Errore nel login, il server riporta: ") + m_packet->getLastError().first());
 					break;
 
 				default:
@@ -110,13 +110,21 @@ void KCloud::Client::setUserForLogin(const QString &email, const QString &pwd) t
 	m_user = new User(email, pwd, User::Encrypt, this);
 }
 
+void KCloud::Client::connectToHost(const QString &addr, const quint16 &port) throw (KCloud::Exception){
+
+	m_socket->connectToHost(addr, port);
+	if(!(m_socket->waitForConnected())){
+		throw UnreachableServer();
+	}
+}
+
 void KCloud::Client::execCommand(const QString &cmd){
 
 	QStringList arg = cmd.split(" ", QString::SkipEmptyParts, Qt::CaseInsensitive);
-
-	switch(arguments.size()){
+	clog(QString("echo = ") + cmd);
+	switch(arg.size()){
 		case 1:
-			if(QRegExp("[quit]", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+			if(QRegExp("quit", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 				clog("Stopped!");
 				m_console->quit();
 				m_coreApplication->quit();
@@ -125,12 +133,25 @@ void KCloud::Client::execCommand(const QString &cmd){
 			}
 			break;
 		case 3:
-			if(QRegExp("[login]", Qt::CaseInsensitive).exactMatch(arg[0])){
+			if(QRegExp("login", Qt::CaseInsensitive).exactMatch(arg[0])){
 				try{
 					setUserForLogin(arg[1], arg[2]);
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());
+				}
+			}
+			if(QRegExp("connect", Qt::CaseInsensitive).exactMatch(arg[0])){
+				bool exc = false;
+				try{
+					connectToHost(arg[1], QString(arg[2]).toUShort());
+				}catch(Exception &e){
+					exc = true;
+					clog("Exception occurred!");
+					clog(e.what());
+				}
+				if(exc){
+					clog("Connected!");
 				}
 			}
 		default:

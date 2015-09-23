@@ -36,6 +36,7 @@ namespace KCloud{
 			virtual		void							passwordChange();
 
 						void							setUserForLogin(const QString &email, const QString &pwd) throw (Exception);
+						void							connectToHost(const QString &addr, const quint16 &port) throw (Exception);
 		private slots:
 						void							execCommand(const QString &cmd);
 						void							clog(const QString &log);

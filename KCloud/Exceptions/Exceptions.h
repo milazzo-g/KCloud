@@ -40,10 +40,13 @@ namespace KCloud{
 				//NetObject
 				NetObjectInvalidSocket,
 				NetObjectUntrustedBytesCounter,
+
 				//Database
 
 				//Client
 				ClientNullUserPointer,
+				ClientUnreachableServer,
+
 				//MainServer
 
 				//WorkerServer
@@ -197,6 +200,12 @@ namespace KCloud{
 			virtual	Type				type()		const;
 	};
 
+	class EXCEPTIONSSHARED_EXPORT UnreachableServer : public ClientException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
 }
 
 #endif // EXCEPTIONS_H

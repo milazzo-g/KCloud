@@ -34,6 +34,7 @@ void KCloud::MainServer::execCommand(const QString &cmd){
 
 void KCloud::MainServer::clog(const QString &log){
 	QString str(Console::Blue + this->metaObject()->className() + Console::Reset);
+	str += " ";
 	str += log;
 	m_console->output(str);
 }
