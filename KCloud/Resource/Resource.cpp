@@ -188,6 +188,7 @@ void KCloud::Resource::recv() throw(Exception){
 		if(m_bytesCounter == 0){
 			m_zipFile->close();
 			m_zipFile->rename(getZipPath());
+			leaveSocket();
 			emit objectReceived();
 		}else if(m_bytesCounter < 0){
 
@@ -204,6 +205,7 @@ void KCloud::Resource::behaviorOnSend(const qint64 dim) throw(Exception){
 		m_currentBlock++;
 		if(m_currentBlock == m_packets + 2){
 			m_zipFile->close();
+			leaveSocket();
 			emit objectSended();
 		}else{
 			emit changeBlock(m_currentBlock);

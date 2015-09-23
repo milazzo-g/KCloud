@@ -11,15 +11,16 @@ KCloud::WorkerServer::~WorkerServer(){
 }
 
 void KCloud::WorkerServer::run(){
+
 	clog("Spawned!");
-	//se non dovesse funzionare è perchè l'event loop non è ancora partito (almeno penso)
-	//quindi possiamo provare con QTimer
 	connect(m_packet, SIGNAL(objectReceived()), this, SLOT(parse()));
 	receiveCommand();
 	exec();
 }
 
 void KCloud::WorkerServer::parse(){
+
+	clog("Command received!");
 
 	switch (m_packet->getClientCommand()) {
 		case CommandPacket::Login:
@@ -31,9 +32,10 @@ void KCloud::WorkerServer::parse(){
 }
 
 void KCloud::WorkerServer::login(){
-	//facciamo finta che è tutto ok...
 
-	m_packet->answerToLogin(CommandPacket::LoginOk, m_packet->getUser());
+	clog("Login Request!");
+
+	receiveCommand();
 }
 
 void KCloud::WorkerServer::logout(){

@@ -41,8 +41,8 @@ namespace KCloud{
 			virtual		void				passwordChange();
 		private:
 						void				clog(const QString &log);
-						UsersManager		m_usersManager;
-						ResourcesManager	m_resourcesManager;
+						//UsersManager		m_usersManager;
+						//ResourcesManager	m_resourcesManager;
 
 
 	};

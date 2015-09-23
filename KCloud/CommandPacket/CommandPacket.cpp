@@ -210,6 +210,7 @@ void KCloud::CommandPacket::recv() throw(Exception){
                 return;
             }
             stream >> *this;
+			leaveSocket();
             emit objectReceived();
             break;
         default:
@@ -221,11 +222,14 @@ void KCloud::CommandPacket::recv() throw(Exception){
 void KCloud::CommandPacket::behaviorOnSend(const qint64 dim) throw(Exception){
 
     m_bytesCounter -= dim;
+
     if(m_bytesCounter == 0){
 
-        m_currentBlock ++;
-        if(m_currentBlock == 2){
+		m_currentBlock ++;
 
+		if(m_currentBlock == 2){
+
+			leaveSocket();
             emit objectSended();
         }else{
 

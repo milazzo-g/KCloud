@@ -136,6 +136,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 			if(QRegExp("login", Qt::CaseInsensitive).exactMatch(arg[0])){
 				try{
 					setUserForLogin(arg[1], arg[2]);
+					login();
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());

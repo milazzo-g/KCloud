@@ -1,4 +1,5 @@
 #include "NetObject.h"
+#include <QDebug>
 
 KCloud::NetObject::NetObject(QObject *parent) : QObject(parent){
 
@@ -33,32 +34,28 @@ void KCloud::NetObject::sendThrough(QTcpSocket *sock) throw(Exception){
 	if(isReady()){
 		if(sock && sock->isOpen()){
 			m_channel = sock;
-			connect(m_channel, SIGNAL(bytesWritten(qint64)), this, SLOT(behaviorOnSend(qint64)), Qt::UniqueConnection);
-			connect(this, SIGNAL(changeBlock(qint64)), this, SLOT(send(qint64)), Qt::UniqueConnection);
-			connect(this, SIGNAL(objectSended()), this, SLOT(leaveSocket()), Qt::UniqueConnection);
+			connect(m_channel	, SIGNAL(bytesWritten(qint64)	), this, SLOT(behaviorOnSend(qint64)), Qt::UniqueConnection);
+			connect(this		, SIGNAL(changeBlock(qint64)	), this, SLOT(send(qint64)			), Qt::UniqueConnection);
 			send();
 		}else{
-
 			throw InvalidSocket();
 		}
 	}else{
-
 		throw NotReadyException();
 	}
 }
 
 void KCloud::NetObject::receiveFrom(QTcpSocket *sock) throw(Exception){
 
+	qDebug() << __FILE__ << __LINE__ <<__FUNCTION__;
 	clear();
 	if(sock && sock->isOpen()){
-		m_channel = sock;
-		connect(m_channel,	SIGNAL(readyRead()),		this, SLOT(recv()),			Qt::UniqueConnection);
-		connect(this,		SIGNAL(objectReceived()),	this, SLOT(leaveSocket()),	Qt::UniqueConnection);
-	}else{
 
+		m_channel = sock;
+		connect(m_channel, SIGNAL(readyRead()),	this, SLOT(recv()),	Qt::UniqueConnection);
+	}else{
 		throw InvalidSocket();
 	}
-
 }
 
 void KCloud::NetObject::setBytesPerPacket(KCloud::NetObject::Payload payload) throw(Exception){
@@ -115,6 +112,7 @@ qint64 KCloud::NetObject::getBytesPerPacket() const{
 
 void KCloud::NetObject::leaveSocket(){
 
+	qDebug() << __FILE__ << __LINE__ <<__FUNCTION__;
 	disconnect(m_channel,	SIGNAL(bytesWritten(qint64)),	this, SLOT(behaviorOnSend(qint64))	);
 	disconnect(m_channel,	SIGNAL(readyRead()),			this, SLOT(recv())					);
 	disconnect(this,		SIGNAL(changeBlock(qint64)),	this, SLOT(send(qint64))			);
