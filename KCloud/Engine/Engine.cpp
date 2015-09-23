@@ -6,7 +6,6 @@ KCloud::Engine::Engine(QObject *parent) : QThread(parent){
     m_packet	= new CommandPacket(this);
 }
 
-KCloud::Engine::~Engine()
-{
+KCloud::Engine::~Engine(){
 
 }
