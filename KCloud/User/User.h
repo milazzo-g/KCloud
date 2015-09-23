@@ -59,8 +59,8 @@ namespace KCloud{
 			QString     m_hash;
 	};
 
-	QDataStream &operator<<(QDataStream &out, const User &tmp);
-	QDataStream &operator>>(QDataStream &inp, User &tmp);
+    USERSHARED_EXPORT QDataStream &operator<<(QDataStream &out, const User &tmp);
+    USERSHARED_EXPORT QDataStream &operator>>(QDataStream &inp, User &tmp);
 
 }
 

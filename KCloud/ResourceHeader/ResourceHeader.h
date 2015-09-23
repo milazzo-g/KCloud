@@ -82,12 +82,12 @@ namespace KCloud{
 
 	};
 
-	QDataStream &operator<<(QDataStream &out, const ResourceHeader &tmp);
-	QDataStream &operator>>(QDataStream &inp, ResourceHeader &tmp);
-	QDataStream &operator<<(QDataStream &out, const ResourceHeader::ResourcePerm &tmp);
-	QDataStream &operator>>(QDataStream &inp, ResourceHeader::ResourcePerm &tmp);
-	QDataStream &operator<<(QDataStream &out, const ResourceHeader::ResourceType &tmp);
-	QDataStream &operator>>(QDataStream &inp, ResourceHeader::ResourceType &tmp);
+    RESOURCEHEADERSHARED_EXPORT QDataStream &operator<<(QDataStream &out, const ResourceHeader &tmp);
+    RESOURCEHEADERSHARED_EXPORT QDataStream &operator>>(QDataStream &inp, ResourceHeader &tmp);
+    RESOURCEHEADERSHARED_EXPORT QDataStream &operator<<(QDataStream &out, const ResourceHeader::ResourcePerm &tmp);
+    RESOURCEHEADERSHARED_EXPORT QDataStream &operator>>(QDataStream &inp, ResourceHeader::ResourcePerm &tmp);
+    RESOURCEHEADERSHARED_EXPORT QDataStream &operator<<(QDataStream &out, const ResourceHeader::ResourceType &tmp);
+    RESOURCEHEADERSHARED_EXPORT QDataStream &operator>>(QDataStream &inp, ResourceHeader::ResourceType &tmp);
 
 }
 #endif // RESOURCEHEADER_H

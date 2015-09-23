@@ -7,6 +7,7 @@ KCloud::CommandPacket::CommandPacket(QObject *parent) : NetObject(parent){
 
 void KCloud::CommandPacket::clear(){
 
+    m_buffer.clear();
 	m_stringList.clear();
 	m_currentUser.clear();
 	m_headersList.clear();
@@ -16,10 +17,17 @@ void KCloud::CommandPacket::clear(){
 
 void KCloud::CommandPacket::prepareForSend() throw(Exception){
 
+    QDataStream tmp(&m_buffer, QIODevice::ReadWrite);       //controllare se funziona
+    NetObject::clear();
+    tmp << *this;
+    m_bytesCounter = (qint64)sizeof(getNetworkSize());
+    setReady();
 }
 
 void KCloud::CommandPacket::prepareForRecv(){
 
+    CommandPacket::clear();
+    setReady();
 }
 
 void KCloud::CommandPacket::setForLogin(const KCloud::User &usr){
@@ -33,7 +41,14 @@ void KCloud::CommandPacket::setForLogin(const KCloud::User &usr){
 void KCloud::CommandPacket::setForLogout(){
 
 	clear();
-	setClientCommand(Logout);
+    setClientCommand(Logout);
+}
+
+void KCloud::CommandPacket::setForResourceDel(const quint64 &id){
+
+    clear();
+    setFirstResourceHeader(ResourceHeader(id));
+    setClientCommand(ResourceDel);
 }
 
 void KCloud::CommandPacket::setForResourceTree(){
@@ -92,7 +107,14 @@ KCloud::User KCloud::CommandPacket::getUser() const{
 
 QList<KCloud::ResourceHeader> KCloud::CommandPacket::getResourceTree() const{
 
-	return m_headersList;
+    return m_headersList;
+}
+
+void KCloud::CommandPacket::answerToResourceDel(KCloud::CommandPacket::ServerAnswer answer, const QStringList &errorList){
+
+    clear();
+    setServerAnswer(answer);
+    setErrorStringList(errorList);
 }
 
 KCloud::CommandPacket::ClientCommand KCloud::CommandPacket::getClientCommand() const{
@@ -154,21 +176,67 @@ void KCloud::CommandPacket::answerToResourceDown(KCloud::CommandPacket::ServerAn
 
 void KCloud::CommandPacket::send(const qint64 block){
 
+    if(block == 0){
+        QDataStream stream(m_channel);
+        stream << getNetworkSize();
+        return;
+    }
 
+    m_bytesCounter = getNetworkSize();
+    QDataStream stream(m_channel);
+    stream << m_buffer;
 }
 
 void KCloud::CommandPacket::recv() throw(Exception){
 
+    QDataStream stream(m_channel);
+
+    switch (m_currentBlock){
+        case 0:
+            if(m_channel->bytesAvailable() < (qint64)sizeof(m_bytesCounter)){
+
+                return;
+            }
+            stream >> m_bytesCounter;
+            m_currentBlock++;
+            break;
+        case 1:
+            if(m_channel->bytesAvailable() < m_bytesCounter){
+
+                return;
+            }
+            stream >> *this;
+            emit objectReceived();
+            break;
+        default:
+            throw UnknownException();
+            break;
+    }
 }
 
 void KCloud::CommandPacket::behaviorOnSend(const qint64 dim) throw(Exception){
 
+    m_bytesCounter -= dim;
+    if(m_bytesCounter == 0){
+
+        m_currentBlock ++;
+        if(m_currentBlock == 2){
+
+            emit objectSended();
+        }else{
+
+            emit changeBlock(m_currentBlock);
+        }
+    }else if(m_bytesCounter < 0){
+
+        throw UntrustedBytesCounter();
+    }
 }
 
 qint64 KCloud::CommandPacket::calculateNetworkSize() throw(Exception){
 
+    return m_buffer.size();
 }
-
 
 QDataStream &KCloud::operator<<(QDataStream &out, const KCloud::CommandPacket &tmp){
 
@@ -176,13 +244,11 @@ QDataStream &KCloud::operator<<(QDataStream &out, const KCloud::CommandPacket &t
 	return out;
 }
 
-
 QDataStream &KCloud::operator>>(QDataStream &inp, KCloud::CommandPacket &tmp){
 
 	inp >> tmp.m_currentUser >> tmp.m_stringList >> tmp.m_serverAnswer >> tmp.m_clientCommand >> tmp.m_headersList;
 	return inp;
 }
-
 
 QDataStream &KCloud::operator<<(QDataStream &out, const KCloud::CommandPacket::ClientCommand &tmp){
 
@@ -190,20 +256,17 @@ QDataStream &KCloud::operator<<(QDataStream &out, const KCloud::CommandPacket::C
 	return out;
 }
 
-
 QDataStream &KCloud::operator>>(QDataStream &inp, KCloud::CommandPacket::ClientCommand &tmp){
 
 	inp >> (qint32 &)tmp;
 	return inp;
 }
 
-
 QDataStream &KCloud::operator<<(QDataStream &out, const KCloud::CommandPacket::ServerAnswer &tmp){
 
 	out << (qint32)tmp;
 	return out;
 }
-
 
 QDataStream &KCloud::operator>>(QDataStream &inp, KCloud::CommandPacket::ServerAnswer &tmp){
 

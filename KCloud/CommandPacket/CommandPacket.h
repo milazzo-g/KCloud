@@ -7,6 +7,7 @@
 
 #include "commandpacket_global.h"
 
+#include <QByteArray>
 #include <QStringList>
 
 #include "../User/User.h"
@@ -25,20 +26,23 @@ namespace KCloud{
 					enum ServerAnswer{
 						UnsetAnswer,
 						LoginOk,
+                        WrongEmail,
+                        WrongPassword,
 						AlreadyLogged,
-						WrongPassword,
-						WrongEmail,
 						LogoutOk,
 						LogoutFail,
 						ResourceTreeOk,
 						ResourceTreeError,
 						ResourceUpOk,
+                        ResourceUpFail,
+                        ResourceUpInvalidPerm,
 						ResourceUpSpaceExhausted,
-						ResourceUpInvalidPerm,
-						ResourceUpFail,
 						ResourceDownOk,
-						ResourceDownInvalidId,
-						ResourceDownFail
+                        ResourceDownFail,
+                        ResourceDownInvalidId,
+                        ResourceDelOk,
+                        ResourceDelFail,
+                        ResourceDelInvalidPerm
 
 					};
 
@@ -46,9 +50,10 @@ namespace KCloud{
 						UnsetCommand,
 						Login,
 						Logout,
-						ResourceTree,
 						ResourceUp,
-						ResourceDown
+                        ResourceDel,
+                        ResourceDown,
+                        ResourceTree
 
 					};
 
@@ -58,28 +63,31 @@ namespace KCloud{
 		virtual		void					prepareForSend() throw(Exception);
 		virtual		void					prepareForRecv();
 
-					void					setForLogin(const User &usr);
+                    //mancano modifica risorse, cambio permessi, condivisione, cambio password e altro....
+                    void					setForLogin(const User &usr);
 					void					setForLogout();
+                    void                    setForResourceDel(const quint64 &id);
 					void					setForResourceTree();
+                    void					setForResourceDown(const quint64 &resourceId);
 					void					setForResourceUp(const QString &localPath,
 															 const User &sessionUser,
 															 const quint64 &parentId,
 															 const QMap<QString, ResourceHeader::ResourcePerm> &permissionTable = QMap<QString, ResourceHeader::ResourcePerm>(),
 															 ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception);
-					void					setForResourceDown(const quint64 &resourceId);
 
 					User					getUser() const;
-					QList<ResourceHeader>	getResourceTree() const;
-					ClientCommand			getClientCommand() const;
-					ServerAnswer			getServerAnswer() const;
 					QStringList				getLastError() const;
+                    ServerAnswer			getServerAnswer() const;
+                    ClientCommand			getClientCommand() const;
 					ResourceHeader			getFirstResourceHeader() const;
+                    QList<ResourceHeader>	getResourceTree() const;
 
-					void					answerToLogin(ServerAnswer answer, const User &usr, const QStringList &errorStringList = QStringList());
-					void					answerToLogout(ServerAnswer answer, const QStringList &errorStringList = QStringList());
-					void					answerToResourceTree(ServerAnswer answer, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
+                    void                    answerToResourceDel(ServerAnswer answer, const QStringList &errorList = QStringList());
 					void					answerToResourceUp(ServerAnswer answer, const QStringList &errorList = QStringList());
+                    void					answerToLogout(ServerAnswer answer, const QStringList &errorStringList = QStringList());
 					void					answerToResourceDown(ServerAnswer &answer, const QStringList &errorList = QStringList());
+                    void					answerToLogin(ServerAnswer answer, const User &usr, const QStringList &errorStringList = QStringList());
+                    void					answerToResourceTree(ServerAnswer answer, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
 
 
 		protected slots:
@@ -95,19 +103,20 @@ namespace KCloud{
 		private:
 
 					User					m_currentUser;
+                    QByteArray              m_buffer;
 					QStringList				m_stringList;
 					ServerAnswer			m_serverAnswer;
 					ClientCommand			m_clientCommand;
 					QList<ResourceHeader>	m_headersList;
 
 					void					setUser(const User &usr);
-					void					setClientCommand(ClientCommand cmd);
 					void					setServerAnswer(ServerAnswer cmd);
+                    void					setClientCommand(ClientCommand cmd);
 					void					setErrorStringList(const QStringList &err);
 					void					setFirstResourceHeader(const ResourceHeader &res);
 	};
 
-	COMMANDPACKETSHARED_EXPORT QDataStream &operator<<(QDataStream &out, const CommandPacket &tmp);
+    COMMANDPACKETSHARED_EXPORT QDataStream &operator<<(QDataStream &out, const CommandPacket &tmp);
 	COMMANDPACKETSHARED_EXPORT QDataStream &operator>>(QDataStream &inp, CommandPacket &tmp);
 	COMMANDPACKETSHARED_EXPORT QDataStream &operator<<(QDataStream &out, const CommandPacket::ClientCommand &tmp);
 	COMMANDPACKETSHARED_EXPORT QDataStream &operator>>(QDataStream &inp, CommandPacket::ClientCommand &tmp);
