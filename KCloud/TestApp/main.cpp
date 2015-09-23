@@ -16,7 +16,7 @@ int main(int argc, char *argv[]){
 
 	if(mode == SERVER){
 		MainServer *server	= new MainServer(&a);
-		Q_UNUSED(server);
+		server->listen(QHostAddress::Any, 5000);
 	}else{
 		Client *	client = new Client(Client::AsConsoleThread, &a);
 		client->start();
