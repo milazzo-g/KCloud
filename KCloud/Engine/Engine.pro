@@ -43,3 +43,10 @@ else:unix: LIBS += -L$$OUT_PWD/../User/ -lUser
 
 INCLUDEPATH += $$PWD/../User
 DEPENDPATH += $$PWD/../User
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../NetObject/release/ -lNetObject
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../NetObject/debug/ -lNetObject
+else:unix: LIBS += -L$$OUT_PWD/../NetObject/ -lNetObject
+
+INCLUDEPATH += $$PWD/../NetObject
+DEPENDPATH += $$PWD/../NetObject
