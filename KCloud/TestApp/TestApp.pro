@@ -3,6 +3,7 @@ QT -= gui
 
 TARGET = TestApp
 CONFIG += console
+CONFIG += network
 CONFIG -= app_bundle
 
 TEMPLATE = app
