@@ -36,3 +36,10 @@ else:unix: LIBS += -L$$OUT_PWD/../CommandPacket/ -lCommandPacket
 
 INCLUDEPATH += $$PWD/../CommandPacket
 DEPENDPATH += $$PWD/../CommandPacket
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../User/release/ -lUser
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../User/debug/ -lUser
+else:unix: LIBS += -L$$OUT_PWD/../User/ -lUser
+
+INCLUDEPATH += $$PWD/../User
+DEPENDPATH += $$PWD/../User

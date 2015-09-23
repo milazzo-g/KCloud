@@ -43,3 +43,10 @@ else:unix: LIBS += -L$$OUT_PWD/../Engine/ -lEngine
 
 INCLUDEPATH += $$PWD/../Engine
 DEPENDPATH += $$PWD/../Engine
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Console/release/ -lConsole
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Console/debug/ -lConsole
+else:unix: LIBS += -L$$OUT_PWD/../Console/ -lConsole
+
+INCLUDEPATH += $$PWD/../Console
+DEPENDPATH += $$PWD/../Console

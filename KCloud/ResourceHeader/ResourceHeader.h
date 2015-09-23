@@ -43,6 +43,7 @@ namespace KCloud{
 																   const QMap<QString, ResourcePerm> &permissionTable = QMap<QString, ResourcePerm>(),
 																   ResourcePerm publicPerm = PermUndef,
 																   QObject *parent = 0) throw (Exception);
+													ResourceHeader(const quint64 &id, QObject *parent = 0);
 													ResourceHeader(const ResourceHeader &cpy);
 						void						clear();
 						void						setParentId(const quint64 &id);
@@ -61,6 +62,8 @@ namespace KCloud{
 						ResourcePerm				getPermission(const QString &mail) throw(Exception);
 						QMap<QString, ResourcePerm>	getPermissionTable() const;
 
+						ResourceHeader &			operator=(const ResourceHeader &cpy);
+
 		signals:
 
 		public slots:
@@ -75,6 +78,7 @@ namespace KCloud{
 						QMap<QString, ResourcePerm>	m_permissionTable;
 
 						qint64						calculateDirSize(const QString &path);
+						void						setId(const quint64 &id);
 
 	};
 
