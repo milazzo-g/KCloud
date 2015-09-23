@@ -9,44 +9,40 @@ KCloud::UsersManager::~UsersManager(){
 	qDebug() << __FUNCTION__;
 }
 
-void KCloud::UsersManager::createTestUser(){
-
-	if(open()){
-		User u("test@test.it", "test");
-		m_query.prepare("INSERT INTO users VALUES (':email', ':hash', 100000, 'UnLogged'");
-		m_query.bindValue(":email", u.getEmail());
-		m_query.bindValue(":hash", u.getHash());
-		m_query.exec();
-	}
-}
-
 KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkLogin(const KCloud::User &usr) throw (Exception){
 
 	if(open()){
-		m_query.prepare("SELECT * FROM users where email = :email");
-		m_query.bindValue(":email", usr.getEmail());
-		if(!m_query.exec()){
-			m_lastSqlError		= m_query.lastError().databaseText();
-			m_lastDriverError	= m_query.lastError().driverText();
-			m_query.clear();
+		QSqlQuery query(m_db);
+		query.prepare(" SELECT * FROM users WHERE email = :email ");
+		query.bindValue(":email", usr.getEmail());
+		if(!query.exec()){
+			m_lastSqlError		= query.lastError().databaseText();
+			m_lastDriverError	= query.lastError().driverText();
 			throw QueryFailure();
 		}
-		switch (m_query.size()) {
+		switch (query.size()) {
 			case 0:
 				return UserNotFound;
 			case 1:
-				if(m_query.value("hash").toString() == usr.getHash()){
-					if(m_query.value("status").toInt() == 0){
+				query.seek(0);
+				if(query.value(1).toString() == usr.getHash()){
+					if(query.value(3).toString() == "Logged"){
 						return UserAlreadyLogged;
 					}
 					m_user.m_email	= usr.getEmail();
 					m_user.m_hash	= usr.getHash();
-					m_user.m_space	= m_query.value("space").toLongLong();
+					m_user.m_space	= query.value(2).toLongLong();
 					m_user.m_state	= true;
-					m_query.clear();
-					m_query.prepare("UPDATE users SET status = 'Logged' WHERE email = :email");
-					m_query.bindValue(":email", m_user.m_email);
-					m_query.exec();
+					query.clear();
+					query.prepare("UPDATE users SET status = 'Logged' WHERE email = :email ");
+					query.bindValue(":email", m_user.m_email);
+					if(!query.exec()){
+						m_lastSqlError		= query.lastError().databaseText();
+						m_lastDriverError	= query.lastError().driverText();
+						qDebug() << m_lastSqlError;
+						qDebug() << m_lastDriverError;
+						throw QueryFailure();
+					}
 					return UserOK;
 				}else{
 					return UserWrongHash;

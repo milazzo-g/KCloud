@@ -36,7 +36,23 @@ void KCloud::WorkerServer::parse(){
 void KCloud::WorkerServer::login(){
 
 	clog("Login Request!");
-
+	switch (m_usersManager->checkLogin(m_packet->getUser())){
+		case UsersManager::UserOK:
+			clog("Collegato");
+			break;
+		case UsersManager::UserAlreadyLogged:
+			clog("Già loggato!");
+			break;
+		case UsersManager::UserNotFound:
+			clog("User non trovato!");
+			break;
+		case UsersManager::UserWrongHash:
+			clog("Password errata!");
+			break;
+		default:
+			clog("Dio ci ha voluto male!");
+			break;
+	}
 	receiveCommand();
 }
 

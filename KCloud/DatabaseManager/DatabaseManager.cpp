@@ -12,7 +12,7 @@ const QString	KCloud::DatabaseManager::m_hostname("localhost");
 const QString	KCloud::DatabaseManager::m_database("KCloud");
 const int		KCloud::DatabaseManager::m_hostport(3306);
 
-KCloud::DatabaseManager::DatabaseManager(const QString &name, QObject *parent) : QObject(parent), m_query(m_db){
+KCloud::DatabaseManager::DatabaseManager(const QString &name, QObject *parent) : QObject(parent){
 
 	m_db = QSqlDatabase::addDatabase("QMYSQL", name);
 	m_db.setUserName(m_username);

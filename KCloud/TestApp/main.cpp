@@ -18,16 +18,15 @@ int main(int argc, char *argv[]){
 
 	QCoreApplication a(argc, argv);
 
-//	bool mode = SERVER;
+	bool mode = SERVER;
 
-//	if(mode == SERVER){
-//		MainServer *server	= new MainServer(&a);
-//		server->listen(QHostAddress::Any, 8000);
-//	}else{
-//		Client *	client = new Client(Client::AsConsoleThread, &a);
-//		client->start();
-//	}
-//	DatabaseManager m("pippo", &a);
+	if(mode == SERVER){
+		MainServer *server	= new MainServer(&a);
+		server->listen(QHostAddress::Any, 8000);
+	}else{
+		Client *	client = new Client(Client::AsConsoleThread, &a);
+		client->start();
+	}
 
 	return a.exec();
 }
