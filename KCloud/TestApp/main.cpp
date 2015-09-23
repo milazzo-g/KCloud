@@ -1,5 +1,4 @@
 #include <QCoreApplication>
-
 #include "../Client/Client.h"
 #include "../MainServer/MainServer.h"
 
