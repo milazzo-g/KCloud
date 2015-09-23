@@ -7,6 +7,12 @@ using namespace KCloud;
 #define SERVER false
 #define CLIENT true
 
+/*
+ *
+ * Server
+ *
+ */
+
 int main(int argc, char *argv[]){
 
 	QCoreApplication a(argc, argv);
