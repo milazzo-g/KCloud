@@ -35,15 +35,14 @@ KCloud::ResourceHeader::ResourceHeader(const QString &path,
 	m_publicPerm = publicPerm;
 }
 
+KCloud::ResourceHeader::ResourceHeader(const quint64 &id, QObject *parent){
+
+	setId(id);
+}
+
 KCloud::ResourceHeader::ResourceHeader(const KCloud::ResourceHeader &cpy) : QObject(cpy.parent()){
 
-	m_size				= cpy.m_size;
-	m_id				= cpy.m_id;
-	m_parentId			= cpy.m_parentId;
-	m_owner				= cpy.m_owner;
-	m_publicPerm		= cpy.m_publicPerm;
-	m_type				= cpy.m_type;
-	m_permissionTable	= cpy.m_permissionTable;
+	*this = cpy;
 }
 
 void KCloud::ResourceHeader::clear(){
@@ -162,6 +161,19 @@ QMap<QString, KCloud::ResourceHeader::ResourcePerm> KCloud::ResourceHeader::getP
 	return m_permissionTable;
 }
 
+KCloud::ResourceHeader &KCloud::ResourceHeader::operator=(const KCloud::ResourceHeader &cpy){
+
+	m_size				= cpy.m_size;
+	m_id				= cpy.m_id;
+	m_parentId			= cpy.m_parentId;
+	m_owner				= cpy.m_owner;
+	m_publicPerm		= cpy.m_publicPerm;
+	m_type				= cpy.m_type;
+	m_permissionTable	= cpy.m_permissionTable;
+
+	return *this;
+}
+
 qint64 KCloud::ResourceHeader::calculateDirSize(const QString &path){
 
 	QDir dir(path);
@@ -180,6 +192,11 @@ qint64 KCloud::ResourceHeader::calculateDirSize(const QString &path){
 		}
 	}
 	return size;
+}
+
+void KCloud::ResourceHeader::setId(const quint64 &id){
+
+	m_id = id;
 }
 
 QDataStream &KCloud::operator<<(QDataStream &out, const KCloud::ResourceHeader &tmp){
