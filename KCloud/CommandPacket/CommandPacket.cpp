@@ -11,7 +11,6 @@ KCloud::CommandPacket::~CommandPacket(){
 
 void KCloud::CommandPacket::clear(){
 
-    m_buffer.clear();
 	m_stringList.clear();
 	m_currentUser.clear();
 	m_headersList.clear();
@@ -21,11 +20,10 @@ void KCloud::CommandPacket::clear(){
 
 void KCloud::CommandPacket::prepareForSend() throw(Exception){
 
-    QDataStream tmp(&m_buffer, QIODevice::ReadWrite);       //controllare se funziona
-    NetObject::clear();
-    tmp << *this;
-    m_bytesCounter = (qint64)sizeof(getNetworkSize());
-    setReady();
+	NetObject::clear();
+	m_bytesCounter = (qint64)sizeof(getNetworkSize());
+	setReady();
+	qDebug() << __FUNCTION__ << "::m_bytesCounter = " << m_bytesCounter;
 }
 
 void KCloud::CommandPacket::prepareForRecv(){
@@ -181,14 +179,18 @@ void KCloud::CommandPacket::answerToResourceDown(KCloud::CommandPacket::ServerAn
 void KCloud::CommandPacket::send(const qint64 block){
 
     if(block == 0){
+		qDebug() << __FUNCTION__ << "[invio dimensione] m_bytesCounter = " << m_bytesCounter;
         QDataStream stream(m_channel);
         stream << getNetworkSize();
         return;
     }
 
     m_bytesCounter = getNetworkSize();
-    QDataStream stream(m_channel);
-    stream << m_buffer;
+	qDebug() << __FUNCTION__ << "[inizio ad inviare] m_bytesCounter = " << m_bytesCounter;
+
+	QDataStream stream(m_channel);
+	stream << *this;
+
 }
 
 void KCloud::CommandPacket::recv() throw(Exception){
@@ -220,8 +222,10 @@ void KCloud::CommandPacket::recv() throw(Exception){
 
 void KCloud::CommandPacket::behaviorOnSend(const qint64 dim) throw(Exception){
 
+	qDebug() << __FUNCTION__ << "[prima di decrementare] m_bytesCounter = " << m_bytesCounter;
     m_bytesCounter -= dim;
-    if(m_bytesCounter == 0){
+	qDebug() << __FUNCTION__ << "[dopo  il decremento  ] m_bytesCounter = " << m_bytesCounter;
+	if(m_bytesCounter == 0){
 
         m_currentBlock ++;
         if(m_currentBlock == 2){
@@ -230,16 +234,20 @@ void KCloud::CommandPacket::behaviorOnSend(const qint64 dim) throw(Exception){
         }else{
 
             emit changeBlock(m_currentBlock);
-        }
-    }else if(m_bytesCounter < 0){
-
-        throw UntrustedBytesCounter();
-    }
+		}
+	}else if(m_bytesCounter < 0){
+		throw UntrustedBytesCounter();
+	}
 }
 
 qint64 KCloud::CommandPacket::calculateNetworkSize() throw(Exception){
 
-    return m_buffer.size();
+
+	QByteArray tmp;
+	QDataStream stream(&tmp, QIODevice::ReadWrite);
+	stream << *this;
+	qDebug() << __FUNCTION__ << "=" << tmp.size();
+	return tmp.size();
 }
 
 QDataStream &KCloud::operator<<(QDataStream &out, const KCloud::CommandPacket &tmp){

@@ -61,7 +61,7 @@ void KCloud::Client::login() throw (KCloud::Exception){
 		m_packet->setForLogin(*m_user);
 		m_lastCommand = m_packet->getClientCommand();
 		sendCommand();
-		connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+		//connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	}
 }
 
@@ -121,14 +121,25 @@ void KCloud::Client::connectToHost(const QString &addr, const quint16 &port) thr
 void KCloud::Client::execCommand(const QString &cmd){
 
 	QStringList arg = cmd.split(" ", QString::SkipEmptyParts, Qt::CaseInsensitive);
-	clog(QString("echo = ") + cmd);
+
 	switch(arg.size()){
 		case 1:
 			if(QRegExp("quit", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
 				clog("Stopped!");
 				m_console->quit();
 				m_coreApplication->quit();
+			}else if(QRegExp("connect", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog("Mi sto collegando!");
+				connectToHost("192.168.1.3", QString("8000").toUShort());
+			}else if(QRegExp("login", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog("Faccio il login!");
+				setUserForLogin("dio@fungo.it", "giallettiDiPaceco");
+				login();
 			}else{
+
 				clog("Unknown Command!");
 			}
 			break;
@@ -136,6 +147,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 			if(QRegExp("login", Qt::CaseInsensitive).exactMatch(arg[0])){
 				try{
 					setUserForLogin(arg[1], arg[2]);
+					login();
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());

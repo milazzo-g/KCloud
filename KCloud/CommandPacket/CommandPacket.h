@@ -104,7 +104,6 @@ namespace KCloud{
 		private:
 
 					User					m_currentUser;
-                    QByteArray              m_buffer;
 					QStringList				m_stringList;
 					ServerAnswer			m_serverAnswer;
 					ClientCommand			m_clientCommand;

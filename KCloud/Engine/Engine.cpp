@@ -18,6 +18,7 @@ KCloud::Engine::~Engine(){
 
 void KCloud::Engine::sendCommand(){
 
+	qDebug() << __FUNCTION__ << "invioOOOOO";
 	m_packet->prepareForSend();
 	m_packet->sendThrough(m_socket);
 }
