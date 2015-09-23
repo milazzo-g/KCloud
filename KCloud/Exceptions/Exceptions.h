@@ -16,7 +16,10 @@ namespace KCloud{
 				User,
 				Resource,
 				NetObject,
-				Database
+				Database,
+				Client,
+				MainServer,
+				WorkerServer
 				//varie ed eventuali
 			};
 
@@ -38,6 +41,12 @@ namespace KCloud{
 				NetObjectInvalidSocket,
 				NetObjectUntrustedBytesCounter,
 				//Database
+
+				//Client
+				ClientNullUserPointer,
+				//MainServer
+
+				//WorkerServer
 
 				//varie ed eventuali l'importante è dargli un nome con il commmento
 				Unknown,
@@ -167,6 +176,23 @@ namespace KCloud{
 
 		public:
 			virtual ExceptionSubclass	subclass()	const;
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	/*
+	 *		Eccezioni Client
+	 *
+	 */
+	class EXCEPTIONSSHARED_EXPORT ClientException : public Exception{
+
+		public:
+			virtual ExceptionSubclass	subclass()	const;
+	};
+
+	class EXCEPTIONSSHARED_EXPORT NullUserPointer : public ClientException{
+
+		public:
 			virtual const char *		what()		const throw ();
 			virtual	Type				type()		const;
 	};

@@ -53,6 +53,7 @@ namespace KCloud{
 					};
 
 		explicit							CommandPacket(QObject *parent = 0);
+											~CommandPacket();
 
 					void					clear();
 		virtual		void					prepareForSend() throw(Exception);

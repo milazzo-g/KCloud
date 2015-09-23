@@ -33,7 +33,7 @@ void KCloud::MainServer::execCommand(const QString &cmd){
 }
 
 void KCloud::MainServer::clog(const QString &log){
-	QString str(Console::Blue + QString("MainServer: ") + Console::Reset);
+	QString str(Console::Blue + this->metaObject()->className() + Console::Reset);
 	str += log;
 	m_console->output(str);
 }
@@ -42,7 +42,7 @@ void KCloud::MainServer::incomingConnection(qintptr handle){
 
 	clog("New Connection Accepted!");
 	clog("Creating New Worker Server...");
-	WorkerServer * tmp = new WorkerServer(this);
+	WorkerServer * tmp = new WorkerServer(handle, this);
 	clog("Worker Server Created!");
 	connect(tmp, SIGNAL(consoleOutRequest(QString)	) , m_console	, SLOT(output(QString)	));
 	connect(tmp, SIGNAL(finished()					) , tmp			, SLOT(deleteLater()	));

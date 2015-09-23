@@ -229,3 +229,22 @@ KCloud::Exception::Type KCloud::UnknownException::type() const{
 
 	return Unknown;
 }
+
+/*
+ *		Eccezioni Client
+ *
+ */
+
+KCloud::Exception::ExceptionSubclass KCloud::ClientException::subclass() const
+{
+	return Client;
+}
+
+const char *KCloud::NullUserPointer::what() const throw (){
+	return "ClientException : User not set or NULL!";
+}
+
+KCloud::Exception::Type KCloud::NullUserPointer::type() const{
+
+	return ClientNullUserPointer;
+}

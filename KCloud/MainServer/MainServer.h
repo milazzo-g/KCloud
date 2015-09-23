@@ -24,12 +24,10 @@ namespace KCloud{
 		public:
 			explicit							MainServer(QObject *parent = 0);
 												~MainServer();
-
-		public slots:
-						void					execCommand(const QString &cmd);
 		protected:
 						void					incomingConnection(qintptr handle);
 		private:
+						void					execCommand(const QString &cmd);
 						void					clog(const QString &log);
 
 						QList<WorkerServer *>	m_clientsHandlers;

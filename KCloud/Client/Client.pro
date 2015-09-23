@@ -36,3 +36,17 @@ else:unix: LIBS += -L$$OUT_PWD/../Console/ -lConsole
 
 INCLUDEPATH += $$PWD/../Console
 DEPENDPATH += $$PWD/../Console
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Exceptions/release/ -lExceptions
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Exceptions/debug/ -lExceptions
+else:unix: LIBS += -L$$OUT_PWD/../Exceptions/ -lExceptions
+
+INCLUDEPATH += $$PWD/../Exceptions
+DEPENDPATH += $$PWD/../Exceptions
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../CommandPacket/release/ -lCommandPacket
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../CommandPacket/debug/ -lCommandPacket
+else:unix: LIBS += -L$$OUT_PWD/../CommandPacket/ -lCommandPacket
+
+INCLUDEPATH += $$PWD/../CommandPacket
+DEPENDPATH += $$PWD/../CommandPacket
