@@ -28,7 +28,8 @@ namespace KCloud{
 						void				userLogin();
 						void				userLogout();
 						void				socketStateChanged(QAbstractSocket::SocketState stat);
-		protected slots:
+
+		public slots:
 						void				sendCommand();
 						void				sendResource();
 						void				receiveCommand();

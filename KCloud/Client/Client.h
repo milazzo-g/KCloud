@@ -7,6 +7,8 @@
 
 #include "../Engine/Engine.h"
 #include "../Console/Console.h"
+#include "../Exceptions/Exceptions.h"
+#include "../CommandPacket/CommandPacket.h"
 
 namespace KCloud{
 
@@ -14,14 +16,34 @@ namespace KCloud{
 		Q_OBJECT
 		public:
 			enum WorkMode{
-				Thread,
-				Standalone
+				AsGuiThread,
+				AsConsoleThread
 			};
-											Client(WorkMode mode, QObject *parent = 0);
+														Client(const WorkMode mode, QObject *parent = 0);
+														~Client();
+		public slots:
+			virtual		void							parse();
+			virtual		void							login() throw (Exception);
+			virtual		void							logout();
+			virtual		void							resourceUp();
+			virtual		void							resourceMod();
+			virtual		void							resourceDel();
+			virtual		void							resourceTree();
+			virtual		void							resourceDown();
+			virtual		void							userRegister();
+			virtual		void							resourcePerm();
+			virtual		void							resourceShare();
+			virtual		void							passwordChange();
+
+						void							setUserForLogin(const QString &email, const QString &pwd) throw (Exception);
+		private slots:
+						void							execCommand(const QString &cmd);
+						void							clog(const QString &log);
 		private:
-						QCoreApplication *	m_coreApplication;
-						Console	*			m_console;
-						WorkMode			m_workMode;
+						QCoreApplication *				m_coreApplication;
+						Console	*						m_console;
+						WorkMode						m_workMode;
+						CommandPacket::ClientCommand	m_lastCommand;
 
 	};
 }

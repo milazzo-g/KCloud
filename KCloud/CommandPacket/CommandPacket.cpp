@@ -1,8 +1,12 @@
 #include "CommandPacket.h"
-
+#include <QDebug>
 KCloud::CommandPacket::CommandPacket(QObject *parent) : NetObject(parent){
 
 	clear();
+}
+
+KCloud::CommandPacket::~CommandPacket(){
+	qDebug() << __FUNCTION__;
 }
 
 void KCloud::CommandPacket::clear(){
