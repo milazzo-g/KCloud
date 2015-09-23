@@ -38,6 +38,10 @@ KCloud::User::User(const QString &mail, const QString &password, KCloud::User::P
 	setHash(password, mode);
 }
 
+KCloud::User::~User(){
+
+}
+
 bool KCloud::User::isLogged() const{
 
 	return m_state;
