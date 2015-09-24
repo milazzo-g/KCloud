@@ -9,6 +9,8 @@
 
 #include "workerserver_global.h"
 
+#include <QHostAddress>
+
 #include "../ResourcesManager/ResourcesManager.h"
 #include "../CommandPacket/CommandPacket.h"
 #include "../UsersManager/UsersManager.h"
@@ -24,6 +26,7 @@ namespace KCloud{
 											~WorkerServer();
 		signals:
 						void				consoleOutRequest(QString msg);
+						void				removeFromActiveHandlers(QString add);
 		protected:
 						void				run();
 		public slots:

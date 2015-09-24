@@ -25,11 +25,19 @@ KCloud::MainServer::~MainServer(){
 void KCloud::MainServer::execCommand(const QString &cmd){
 
 	if(cmd == "quit"){
+		foreach (WorkerServer * item, m_clientsHandlers.values()) {
+			item->quit();
+		}
 		m_console->quit();
 		m_coreApplication->quit();
 	}else{
 		clog("Unknown Command!");
 	}
+}
+
+void KCloud::MainServer::removeHandler(const QString &add){
+
+	m_clientsHandlers.remove(add);
 }
 
 void KCloud::MainServer::clog(const QString &log){
@@ -45,8 +53,9 @@ void KCloud::MainServer::incomingConnection(qintptr handle){
 	clog("Creating New Worker Server...");
 	WorkerServer * tmp = new WorkerServer(handle, this);
 	clog("Worker Server Created!");
-	connect(tmp, SIGNAL(consoleOutRequest(QString)	) , m_console	, SLOT(output(QString)	));
-	connect(tmp, SIGNAL(finished()					) , tmp			, SLOT(deleteLater()	));
-	m_clientsHandlers << tmp;
+	connect(tmp, SIGNAL(consoleOutRequest(QString)			) , m_console	, SLOT(output(QString)			));
+	connect(tmp, SIGNAL(removeFromActiveHandlers(QString)	) ,	this		, SLOT(removeHandler(QString)	));
+	connect(tmp, SIGNAL(finished()							) , tmp			, SLOT(deleteLater()			));
+	m_clientsHandlers.insert(tmp->address(), tmp);
 	tmp->start();
 }
