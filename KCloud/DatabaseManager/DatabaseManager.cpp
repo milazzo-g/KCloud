@@ -6,15 +6,15 @@
 //const QString	KCloud::DatabaseManager::m_database("soefykxr_testGD");
 //const int		KCloud::DatabaseManager::m_hostport(3306);
 
-const QString	KCloud::DatabaseManager::m_username("root");
-const QString	KCloud::DatabaseManager::m_password("(c6h10o5)n");
+const QString	KCloud::DatabaseManager::m_username("KCloudMan");
+const QString	KCloud::DatabaseManager::m_password("kcloud");
 const QString	KCloud::DatabaseManager::m_hostname("localhost");
 const QString	KCloud::DatabaseManager::m_database("KCloud");
 const int		KCloud::DatabaseManager::m_hostport(3306);
 
-KCloud::DatabaseManager::DatabaseManager(QObject *parent) : QObject(parent){
+KCloud::DatabaseManager::DatabaseManager(const QString &name, QObject *parent) : QObject(parent){
 
-	m_db = QSqlDatabase::addDatabase("QMYSQL");
+	m_db = QSqlDatabase::addDatabase("QMYSQL", name);
 	m_db.setUserName(m_username);
 	m_db.setPassword(m_password);
 	m_db.setHostName(m_hostname);

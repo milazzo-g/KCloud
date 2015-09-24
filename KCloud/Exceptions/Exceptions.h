@@ -42,7 +42,8 @@ namespace KCloud{
 				NetObjectUntrustedBytesCounter,
 
 				//Database
-
+				DatabaseNotOpen,
+				DatabaseQueryError,
 				//Client
 				ClientNullUserPointer,
 				ClientUnreachableServer,
@@ -179,6 +180,31 @@ namespace KCloud{
 
 		public:
 			virtual ExceptionSubclass	subclass()	const;
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	/*
+	 *		Eccezioni Database
+	 *
+	 */
+
+	class EXCEPTIONSSHARED_EXPORT DatabaseException : public Exception{
+
+		public:
+			virtual ExceptionSubclass	subclass()	const;
+	};
+
+	class EXCEPTIONSSHARED_EXPORT OpenFailure : public DatabaseException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class EXCEPTIONSSHARED_EXPORT QueryFailure : public DatabaseException{
+
+		public:
 			virtual const char *		what()		const throw ();
 			virtual	Type				type()		const;
 	};

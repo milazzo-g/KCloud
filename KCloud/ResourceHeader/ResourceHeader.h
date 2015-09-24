@@ -15,7 +15,7 @@
 
 namespace KCloud{
 
-	class ResourceManager;
+	class ResourcesManager;
 
 	class RESOURCEHEADERSHARED_EXPORT ResourceHeader : public QObject{
 		Q_OBJECT

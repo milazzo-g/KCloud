@@ -1,11 +1,18 @@
 #include <QCoreApplication>
 #include "../Client/Client.h"
 #include "../MainServer/MainServer.h"
+#include "../UsersManager/UsersManager.h"
 
 using namespace KCloud;
 
 #define SERVER false
 #define CLIENT true
+
+/*
+ *
+ * Server
+ *
+ */
 
 int main(int argc, char *argv[]){
 
@@ -20,7 +27,6 @@ int main(int argc, char *argv[]){
 		Client *	client = new Client(Client::AsConsoleThread, &a);
 		client->start();
 	}
-
 
 	return a.exec();
 }

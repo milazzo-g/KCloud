@@ -16,17 +16,13 @@ namespace KCloud{
 	class DATABASEMANAGERSHARED_EXPORT DatabaseManager : public QObject{
 		Q_OBJECT
 		public:
-			explicit						DatabaseManager(QObject *parent = 0);
+			explicit						DatabaseManager(const QString &name, QObject *parent = 0);
                                             ~DatabaseManager();
 							bool			open();
 							bool			isOpen() const;
 							void			close();
 							QString			lastDriverError() const;
 							QString			lastSqlError() const;
-		protected:
-							QSqlQuery		m_query;
-							QString			m_lastDriverError;
-							QString			m_lastSqlError;
 
 		private:
 			const static	QString			m_username;
@@ -34,8 +30,11 @@ namespace KCloud{
 			const static	QString			m_hostname;
 			const static	QString			m_database;
 			const static	int				m_hostport;
-							QSqlDatabase	m_db;
 							bool			m_openFlag;
+		protected:
+							QSqlDatabase	m_db;
+							QString			m_lastDriverError;
+							QString			m_lastSqlError;
 
 	};
 }

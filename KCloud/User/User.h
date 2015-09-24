@@ -14,12 +14,10 @@
 
 namespace KCloud{
 
-	class UserManager;
-
 	class USERSHARED_EXPORT User : public QObject{
 		Q_OBJECT
 
-		friend class UserManager;
+		friend class UsersManager;
 		friend QDataStream &operator<<(QDataStream &out, const User &tmp);
 		friend QDataStream &operator>>(QDataStream &inp, User &tmp);
 

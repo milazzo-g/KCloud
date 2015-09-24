@@ -3,7 +3,10 @@
 
 #include "usersmanager_global.h"
 
+#include <QList>
+
 #include "../User/User.h"
+#include "../Exceptions/Exceptions.h"
 #include "../DatabaseManager/DatabaseManager.h"
 
 namespace KCloud{
@@ -14,13 +17,15 @@ namespace KCloud{
 			enum UsersManagerAnswer{
 				UserOK,
 				UserNotFound,
-				UserWrongHash
+				UserWrongHash,
+				UserAlreadyLogged
 			};
-			explicit						UsersManager(QObject *parent = 0);
+			explicit						UsersManager(const QString &name, QObject *parent = 0);
                                             ~UsersManager();
-						UsersManagerAnswer	checkLogin(const User &usr);
+						UsersManagerAnswer	checkLogin(const User &usr) throw (Exception);
 						User				getUser();
-
+		private:
+						User				m_user;
 	};
 }
 

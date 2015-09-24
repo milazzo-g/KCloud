@@ -39,10 +39,15 @@ namespace KCloud{
 			virtual		void				resourcePerm();
 			virtual		void				resourceShare();
 			virtual		void				passwordChange();
+
+		public:
+						QString				address() const;
+						QString				keyFirst() const;
+						QString				keyLast() const;
 		private:
 						void				clog(const QString &log);
-						//UsersManager		m_usersManager;
-						//ResourcesManager	m_resourcesManager;
+						UsersManager *		m_usersManager;
+						ResourcesManager *	m_resourcesManager;
 
 
 	};

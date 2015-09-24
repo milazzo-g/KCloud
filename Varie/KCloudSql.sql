@@ -2,8 +2,8 @@ drop database if exists KCloud;
 
 create database KCloud;
 
-create user 'databaseManager'@'%' IDENTIFIED BY 'kcloudDbManager';
-grant all privileges on KCloud.* TO 'databaseManager'@'%' WITH GRANT OPTION;
+create user 'KCloudMan'@'%' IDENTIFIED BY 'kcloud';
+grant all privileges on KCloud.* TO 'KCloudMan'@'%' WITH GRANT OPTION;
 
 use KCloud;
 
