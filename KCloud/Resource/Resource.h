@@ -25,10 +25,11 @@ namespace KCloud{
 						QString		getResourcePath() const;
 						QString		getZipName() const;
 						QString		getZipPath() const;
+
 						void		setResourcePath(const QString &path) throw(Exception);
 						void		setZipName(const QString &name, const QString &ext = "");
-
 						void		setZipDir(const QString &path) throw(Exception);
+
 						QString		getZipDir() const;
 
 						void		clear();
