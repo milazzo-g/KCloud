@@ -9,6 +9,8 @@
 
 #include "workerserver_global.h"
 
+#include <QHostAddress>
+
 #include "../ResourcesManager/ResourcesManager.h"
 #include "../CommandPacket/CommandPacket.h"
 #include "../UsersManager/UsersManager.h"

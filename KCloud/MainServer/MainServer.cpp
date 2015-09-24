@@ -25,6 +25,11 @@ KCloud::MainServer::~MainServer(){
 void KCloud::MainServer::execCommand(const QString &cmd){
 
 	if(cmd == "quit"){
+		foreach (WorkerServer * item, m_clientsHandlers) {
+			if(item->isRunning()){
+				item->quit();
+			}
+		}
 		m_console->quit();
 		m_coreApplication->quit();
 	}else{

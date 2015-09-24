@@ -6,10 +6,11 @@ KCloud::WorkerServer::WorkerServer(int sd, QObject *parent) : Engine(parent){
 	m_socket->setSocketDescriptor(sd);
 	m_resourcesManager	= new ResourcesManager(keyFirst(), this);
 	m_usersManager		= new UsersManager(keyLast(), this);
+	connect(m_socket, SIGNAL(disconnected()), this, SLOT(quit()));
 }
 
 KCloud::WorkerServer::~WorkerServer(){
-	qDebug() << "WorkerServer Stopped";
+	clog("Job ended!");
 }
 
 void KCloud::WorkerServer::run(){
@@ -22,11 +23,14 @@ void KCloud::WorkerServer::run(){
 
 void KCloud::WorkerServer::parse(){
 
-	clog("Command received!");
+	clog(QString("Command received from ") + m_socket->peerAddress().toString());
 
 	switch (m_packet->getClientCommand()) {
 		case CommandPacket::Login:
 			login();
+			break;
+		case CommandPacket::Logout:
+			logout();
 			break;
 		default:
 			break;
@@ -35,10 +39,11 @@ void KCloud::WorkerServer::parse(){
 
 void KCloud::WorkerServer::login(){
 
-	clog("Login Request!");
+	clog(QString("Login request from ") + m_socket->peerAddress().toString());
 
 	try {
-		switch (m_usersManager->checkLogin(m_packet->getUser())) {
+		UsersManager::UsersManagerAnswer r = m_usersManager->checkLogin(m_packet->getUser());
+		switch (r){
 			case UsersManager::LoginOK:
 				clog("Login Ok!");
 				m_user = new User(m_usersManager->getUser());
@@ -56,6 +61,10 @@ void KCloud::WorkerServer::login(){
 				clog("User Already Logged!");
 				m_packet->answerToLogin(CommandPacket::AlreadyLogged);
 				break;
+			default:
+				clog("Generalmente non dovremmo essere qui!");
+				clog(QString("m_usersManager->checkLogin(m_packet->getUser())") + QString::number((qint32)r));
+				break;
 		}
 	} catch (Exception &e) {
 		clog("Exception Occurred!");
@@ -71,10 +80,11 @@ void KCloud::WorkerServer::login(){
 
 void KCloud::WorkerServer::logout(){
 
-	clog("Logout Request!");
+	clog(QString("Logout request from ") + m_socket->peerAddress().toString());
 
 	try {
-		switch (m_usersManager->checkLogout(*m_user)) {
+		UsersManager::UsersManagerAnswer r = (m_user == NULL ? UsersManager::UserNotFound : m_usersManager->checkLogout(*m_user));
+		switch (r){
 			case UsersManager::LogoutOK:
 				clog("Logout Ok!");
 				if(m_user){
@@ -87,6 +97,10 @@ void KCloud::WorkerServer::logout(){
 			case UsersManager::UserAlreadyUnLogged:
 				clog("Logout Fail!");
 				m_packet->answerToLogout(CommandPacket::LogoutFail);
+				break;
+			default:
+				clog("Generalmente non dovremmo essere qui!");
+				clog(QString("m_usersManager->checkLogout(m_packet->getUser())") + QString::number((qint32)r));
 				break;
 		}
 	} catch (Exception &e) {
