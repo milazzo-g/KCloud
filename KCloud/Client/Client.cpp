@@ -27,6 +27,8 @@ KCloud::Client::~Client(){
 
 void KCloud::Client::parse() throw (KCloud::Exception){
 
+	qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "RISPOSTA DEL SERVER ENUM = ->>>>>>>>>>" << m_packet->getServerAnswer();
+
 	switch (m_lastCommand){
 
 		case CommandPacket::Login:
@@ -38,7 +40,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 					break;
 
 				case CommandPacket::AlreadyLogged:
-					clog(QString("Errore nel login, utente già loggato, il server riporta: ") + m_packet->getLastError().first());
+					clog(QString("Errore nel login, utente già loggato"));
 					break;
 
 				case CommandPacket::WrongEmail:
@@ -192,7 +194,8 @@ void KCloud::Client::execCommand(const QString &cmd){
 				}
 			}else if(QRegExp("setZipName", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog("Da fare");
+				clog(QString("Setting zip name to: ") + arg[1]);
+
 
 			}else{
 
