@@ -32,6 +32,21 @@ namespace KCloud{
 			const static	int				m_hostport;
 							bool			m_openFlag;
 		protected:
+			enum userTableValue{
+				Email,
+				Hash,
+				Space,
+				Status
+			};
+			const	static	QString			queryUser_1;
+			const	static	QString			queryUser_2;
+
+			const	static	QString			placeHolder_mail;
+			const	static	QString			placeHolder_hash;
+			const	static	QString			placeHolder_space;
+			const	static	QString			placeHolder_status;
+			const	static	QString			sqlEnumLogged;
+			const	static	QString			sqlEnumUnLogged;
 							QSqlDatabase	m_db;
 							QString			m_lastDriverError;
 							QString			m_lastSqlError;

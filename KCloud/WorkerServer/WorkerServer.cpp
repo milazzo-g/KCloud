@@ -36,28 +36,69 @@ void KCloud::WorkerServer::parse(){
 void KCloud::WorkerServer::login(){
 
 	clog("Login Request!");
-	switch (m_usersManager->checkLogin(m_packet->getUser())){
-		case UsersManager::UserOK:
-			clog("Collegato");
-			break;
-		case UsersManager::UserAlreadyLogged:
-			clog("Già loggato!");
-			break;
-		case UsersManager::UserNotFound:
-			clog("User non trovato!");
-			break;
-		case UsersManager::UserWrongHash:
-			clog("Password errata!");
-			break;
-		default:
-			clog("Dio ci ha voluto male!");
-			break;
+
+	try {
+		switch (m_usersManager->checkLogin(m_packet->getUser())) {
+			case UsersManager::LoginOK:
+				clog("Login Ok!");
+				m_user = new User(m_usersManager->getUser());
+				m_packet->answerToLogin(CommandPacket::LoginOk, *m_user);
+				break;
+			case UsersManager::UserNotFound:
+				clog("User Not Found!");
+				m_packet->answerToLogin(CommandPacket::WrongEmail);
+				break;
+			case UsersManager::UserWrongHash:
+				clog("User Wrong Hash!");
+				m_packet->answerToLogin(CommandPacket::WrongPassword);
+				break;
+			case UsersManager::UserAlreadyLogged:
+				clog("User Already Logged!");
+				m_packet->answerToLogin(CommandPacket::AlreadyLogged);
+				break;
+		}
+	} catch (Exception &e) {
+		clog("Exception Occurred!");
+		clog(e.what());
+		QStringList errors;
+		errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+		m_packet->answerToLogin(CommandPacket::ServerInternalError, m_packet->getUser(), errors);
 	}
-	receiveCommand();
+
+	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+	sendCommand();
 }
 
 void KCloud::WorkerServer::logout(){
 
+	clog("Logout Request!");
+
+	try {
+		switch (m_usersManager->checkLogout(*m_user)) {
+			case UsersManager::LogoutOK:
+				clog("Logout Ok!");
+				if(m_user){
+					delete m_user;
+				}
+				m_packet->answerToLogout(CommandPacket::LogoutOk);
+				break;
+			case UsersManager::UserNotFound:
+			case UsersManager::UserWrongHash:
+			case UsersManager::UserAlreadyUnLogged:
+				clog("Logout Fail!");
+				m_packet->answerToLogout(CommandPacket::LogoutFail);
+				break;
+		}
+	} catch (Exception &e) {
+		clog("Exception Occurred!");
+		clog(e.what());
+		QStringList errors;
+		errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+		m_packet->answerToLogin(CommandPacket::ServerInternalError, m_packet->getUser(), errors);
+	}
+
+	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+	sendCommand();
 }
 
 void KCloud::WorkerServer::resourceUp(){

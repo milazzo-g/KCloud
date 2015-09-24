@@ -42,8 +42,8 @@ namespace KCloud{
                         ResourceDownInvalidId,
                         ResourceDelOk,
                         ResourceDelFail,
-                        ResourceDelInvalidPerm
-
+						ResourceDelInvalidPerm,
+						ServerInternalError
 					};
 
 					enum ClientCommand{
@@ -87,7 +87,7 @@ namespace KCloud{
 					void					answerToResourceUp(ServerAnswer answer, const QStringList &errorList = QStringList());
                     void					answerToLogout(ServerAnswer answer, const QStringList &errorStringList = QStringList());
 					void					answerToResourceDown(ServerAnswer &answer, const QStringList &errorList = QStringList());
-                    void					answerToLogin(ServerAnswer answer, const User &usr, const QStringList &errorStringList = QStringList());
+					void					answerToLogin(ServerAnswer answer, const User &usr = User(), const QStringList &errorStringList = QStringList());
                     void					answerToResourceTree(ServerAnswer answer, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
 
 

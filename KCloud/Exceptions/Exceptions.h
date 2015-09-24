@@ -44,6 +44,7 @@ namespace KCloud{
 				//Database
 				DatabaseNotOpen,
 				DatabaseQueryError,
+				DatabaseMultipleRowsForPrimaryKey,
 				//Client
 				ClientNullUserPointer,
 				ClientUnreachableServer,
@@ -203,6 +204,13 @@ namespace KCloud{
 	};
 
 	class EXCEPTIONSSHARED_EXPORT QueryFailure : public DatabaseException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class EXCEPTIONSSHARED_EXPORT MultipleRowsForPrimaryKey : public DatabaseException{
 
 		public:
 			virtual const char *		what()		const throw ();

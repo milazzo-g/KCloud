@@ -15,17 +15,25 @@ namespace KCloud{
 		Q_OBJECT
 		public:
 			enum UsersManagerAnswer{
-				UserOK,
+				LoginOK,
+				LogoutOK,
 				UserNotFound,
 				UserWrongHash,
-				UserAlreadyLogged
+				UserAlreadyLogged,
+				UserAlreadyUnLogged
 			};
-			explicit						UsersManager(const QString &name, QObject *parent = 0);
-                                            ~UsersManager();
-						UsersManagerAnswer	checkLogin(const User &usr) throw (Exception);
-						User				getUser();
+			explicit							UsersManager(const QString &name, QObject *parent = 0);
+												~UsersManager();
+							UsersManagerAnswer	checkLogin(const User &usr) throw (Exception);
+							UsersManagerAnswer	checkLogout(const User &usr) throw (Exception);
+							User				getUser() const;
 		private:
-						User				m_user;
+
+			const static	QString				queryUser_1;
+			const static	QString				queryUser_2;
+							void				tryExec(QSqlQuery &query) throw (Exception);
+							void				usrCopy(QSqlQuery &query);
+							User				m_user;
 	};
 }
 

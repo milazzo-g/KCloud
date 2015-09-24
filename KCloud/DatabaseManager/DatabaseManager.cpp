@@ -12,6 +12,13 @@ const QString	KCloud::DatabaseManager::m_hostname("localhost");
 const QString	KCloud::DatabaseManager::m_database("KCloud");
 const int		KCloud::DatabaseManager::m_hostport(3306);
 
+const QString KCloud::DatabaseManager::placeHolder_mail(":email");
+const QString KCloud::DatabaseManager::placeHolder_hash(":hash");
+const QString KCloud::DatabaseManager::placeHolder_space(":space");
+const QString KCloud::DatabaseManager::placeHolder_status(":status");
+const QString KCloud::DatabaseManager::sqlEnumLogged("Logged");
+const QString KCloud::DatabaseManager::sqlEnumUnLogged("UnLogged");
+
 KCloud::DatabaseManager::DatabaseManager(const QString &name, QObject *parent) : QObject(parent){
 
 	m_db = QSqlDatabase::addDatabase("QMYSQL", name);

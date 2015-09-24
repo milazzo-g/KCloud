@@ -283,3 +283,13 @@ KCloud::Exception::Type KCloud::QueryFailure::type() const{
 
 	return DatabaseQueryError;
 }
+
+const char *KCloud::MultipleRowsForPrimaryKey::what() const throw (){
+
+	return "DatabaseException : Multiple rows for a primary key!";
+}
+
+KCloud::Exception::Type KCloud::MultipleRowsForPrimaryKey::type() const{
+
+	return DatabaseMultipleRowsForPrimaryKey;
+}

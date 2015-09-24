@@ -1,6 +1,10 @@
 #include "UsersManager.h"
 #include <QDebug>
 
+
+const QString KCloud::UsersManager::queryUser_1(" SELECT * FROM users WHERE email = :email ");
+const QString KCloud::UsersManager::queryUser_2(" UPDATE users SET status = :status WHERE email = :email ");
+
 KCloud::UsersManager::UsersManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
 
 }
@@ -13,47 +17,88 @@ KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkLogin(const 
 
 	if(open()){
 		QSqlQuery query(m_db);
-		query.prepare(" SELECT * FROM users WHERE email = :email ");
-		query.bindValue(":email", usr.getEmail());
-		if(!query.exec()){
-			m_lastSqlError		= query.lastError().databaseText();
-			m_lastDriverError	= query.lastError().driverText();
-			throw QueryFailure();
-		}
-		switch (query.size()) {
+		query.prepare(queryUser_1);
+		query.bindValue(placeHolder_mail, usr.getEmail());
+		tryExec(query);
+		switch (query.size()){
 			case 0:
 				return UserNotFound;
 			case 1:
 				query.seek(0);
-				if(query.value(1).toString() == usr.getHash()){
-					if(query.value(3).toString() == "Logged"){
+				if(query.value(DatabaseManager::Hash).toString() == usr.getHash()){
+					usrCopy(query);
+					if(m_user.isLogged()){
 						return UserAlreadyLogged;
 					}
-					m_user.m_email	= usr.getEmail();
-					m_user.m_hash	= usr.getHash();
-					m_user.m_space	= query.value(2).toLongLong();
-					m_user.m_state	= true;
 					query.clear();
-					query.prepare("UPDATE users SET status = 'Logged' WHERE email = :email ");
-					query.bindValue(":email", m_user.m_email);
-					if(!query.exec()){
-						m_lastSqlError		= query.lastError().databaseText();
-						m_lastDriverError	= query.lastError().driverText();
-						qDebug() << m_lastSqlError;
-						qDebug() << m_lastDriverError;
-						throw QueryFailure();
-					}
-					return UserOK;
-				}else{
-					return UserWrongHash;
+					query.prepare(queryUser_2);
+					query.bindValue(placeHolder_status, sqlEnumLogged);
+					query.bindValue(placeHolder_mail, m_user.getEmail());
+					tryExec(query);
+					return LoginOK;
 				}
-				break;
+				return UserWrongHash;
 			default:
-				//sono successe cose gravissime
+				throw MultipleRowsForPrimaryKey();
 				break;
 		}
 	}else{
 		throw OpenFailure();
 	}
-	return UserAlreadyLogged;
+	return UserNotFound;
+}
+
+KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkLogout(const KCloud::User &usr) throw (Exception){
+
+	if(m_db.open()){
+		QSqlQuery query(m_db);
+		query.prepare(queryUser_1);
+		query.bindValue(placeHolder_mail, usr.getEmail());
+		tryExec(query);
+		switch (query.size()) {
+			case 0:
+				return UserNotFound;
+			case 1:
+				query.seek(0);
+				if(query.value(DatabaseManager::Hash).toString() == usr.getHash()){
+					usrCopy(query);
+					if(!m_user.isLogged()){
+						return UserAlreadyUnLogged;
+					}
+					query.clear();
+					query.prepare(queryUser_2);
+					query.bindValue(placeHolder_status, sqlEnumUnLogged);
+					query.bindValue(placeHolder_mail, m_user.getEmail());
+					tryExec(query);
+					return LogoutOK;
+				}
+				return UserWrongHash;
+			default:
+				throw MultipleRowsForPrimaryKey();
+				break;
+		}
+	}else{
+		throw OpenFailure();
+	}
+	return UserNotFound;
+}
+
+KCloud::User KCloud::UsersManager::getUser() const{
+
+	return m_user;
+}
+
+void KCloud::UsersManager::tryExec(QSqlQuery &query) throw (Exception){
+	if(!query.exec()){
+		m_lastSqlError		= query.lastError().databaseText();
+		m_lastDriverError	= query.lastError().driverText();
+		throw QueryFailure();
+	}
+}
+
+void KCloud::UsersManager::usrCopy(QSqlQuery &query){
+	m_user.m_email	= query.value(DatabaseManager::Email).toString();
+	m_user.m_hash	= query.value(DatabaseManager::Hash).toString();
+	m_user.m_space	= query.value(DatabaseManager::Space).toLongLong();
+	m_user.m_state	= query.value(DatabaseManager::Status).toString() == sqlEnumLogged ? true : false;
 }
