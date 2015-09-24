@@ -99,7 +99,7 @@ void KCloud::CommandPacket::setErrorStringList(const QStringList &err){
 
 void KCloud::CommandPacket::setFirstResourceHeader(const KCloud::ResourceHeader &res){
 
-	m_headersList[0] = res;
+	m_headersList << res;
 }
 
 KCloud::User KCloud::CommandPacket::getUser() const{
