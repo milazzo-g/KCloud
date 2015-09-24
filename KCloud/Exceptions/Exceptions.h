@@ -44,6 +44,7 @@ namespace KCloud{
 				//Database
 				DatabaseNotOpen,
 				DatabaseQueryError,
+
 				//Client
 				ClientNullUserPointer,
 				ClientUnreachableServer,
@@ -53,8 +54,9 @@ namespace KCloud{
 				//WorkerServer
 
 				//varie ed eventuali l'importante è dargli un nome con il commmento
+				Core,
 				Unknown,
-				Core
+				CorruptPacket
 			};
 
 			virtual const char *		what()		const throw ();
@@ -177,6 +179,14 @@ namespace KCloud{
 	 *
 	*/
 	class EXCEPTIONSSHARED_EXPORT UnknownException : public Exception{
+
+		public:
+			virtual ExceptionSubclass	subclass()	const;
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class EXCEPTIONSSHARED_EXPORT CorruptPacketException : public Exception{
 
 		public:
 			virtual ExceptionSubclass	subclass()	const;
