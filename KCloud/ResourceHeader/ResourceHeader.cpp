@@ -29,8 +29,10 @@ KCloud::ResourceHeader::ResourceHeader(const QString &path,
 		m_size = QFileInfo(path).size();
 		m_type = File;
 	}
+
 	m_parentId = parentId;
 	setOwner(sessionUser);
+	setName(QFileInfo(path).fileName());
 	m_permissionTable = permissionTable;
 	m_publicPerm = publicPerm;
 }
@@ -51,8 +53,14 @@ void KCloud::ResourceHeader::clear(){
 	m_id		= 0;
 	m_parentId	= 0;
 	setPublicPermission();
+	m_name.clear();
 	m_owner.clear();
 	m_permissionTable.clear();
+}
+
+void KCloud::ResourceHeader::setName(const QString &name){
+
+	m_name = name;
 }
 
 void KCloud::ResourceHeader::setParentId(const quint64 &id){
@@ -134,6 +142,11 @@ QString KCloud::ResourceHeader::getOwner() const{
 	return m_owner;
 }
 
+QString KCloud::ResourceHeader::getName() const{
+
+	return m_name;
+}
+
 KCloud::ResourceHeader::ResourceType KCloud::ResourceHeader::getType() const{
 
 	return m_type;
@@ -164,6 +177,7 @@ QMap<QString, KCloud::ResourceHeader::ResourcePerm> KCloud::ResourceHeader::getP
 KCloud::ResourceHeader &KCloud::ResourceHeader::operator=(const KCloud::ResourceHeader &cpy){
 
 	m_size				= cpy.m_size;
+	m_name				= cpy.m_name;
 	m_id				= cpy.m_id;
 	m_parentId			= cpy.m_parentId;
 	m_owner				= cpy.m_owner;
@@ -201,13 +215,13 @@ void KCloud::ResourceHeader::setId(const quint64 &id){
 
 QDataStream &KCloud::operator<<(QDataStream &out, const KCloud::ResourceHeader &tmp){
 
-	out << tmp.m_id << tmp.m_owner << tmp.m_parentId << tmp.m_permissionTable << tmp.m_publicPerm << tmp.m_size << tmp.m_type;
+	out << tmp.m_id << tmp.m_owner << tmp.m_parentId << tmp.m_permissionTable << tmp.m_publicPerm << tmp.m_size << tmp.m_type << tmp.m_name;
 	return out;
 }
 
 QDataStream &KCloud::operator>>(QDataStream &inp, KCloud::ResourceHeader &tmp){
 
-	inp >> tmp.m_id >> tmp.m_owner >> tmp.m_parentId >> tmp.m_permissionTable >> tmp.m_publicPerm >> tmp.m_size >> tmp.m_type;
+	inp >> tmp.m_id >> tmp.m_owner >> tmp.m_parentId >> tmp.m_permissionTable >> tmp.m_publicPerm >> tmp.m_size >> tmp.m_type >> tmp.m_name;
 	return inp;
 }
 

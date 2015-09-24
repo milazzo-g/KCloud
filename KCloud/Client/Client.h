@@ -47,6 +47,7 @@ namespace KCloud{
 						WorkMode						m_workMode;
 						CommandPacket::ClientCommand	m_lastCommand;
 
+
 	};
 }
 

@@ -37,6 +37,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				case CommandPacket::LoginOk:
 					clog("Login OK!");
+					*m_user = m_packet->getUser();
 					break;
 
 				case CommandPacket::AlreadyLogged:
@@ -76,6 +77,29 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 					break;
 			}
 			break;
+		case CommandPacket::ResourceUp:
+
+			switch (m_packet->getServerAnswer()){
+				case CommandPacket::ResourceUpOk:
+					clog(QString("Caricamento consentito"));
+					break;
+
+				case CommandPacket::ResourceUpFail:
+					clog(QString("Caricamento rifiutato"));
+					break;
+
+				case CommandPacket::ResourceUpInvalidPerm:
+					clog(QString("Caricamento rifiutato, permessi insufficienti"));
+					break;
+
+				case CommandPacket::ResourceUpSpaceExhausted:
+					clog(QString("Caricamento rifiutato, spazio sul server esaurito"));
+					break;
+
+				default:
+					break;
+			}
+			break;
 
 		default:
 			clog("Processamento comandi non ancora implementato per questi valori!");
@@ -105,6 +129,8 @@ void KCloud::Client::logout(){
 
 void KCloud::Client::resourceUp(){
 
+	sendResource();
+	connect(m_resource, SIGNAL(objectSended()), this, SLOT(receiveCommand()));
 }
 
 void KCloud::Client::resourceMod(){
@@ -195,11 +221,10 @@ void KCloud::Client::execCommand(const QString &cmd){
 			}else if(QRegExp("setZipName", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog(QString("Setting zip name to: ") + arg[1]);
-
-
+				m_resource->setZipName(arg[1]);
 			}else{
 
-			clog("Unknown Command!");
+				clog("Unknown Command!");
 			}
 			break;
 		case 3:
@@ -211,8 +236,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 					clog("Exception occurred!");
 					clog(e.what());
 				}
-			}
-			if(QRegExp("connect", Qt::CaseInsensitive).exactMatch(arg[0])){
+			}else if(QRegExp("connect", Qt::CaseInsensitive).exactMatch(arg[0])){
 				bool exc = false;
 				try{
 					connectToHost(arg[1], QString(arg[2]).toUShort());
@@ -224,6 +248,27 @@ void KCloud::Client::execCommand(const QString &cmd){
 				if(exc){
 					clog("Connected!");
 				}
+			}else if(QRegExp("upload", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog(QString("Upload file: " + arg[1] + "id parent: " + arg[2].toULongLong()));
+				if(m_user == NULL){
+					throw NullUserPointer();
+				}else{
+					try{
+						m_packet->setForResourceUp(arg[1], *m_user, arg[2].toULongLong());
+						m_resource->setResourcePath(arg[1]);
+						m_lastCommand = m_packet->getClientCommand();
+						sendCommand();
+						connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+					}catch(Exception &e){
+						clog("Exception occurred");
+						clog(e.what());
+						m_packet->clear();
+					}
+				}
+			}else{
+
+				clog("Unknown Command!");
 			}
 
 		default:
