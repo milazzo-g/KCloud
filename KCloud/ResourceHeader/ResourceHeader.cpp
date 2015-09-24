@@ -58,6 +58,11 @@ void KCloud::ResourceHeader::clear(){
 	m_permissionTable.clear();
 }
 
+void KCloud::ResourceHeader::setName(const QString &name){
+
+	m_name = name;
+}
+
 void KCloud::ResourceHeader::setParentId(const quint64 &id){
 
 	m_parentId = id;
