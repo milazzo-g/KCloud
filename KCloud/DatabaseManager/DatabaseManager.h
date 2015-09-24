@@ -5,11 +5,13 @@
 
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlDriver>
-#include <QStringList>
 #include <QtSql/QSqlDatabase>
+
+#include "../Exceptions/Exceptions.h"
 
 namespace KCloud{
 
@@ -32,25 +34,46 @@ namespace KCloud{
 			const static	int				m_hostport;
 							bool			m_openFlag;
 		protected:
+
 			enum userTableValue{
 				Email,
 				Hash,
 				Space,
 				Status
 			};
-			const	static	QString			queryUser_1;
-			const	static	QString			queryUser_2;
 
+			enum resourceTableValue{
+				Id,
+				Parent,
+				Owner,
+				Name,
+				Type,
+				Size
+			};
+
+			const	static	QString			sqlEnumDir;
+			const	static	QString			sqlEnumFile;
+			const	static	QString			sqlEnumRead;
+			const	static	QString			sqlEnumWrite;
+			const	static	QString			sqlEnumLogged;
+			const	static	QString			sqlEnumUnLogged;
 			const	static	QString			placeHolder_mail;
 			const	static	QString			placeHolder_hash;
 			const	static	QString			placeHolder_space;
 			const	static	QString			placeHolder_status;
-			const	static	QString			sqlEnumLogged;
-			const	static	QString			sqlEnumUnLogged;
+
+			const	static	QString			placeHolder_id;
+			const	static	QString			placeHolder_parent;
+			const	static	QString			placeHolder_owner;
+			const	static	QString			placeHolder_name;
+			const	static	QString			placeHolder_type;
+			const	static	QString			placeHolder_size;
+
 							QSqlDatabase	m_db;
 							QString			m_lastDriverError;
 							QString			m_lastSqlError;
 
+							void			tryExec(QSqlQuery &query) throw (Exception);
 	};
 }
 

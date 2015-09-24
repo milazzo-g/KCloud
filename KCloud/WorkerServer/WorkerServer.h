@@ -9,10 +9,13 @@
 
 #include "workerserver_global.h"
 
+#include <QDir>
+#include <QDateTime>
+#include <QSettings>
 #include <QHostAddress>
 
-#include "../ResourcesManager/ResourcesManager.h"
 #include "../CommandPacket/CommandPacket.h"
+#include "../ResourcesManager/ResourcesManager.h"
 #include "../UsersManager/UsersManager.h"
 #include "../Console/Console.h"
 #include "../Engine/Engine.h"
@@ -43,14 +46,20 @@ namespace KCloud{
 			virtual		void				resourceShare();
 			virtual		void				passwordChange();
 
+		private slots:
+						void				finalizeUpload();
 		public:
 						QString				address() const;
 						QString				keyFirst() const;
 						QString				keyLast() const;
 		private:
 						void				clog(const QString &log);
+						ResourceHeader		m_head;
 						UsersManager *		m_usersManager;
 						ResourcesManager *	m_resourcesManager;
+						QDir				m_dir;
+						QString				m_key1;
+						QString				m_key2;
 
 
 	};

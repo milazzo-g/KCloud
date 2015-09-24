@@ -31,7 +31,6 @@ namespace KCloud{
 
 			const static	QString				queryUser_1;
 			const static	QString				queryUser_2;
-							void				tryExec(QSqlQuery &query) throw (Exception);
 							void				usrCopy(QSqlQuery &query);
 							User				m_user;
 	};
