@@ -9,6 +9,8 @@
 
 #include "workerserver_global.h"
 
+#include <QDir>
+#include <QSettings>
 #include <QHostAddress>
 
 #include "../ResourcesManager/ResourcesManager.h"
@@ -51,6 +53,7 @@ namespace KCloud{
 						void				clog(const QString &log);
 						UsersManager *		m_usersManager;
 						ResourcesManager *	m_resourcesManager;
+						QDir				m_dir;
 
 
 	};

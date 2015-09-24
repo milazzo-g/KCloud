@@ -15,7 +15,8 @@ DEFINES += MAINSERVER_LIBRARY
 SOURCES += MainServer.cpp
 
 HEADERS += MainServer.h\
-        mainserver_global.h
+        mainserver_global.h \
+    defines.h
 
 unix {
     target.path = /usr/lib

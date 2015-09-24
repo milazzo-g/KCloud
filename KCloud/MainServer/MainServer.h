@@ -9,9 +9,11 @@
 
 #include "mainserver_global.h"
 
+#include <QDir>
 #include <QMap>
 #include <QList>
 #include <QObject>
+#include <QSettings>
 #include <QCoreApplication>
 #include <QtNetwork/QTcpServer>
 
@@ -25,6 +27,7 @@ namespace KCloud{
 		public:
 			explicit									MainServer(QObject *parent = 0);
 														~MainServer();
+						void							start();
 		protected:
 						void							incomingConnection(qintptr handle);
 

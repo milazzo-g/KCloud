@@ -12,12 +12,26 @@ const QString	KCloud::DatabaseManager::m_hostname("localhost");
 const QString	KCloud::DatabaseManager::m_database("KCloud");
 const int		KCloud::DatabaseManager::m_hostport(3306);
 
-const QString KCloud::DatabaseManager::placeHolder_mail(":email");
+const QString KCloud::DatabaseManager::placeHolder_id(":id");
+
+const QString KCloud::DatabaseManager::placeHolder_name(":name");
+const QString KCloud::DatabaseManager::placeHolder_type(":type");
+const QString KCloud::DatabaseManager::placeHolder_size(":size");
 const QString KCloud::DatabaseManager::placeHolder_hash(":hash");
+const QString KCloud::DatabaseManager::placeHolder_mail(":email");
+
 const QString KCloud::DatabaseManager::placeHolder_space(":space");
+const QString KCloud::DatabaseManager::placeHolder_owner(":owner");
 const QString KCloud::DatabaseManager::placeHolder_status(":status");
+const QString KCloud::DatabaseManager::placeHolder_parent(":parent");
+
+const QString KCloud::DatabaseManager::sqlEnumDir("Dir");
+const QString KCloud::DatabaseManager::sqlEnumFile("File");
+const QString KCloud::DatabaseManager::sqlEnumRead("Read");
+const QString KCloud::DatabaseManager::sqlEnumWrite("Write");
 const QString KCloud::DatabaseManager::sqlEnumLogged("Logged");
 const QString KCloud::DatabaseManager::sqlEnumUnLogged("UnLogged");
+
 
 KCloud::DatabaseManager::DatabaseManager(const QString &name, QObject *parent) : QObject(parent){
 
@@ -66,4 +80,13 @@ QString KCloud::DatabaseManager::lastDriverError() const{
 QString KCloud::DatabaseManager::lastSqlError() const{
 
 	return m_lastSqlError;
+}
+
+void KCloud::DatabaseManager::tryExec(QSqlQuery &query){
+
+	if(!query.exec()){
+		m_lastSqlError		= query.lastError().databaseText();
+		m_lastDriverError	= query.lastError().driverText();
+		throw QueryFailure();
+	}
 }

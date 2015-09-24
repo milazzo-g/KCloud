@@ -1,16 +1,22 @@
 #include "WorkerServer.h"
 #include "QDebug"
 
+#include "../MainServer/defines.h"
+
 KCloud::WorkerServer::WorkerServer(int sd, QObject *parent) : Engine(parent){
 
+	QSettings appSettings;
 	m_socket->setSocketDescriptor(sd);
+	m_dir.cd(appSettings.value(INSTANCES).toString());
+	m_dir.mkdir(keyFirst());
+	m_dir.cd(keyFirst());
 	m_resourcesManager	= new ResourcesManager(keyFirst(), this);
 	m_usersManager		= new UsersManager(keyLast(), this);
 	connect(m_socket, SIGNAL(disconnected()), this, SLOT(quit()));
 }
 
 KCloud::WorkerServer::~WorkerServer(){
-	//clog("Job ended!");
+	m_dir.rmdir(m_dir.path());
 	qDebug() << address() << ": Job ended!";
 	emit removeFromActiveHandlers(address());
 }
@@ -34,12 +40,15 @@ void KCloud::WorkerServer::parse(){
 		case CommandPacket::Logout:
 			logout();
 			break;
+		case CommandPacket::ResourceUp:
+			resourceUp();
+			break;
 		default:
 			break;
 	}
 }
 
-void KCloud::WorkerServer::login(){
+void KCloud::WorkerServer::login(){					////Completata ma meglio riguardare poi
 
 	clog(QString("Login request from ") + m_socket->peerAddress().toString());
 
@@ -80,7 +89,7 @@ void KCloud::WorkerServer::login(){
 	sendCommand();
 }
 
-void KCloud::WorkerServer::logout(){
+void KCloud::WorkerServer::logout(){					////Completata ma meglio riguardare poi
 
 	clog(QString("Logout request from ") + m_socket->peerAddress().toString());
 
@@ -118,6 +127,14 @@ void KCloud::WorkerServer::logout(){
 }
 
 void KCloud::WorkerServer::resourceUp(){
+
+	clog(QString("Resource Upload request from ") + m_socket->peerAddress().toString());
+
+	try{
+
+	}catch(Exception &e){
+
+	}
 
 }
 

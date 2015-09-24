@@ -88,14 +88,6 @@ KCloud::User KCloud::UsersManager::getUser() const{
 	return m_user;
 }
 
-void KCloud::UsersManager::tryExec(QSqlQuery &query) throw (Exception){
-	if(!query.exec()){
-		m_lastSqlError		= query.lastError().databaseText();
-		m_lastDriverError	= query.lastError().driverText();
-		throw QueryFailure();
-	}
-}
-
 void KCloud::UsersManager::usrCopy(QSqlQuery &query){
 	m_user.m_email	= query.value(DatabaseManager::Email).toString();
 	m_user.m_hash	= query.value(DatabaseManager::Hash).toString();

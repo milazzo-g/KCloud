@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
 
 	if(mode == SERVER){
 		MainServer *server	= new MainServer(&a);
-		server->listen(QHostAddress::AnyIPv4, 8000);
+		server->start();
 	}else{
 		Client *	client = new Client(Client::AsConsoleThread, &a);
 		client->start();

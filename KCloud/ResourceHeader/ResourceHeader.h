@@ -33,7 +33,8 @@ namespace KCloud{
 
 			enum ResourceType{
 				Dir,
-				File
+				File,
+				TypeUndef
 			};
 
 			explicit								ResourceHeader(QObject *parent = 0);

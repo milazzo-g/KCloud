@@ -1,0 +1,5 @@
+#ifndef COMMONDEFINES
+#define COMMONDEFINES
+
+#endif // COMMONDEFINES
+
