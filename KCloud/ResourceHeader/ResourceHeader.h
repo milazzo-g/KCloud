@@ -20,7 +20,7 @@ namespace KCloud{
 	class RESOURCEHEADERSHARED_EXPORT ResourceHeader : public QObject{
 		Q_OBJECT
 
-		friend class ResourceManager;
+		friend class ResourcesManager;
 		friend QDataStream &operator<<(QDataStream &out, const ResourceHeader &tmp);
 		friend QDataStream &operator>>(QDataStream &inp, ResourceHeader &tmp);
 
@@ -46,6 +46,7 @@ namespace KCloud{
 													ResourceHeader(const quint64 &id, QObject *parent = 0);
 													ResourceHeader(const ResourceHeader &cpy);
 						void						clear();
+						void						setName(const QString &name);
 						void						setParentId(const quint64 &id);
 						void						setOwner(const User &sessionUser);
 						void						setPermissionTable(const QMap<QString, ResourcePerm> &permissioTable = QMap<QString, ResourcePerm>());
@@ -53,10 +54,12 @@ namespace KCloud{
 						bool						modPermission(const QString &mail, ResourcePerm perm) throw(Exception);
 						bool						delPermission(const QString &mail) throw(Exception);
 						void						setPublicPermission(ResourcePerm perm = PermUndef);
+
 						qint64						getSize() const;
 						quint64						getId() const;
 						quint64						getParentId() const;
 						QString						getOwner() const;
+						QString						getName()const;
 						ResourceType				getType() const;
 						ResourcePerm				getPublicPermission();
 						ResourcePerm				getPermission(const QString &mail) throw(Exception);
@@ -73,6 +76,7 @@ namespace KCloud{
 						quint64						m_id;
 						quint64						m_parentId;
 						QString						m_owner;
+						QString						m_name;
 						ResourcePerm				m_publicPerm;
 						ResourceType				m_type;
 						QMap<QString, ResourcePerm>	m_permissionTable;
