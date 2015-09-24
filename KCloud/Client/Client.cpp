@@ -82,6 +82,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 			switch (m_packet->getServerAnswer()){
 				case CommandPacket::ResourceUpOk:
 					clog(QString("Caricamento consentito"));
+					resourceUp();
 					break;
 
 				case CommandPacket::ResourceUpFail:
@@ -196,7 +197,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 			}else if(QRegExp("login", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog("Faccio il login!");
-				setUserForLogin("dio@fungo.it", "giallettiDiPaceco");
+				setUserForLogin("test@test.it", "test");
 				login();
 			}else if(QRegExp("logout", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
@@ -210,9 +211,9 @@ void KCloud::Client::execCommand(const QString &cmd){
 		case 2:
 			if(QRegExp("setZipDir", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog(QString("Setting zip dir to: " + arg[1]));
+				clog(QString("Setting zip dir to: /Users/Danilo/Desktop"));
 				try{
-					m_resource->setZipDir(arg[1]);
+					m_resource->setZipDir("/Users/Danilo/Desktop");
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());
@@ -220,8 +221,8 @@ void KCloud::Client::execCommand(const QString &cmd){
 				}
 			}else if(QRegExp("setZipName", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog(QString("Setting zip name to: ") + arg[1]);
-				m_resource->setZipName(arg[1]);
+				clog(QString("Setting zip name to: ") + "arg[1]");
+				m_resource->setZipName("gesu");
 			}else{
 
 				clog("Unknown Command!");
@@ -255,8 +256,8 @@ void KCloud::Client::execCommand(const QString &cmd){
 					throw NullUserPointer();
 				}else{
 					try{
-						m_packet->setForResourceUp(arg[1], *m_user, arg[2].toULongLong());
-						m_resource->setResourcePath(arg[1]);
+						m_packet->setForResourceUp("/Users/Danilo/Desktop/KCloud", *m_user, arg[2].toULongLong());
+						m_resource->setResourcePath("/Users/Danilo/Desktop/KCloud");
 						m_lastCommand = m_packet->getClientCommand();
 						sendCommand();
 						connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
