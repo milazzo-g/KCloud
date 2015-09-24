@@ -6,6 +6,10 @@
 KCloud::WorkerServer::WorkerServer(int sd, QObject *parent) : Engine(parent){
 
 	QSettings appSettings;
+	QString tmp = address() + QString::number(QDateTime::currentMSecsSinceEpoch());
+	m_key1 = QCryptographicHash::hash(tmp.toLocal8Bit(), QCryptographicHash::Md5).toHex();
+	tmp = keyFirst() + QString::number(QDateTime::currentMSecsSinceEpoch());
+	m_key2 = QCryptographicHash::hash(tmp.toLocal8Bit(), QCryptographicHash::Md5).toHex();
 	m_socket->setSocketDescriptor(sd);
 	m_dir.cd(appSettings.value(INSTANCES).toString());
 	m_dir.mkdir(keyFirst());
@@ -131,11 +135,39 @@ void KCloud::WorkerServer::resourceUp(){
 	clog(QString("Resource Upload request from ") + m_socket->peerAddress().toString());
 
 	try{
-
+		m_head = m_packet->getFirstResourceHeader();
+		ResourcesManager::ResourcesManagerAnswer r = (m_user == NULL ? ResourcesManager::PermError : m_resourcesManager->checkForUpload(*m_user, m_head));
+		switch (r) {
+			case ResourcesManager::UploadOK:
+				m_packet->answerToResourceUp(CommandPacket::ResourceUpOk);
+				m_resource->setZipName(m_head.getName());
+				m_resource->setZipDir(m_dir.path());
+				disconnect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()));
+				connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveResource()), Qt::UniqueConnection);
+				connect(m_resource, SIGNAL(objectReceived()), this, SLOT(finalizeUpload(), Qt::UniqueConnection);
+				break;
+			case ResourcesManager::PermError:
+				m_packet->answerToResourceUp(CommandPacket::ResourceUpInvalidPerm);
+				break;
+			case ResourcesManager::SpaceFull:
+				m_packet->answerToResourceUp(CommandPacket::ResourceUpSpaceExhausted);
+				break;
+			case ResourcesManager::AlreadyExists:
+				m_packet->answerToResourceUp(CommandPacket::ResourceUpFail);
+				break;
+			default:
+				clog("Generalmente non dovremmo essere qui!");
+				clog(QString("m_resourcesManager->checkForUpload(*m_user, m_packet->getFirstResourceHeader())") + QString::number((qint32)r));
+				break;
+		}
 	}catch(Exception &e){
-
+		clog("Exception Occurred!");
+		clog(e.what());
+		QStringList errors;
+		errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+		m_packet->answerToLogin(CommandPacket::ServerInternalError, m_packet->getUser(), errors);
 	}
-
+	sendCommand();
 }
 
 void KCloud::WorkerServer::resourceMod(){
@@ -170,6 +202,13 @@ void KCloud::WorkerServer::passwordChange(){
 
 }
 
+void KCloud::WorkerServer::finalizeUpload(){
+
+	//m_resourcesManager....
+
+
+}
+
 QString KCloud::WorkerServer::address() const{
 
 	return QString("0x%1").arg((quintptr)this, QT_POINTER_SIZE * 2, 16, QChar('0'));
@@ -177,12 +216,11 @@ QString KCloud::WorkerServer::address() const{
 
 QString KCloud::WorkerServer::keyFirst() const{
 
-
-	return QCryptographicHash::hash(address().toLocal8Bit(), QCryptographicHash::Md5).toHex();
+	return m_key1;
 }
 
 QString KCloud::WorkerServer::keyLast() const{
-	return QCryptographicHash::hash(keyFirst().toLocal8Bit(), QCryptographicHash::Md5).toHex();
+	return m_key2;
 }
 
 void KCloud::WorkerServer::clog(const QString &log){

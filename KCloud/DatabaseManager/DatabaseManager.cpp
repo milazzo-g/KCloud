@@ -82,7 +82,7 @@ QString KCloud::DatabaseManager::lastSqlError() const{
 	return m_lastSqlError;
 }
 
-void KCloud::DatabaseManager::tryExec(QSqlQuery &query){
+void KCloud::DatabaseManager::tryExec(QSqlQuery &query) throw (Exception){
 
 	if(!query.exec()){
 		m_lastSqlError		= query.lastError().databaseText();

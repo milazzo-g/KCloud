@@ -16,14 +16,19 @@ namespace KCloud{
 			enum ResourcesManagerAnswer{
 				UserOK,
 				UserNotFound,
-				UserWrongHash
+				UserWrongHash,
+				PermError,
+				SpaceFull,
+				UploadOK,
+				AlreadyExists
 			};
 			explicit										ResourcesManager(const QString &name, QObject *parent = 0);
 															~ResourcesManager();
-							ResourcesManagerAnswer			checkForUpload(ResourceHeader &r);
+							ResourcesManagerAnswer			checkForUpload(const User &usr, ResourceHeader &head) throw (Exception);
 		private:
 							bool							isOwner(const User &usr, const quint64 &id) throw (Exception);
 							bool							exists(ResourceHeader &header) throw (Exception);
+							qint64							userSpace(const User &usr) throw (Exception);
 							ResourceHeader::ResourceType	getType(const quint64 &id) throw (Exception);
 							ResourceHeader::ResourcePerm	publicPerm(const quint64 &id) throw (Exception);
 							ResourceHeader::ResourcePerm	sharedPerm(const User &usr, const quint64 &id) throw (Exception);
@@ -34,6 +39,7 @@ namespace KCloud{
 			const	static	QString							queryResources_3;
 			const	static	QString							queryResources_4;
 			const	static	QString							queryResources_5;
+			const	static	QString							queryResources_6;
 	};
 }
 

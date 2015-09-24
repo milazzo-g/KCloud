@@ -18,25 +18,25 @@ KCloud::Engine::~Engine(){
 
 void KCloud::Engine::sendCommand(){
 
-	qDebug() << __FUNCTION__ << "invioOOOOO";
+	qDebug() << __FUNCTION__;
 	m_packet->prepareForSend();
 	m_packet->sendThrough(m_socket);
 }
 
 void KCloud::Engine::sendResource(){
-
+	qDebug() << __FUNCTION__;
 	m_resource->prepareForSend();
 	m_resource->sendThrough(m_socket);
 }
 
 void KCloud::Engine::receiveCommand(){
-
+	qDebug() << __FUNCTION__;
 	m_packet->prepareForRecv();
 	m_packet->receiveFrom(m_socket);
 }
 
 void KCloud::Engine::receiveResource(){
-
+	qDebug() << __FUNCTION__;
 	m_resource->prepareForRecv();
 	m_resource->receiveFrom(m_socket);
 }
