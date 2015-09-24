@@ -14,6 +14,7 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 
 		connect(m_console, SIGNAL(input(QString)), this		, SLOT(execCommand(QString)));
 		connect(m_console, SIGNAL(finished()	), m_console, SLOT(deleteLater())		);
+		connect(m_socket, SIGNAL(disconnected()), this, SLOT(closeAll()));
 
 		m_console->start();
 	}
@@ -64,8 +65,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 			switch (m_packet->getServerAnswer()){
 				case CommandPacket::LogoutOk:
 					clog("Logout ok");
-					m_console->quit();
-					m_coreApplication->quit();
+					closeAll();
 					break;
 
 				case CommandPacket::LogoutFail:
@@ -95,6 +95,19 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				case CommandPacket::ResourceUpSpaceExhausted:
 					clog(QString("Caricamento rifiutato, spazio sul server esaurito"));
+					break;
+
+				case CommandPacket::ResourceUpFinalizeOk:
+					clog(QString("Caricamento completato con successo"));
+					if(m_resource->removeZipFile()){
+						clog(QString("Cancellato file temporaneo"));
+					}else{
+						clog(QString("Errore nella cancellazione del file temporaneo"));
+					}
+					break;
+
+				case CommandPacket::ResourceUpFinalizeFail:
+					clog(QString("Caricamento non finalizzato non si sa cosa cazzo è successo"));
 					break;
 
 				default:
@@ -131,7 +144,7 @@ void KCloud::Client::logout(){
 void KCloud::Client::resourceUp(){
 
 	sendResource();
-	connect(m_resource, SIGNAL(objectSended()), this, SLOT(receiveCommand()));
+	connect(m_resource, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 }
 
 void KCloud::Client::resourceMod(){
@@ -179,6 +192,13 @@ void KCloud::Client::connectToHost(const QString &addr, const quint16 &port) thr
 	}
 }
 
+void KCloud::Client::closeAll(){
+
+	m_console->quit();
+	m_coreApplication->quit();
+
+}
+
 void KCloud::Client::execCommand(const QString &cmd){
 
 	QStringList arg = cmd.split(" ", QString::SkipEmptyParts, Qt::CaseInsensitive);
@@ -188,8 +208,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 			if(QRegExp("quit", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog("Stopped!");
-				m_console->quit();
-				m_coreApplication->quit();
+				closeAll();
 			}else if(QRegExp("connect", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog("Mi sto collegando!");
@@ -221,8 +240,8 @@ void KCloud::Client::execCommand(const QString &cmd){
 				}
 			}else if(QRegExp("setZipName", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog(QString("Setting zip name to: ") + "arg[1]");
-				m_resource->setZipName("gesu");
+				clog(QString("Setting zip name to: ") + arg[1]);
+				m_resource->setZipName(arg[1]);
 			}else{
 
 				clog("Unknown Command!");
@@ -256,8 +275,8 @@ void KCloud::Client::execCommand(const QString &cmd){
 					throw NullUserPointer();
 				}else{
 					try{
-						m_packet->setForResourceUp("/Users/Danilo/Desktop/KCloud", *m_user, arg[2].toULongLong());
-						m_resource->setResourcePath("/Users/Danilo/Desktop/KCloud");
+						m_packet->setForResourceUp(arg[1], *m_user, arg[2].toULongLong());
+						m_resource->setResourcePath(arg[1]);
 						m_lastCommand = m_packet->getClientCommand();
 						sendCommand();
 						connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
