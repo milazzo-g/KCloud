@@ -10,7 +10,9 @@ KCloud::WorkerServer::WorkerServer(int sd, QObject *parent) : Engine(parent){
 }
 
 KCloud::WorkerServer::~WorkerServer(){
-	clog("Job ended!");
+	//clog("Job ended!");
+	qDebug() << address() << ": Job ended!";
+	emit removeFromActiveHandlers(address());
 }
 
 void KCloud::WorkerServer::run(){

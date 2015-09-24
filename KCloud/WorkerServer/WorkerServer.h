@@ -26,6 +26,7 @@ namespace KCloud{
 											~WorkerServer();
 		signals:
 						void				consoleOutRequest(QString msg);
+						void				removeFromActiveHandlers(QString add);
 		protected:
 						void				run();
 		public slots:
