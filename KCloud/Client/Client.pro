@@ -64,3 +64,10 @@ else:unix: LIBS += -L$$OUT_PWD/../ResourceHeader/ -lResourceHeader
 
 INCLUDEPATH += $$PWD/../ResourceHeader
 DEPENDPATH += $$PWD/../ResourceHeader
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Resource/release/ -lResource
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Resource/debug/ -lResource
+else:unix: LIBS += -L$$OUT_PWD/../Resource/ -lResource
+
+INCLUDEPATH += $$PWD/../Resource
+DEPENDPATH += $$PWD/../Resource

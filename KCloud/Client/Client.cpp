@@ -25,24 +25,52 @@ KCloud::Client::~Client(){
 	qDebug() << "Client Stopped!";
 }
 
-void KCloud::Client::parse(){
+void KCloud::Client::parse() throw (KCloud::Exception){
 
-	switch (m_lastCommand) {
+	switch (m_lastCommand){
 
 		case CommandPacket::Login:
 
-			switch (m_packet->getServerAnswer()) {
+			switch (m_packet->getServerAnswer()){
 
 				case CommandPacket::LoginOk:
 					clog("Login OK!");
 					break;
 
 				case CommandPacket::AlreadyLogged:
-					clog(QString("Errore nel login, il server riporta: ") + m_packet->getLastError().first());
+					clog(QString("Errore nel login, utente già loggato, il server riporta: ") + m_packet->getLastError().first());
+					break;
+
+				case CommandPacket::WrongEmail:
+					clog("Errore nel login, email non valida");
+					break;
+
+				case CommandPacket::WrongPassword:
+					clog("Errore nel login, password non valida");
 					break;
 
 				default:
-					clog(QString("Errore pacchetto corrotto [enum non prevista]!"));
+					throw CorruptPacketException();
+					break;
+
+			}
+			break;
+
+		case CommandPacket::Logout:
+
+			switch (m_packet->getServerAnswer()){
+				case CommandPacket::LogoutOk:
+					clog("Logout ok");
+					m_console->quit();
+					m_coreApplication->quit();
+					break;
+
+				case CommandPacket::LogoutFail:
+					clog("Errore nel logout");
+					break;
+
+				default:
+					throw CorruptPacketException();
 					break;
 			}
 			break;
@@ -61,12 +89,16 @@ void KCloud::Client::login() throw (KCloud::Exception){
 		m_packet->setForLogin(*m_user);
 		m_lastCommand = m_packet->getClientCommand();
 		sendCommand();
-		//connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+		connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	}
 }
 
 void KCloud::Client::logout(){
 
+	m_packet->setForLogout();
+	m_lastCommand = m_packet->getClientCommand();
+	sendCommand();
+	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 }
 
 void KCloud::Client::resourceUp(){
@@ -138,9 +170,33 @@ void KCloud::Client::execCommand(const QString &cmd){
 				clog("Faccio il login!");
 				setUserForLogin("dio@fungo.it", "giallettiDiPaceco");
 				login();
+			}else if(QRegExp("logout", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog("Faccio il logout!");
+				logout();
 			}else{
 
 				clog("Unknown Command!");
+			}
+			break;
+		case 2:
+			if(QRegExp("setZipDir", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog(QString("Setting zip dir to: " + arg[1]));
+				try{
+					m_resource->setZipDir(arg[1]);
+				}catch(Exception &e){
+					clog("Exception occurred!");
+					clog(e.what());
+					m_resource->clear();
+				}
+			}else if(QRegExp("setZipName", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog("Da fare");
+
+			}else{
+
+			clog("Unknown Command!");
 			}
 			break;
 		case 3:
@@ -166,8 +222,8 @@ void KCloud::Client::execCommand(const QString &cmd){
 					clog("Connected!");
 				}
 			}
-		default:
 
+		default:
 			break;
 	}
 }

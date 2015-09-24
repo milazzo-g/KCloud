@@ -7,6 +7,7 @@
 
 #include "../Engine/Engine.h"
 #include "../Console/Console.h"
+#include "../Resource/Resource.h"
 #include "../Exceptions/Exceptions.h"
 #include "../CommandPacket/CommandPacket.h"
 
@@ -22,7 +23,7 @@ namespace KCloud{
 														Client(const WorkMode mode, QObject *parent = 0);
 														~Client();
 		public slots:
-			virtual		void							parse();
+			virtual		void							parse() throw (Exception);
 			virtual		void							login() throw (Exception);
 			virtual		void							logout();
 			virtual		void							resourceUp();

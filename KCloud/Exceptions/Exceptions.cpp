@@ -215,6 +215,10 @@ KCloud::Exception::Type KCloud::UntrustedBytesCounter::type() const{
  *		######### Eccezioni base
  *
 */
+/*
+ *		Eccezione sconosciuta
+ *
+*/
 KCloud::Exception::ExceptionSubclass KCloud::UnknownException::subclass() const{
 
 	return Basic;
@@ -229,6 +233,26 @@ KCloud::Exception::Type KCloud::UnknownException::type() const{
 
 	return Unknown;
 }
+
+/*
+ *		Arrivato pacchetto corroto
+ *
+*/
+KCloud::Exception::ExceptionSubclass KCloud::CorruptPacketException::subclass() const{
+
+	return Basic;
+}
+
+const char *KCloud::CorruptPacketException::what() const throw (){
+
+	return "Exception : Corrupt packet received";
+}
+
+KCloud::Exception::Type KCloud::CorruptPacketException::type() const{
+
+	return CorruptPacket;
+}
+
 
 /*
  *		Eccezioni Client
