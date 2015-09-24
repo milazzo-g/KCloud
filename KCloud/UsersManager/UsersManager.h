@@ -24,6 +24,7 @@ namespace KCloud{
 			};
 			explicit							UsersManager(const QString &name, QObject *parent = 0);
 												~UsersManager();
+							void				forceLogout(const User &usr) throw (Exception);
 							UsersManagerAnswer	checkLogin(const User &usr) throw (Exception);
 							UsersManagerAnswer	checkLogout(const User &usr) throw (Exception);
 							User				getUser() const;

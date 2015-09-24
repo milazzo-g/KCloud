@@ -12,6 +12,7 @@
 #include <QTemporaryFile>
 
 #include "../NetObject/NetObject.h"
+#include "../ResourceHeader/ResourceHeader.h"
 #include "../LIBS/quazip-0.7.1_build/include/JlCompress.h"
 
 namespace KCloud{
@@ -36,7 +37,7 @@ namespace KCloud{
 			virtual		void		prepareForSend() throw(Exception);
 			virtual		void		prepareForRecv();
 						void		compress() throw(Exception);
-						void		decompress(const bool autoRemove = true) throw(Exception);
+						void		decompress(const ResourceHeader &head, const bool &autoRemove = true) throw(Exception);
 						bool		removeZipFile() throw(Exception);
 
 		protected slots:

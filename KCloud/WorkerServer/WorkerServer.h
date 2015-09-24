@@ -47,6 +47,7 @@ namespace KCloud{
 			virtual		void				passwordChange();
 
 		private slots:
+						void				forcedLogout();
 						void				finalizeUpload();
 		public:
 						QString				address() const;

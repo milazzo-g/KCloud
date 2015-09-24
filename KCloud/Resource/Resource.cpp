@@ -125,12 +125,19 @@ void KCloud::Resource::compress() throw(Exception){
 	}
 }
 
-void KCloud::Resource::decompress(const bool autoRemove) throw(Exception){
+void KCloud::Resource::decompress(const ResourceHeader &head, const bool &autoRemove) throw(Exception){
+	//giuseppe
 
 	checkZip();
+
 	QStringList tmp;
-	tmp = JlCompress::extractDir(getZipPath(), getZipDir());
-	 if(autoRemove){
+	QDir dir(getZipDir());
+	if(head.getType() == ResourceHeader::Dir){
+		dir.mkdir(QFileInfo(getZipPath()).baseName());
+		dir.cd(QFileInfo(getZipPath()).baseName());
+	}
+	tmp = JlCompress::extractDir(getZipPath(), dir.path());
+	if(autoRemove){
 		m_zipFile->remove();
 	}
 	if(tmp.isEmpty()){

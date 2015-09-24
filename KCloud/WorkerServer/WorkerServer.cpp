@@ -16,10 +16,16 @@ KCloud::WorkerServer::WorkerServer(int sd, QObject *parent) : Engine(parent){
 	m_dir.cd(keyFirst());
 	m_resourcesManager	= new ResourcesManager(keyFirst(), this);
 	m_usersManager		= new UsersManager(keyLast(), this);
-	connect(m_socket, SIGNAL(disconnected()), this, SLOT(quit()));
+
+	connect(m_socket	, SIGNAL(disconnected()		), this, SLOT(quit())									);
+	connect(m_resource	, SIGNAL(objectReceived()	), this, SLOT(finalizeUpload()), Qt::UniqueConnection	);
 }
 
 KCloud::WorkerServer::~WorkerServer(){
+
+	if(m_user){
+		forcedLogout();
+	}
 	m_dir.rmdir(m_dir.path());
 	qDebug() << address() << ": Job ended!";
 	emit removeFromActiveHandlers(address());
@@ -142,9 +148,10 @@ void KCloud::WorkerServer::resourceUp(){
 				m_packet->answerToResourceUp(CommandPacket::ResourceUpOk);
 				m_resource->setZipName(m_head.getName());
 				m_resource->setZipDir(m_dir.path());
-				disconnect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()));
-				connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveResource()), Qt::UniqueConnection);
-				connect(m_resource, SIGNAL(objectReceived()), this, SLOT(finalizeUpload(), Qt::UniqueConnection);
+
+				disconnect	(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand())							);
+				connect		(m_packet, SIGNAL(objectSended()), this, SLOT(receiveResource()), Qt::UniqueConnection	);
+
 				break;
 			case ResourcesManager::PermError:
 				m_packet->answerToResourceUp(CommandPacket::ResourceUpInvalidPerm);
@@ -202,11 +209,27 @@ void KCloud::WorkerServer::passwordChange(){
 
 }
 
+void KCloud::WorkerServer::forcedLogout(){
+
+	try{
+		m_usersManager->forceLogout(*m_user);
+	}catch(Exception &e){
+		clog("Exception Occurred!");
+		clog(e.what());
+		clog(m_usersManager->lastDriverError());
+		clog(m_usersManager->lastSqlError());
+	}
+}
+
 void KCloud::WorkerServer::finalizeUpload(){
 
-	//m_resourcesManager....
-
-
+	clog(QString("Resource received from ") + m_socket->peerAddress().toString());
+	clog(QString("Finalizing for ") + m_socket->peerAddress().toString());
+	m_resource->decompress(m_head);
+	disconnect	(m_packet, SIGNAL(objectSended()), this, SLOT(receiveResource()	)						);
+	connect		(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()	), Qt::UniqueConnection	);
+	m_packet->answerToResourceUp(CommandPacket::ResourceUpFinalizeOk);
+	sendCommand();
 }
 
 QString KCloud::WorkerServer::address() const{

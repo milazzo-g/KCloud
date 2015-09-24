@@ -13,6 +13,19 @@ KCloud::UsersManager::~UsersManager(){
 	qDebug() << __FUNCTION__;
 }
 
+void KCloud::UsersManager::forceLogout(const KCloud::User &usr) throw (Exception){
+
+	if(open()){
+		QSqlQuery query(m_db);
+		query.prepare(queryUser_2);
+		query.bindValue(placeHolder_status, sqlEnumUnLogged);
+		query.bindValue(placeHolder_mail, usr.getEmail());
+		tryExec(query);
+	}else{
+		throw OpenFailure();
+	}
+}
+
 KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkLogin(const KCloud::User &usr) throw (Exception){
 
 	if(open()){
