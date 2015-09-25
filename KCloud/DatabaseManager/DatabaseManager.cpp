@@ -24,6 +24,7 @@ const QString KCloud::DatabaseManager::placeHolder_space(":space");
 const QString KCloud::DatabaseManager::placeHolder_owner(":owner");
 const QString KCloud::DatabaseManager::placeHolder_status(":status");
 const QString KCloud::DatabaseManager::placeHolder_parent(":parent");
+const QString KCloud::DatabaseManager::placeHolder_permission(":permission");
 
 const QString KCloud::DatabaseManager::sqlEnumDir("Dir");
 const QString KCloud::DatabaseManager::sqlEnumFile("File");

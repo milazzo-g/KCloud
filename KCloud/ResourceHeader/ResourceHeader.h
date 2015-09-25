@@ -62,8 +62,8 @@ namespace KCloud{
 						QString						getOwner() const;
 						QString						getName()const;
 						ResourceType				getType() const;
-						ResourcePerm				getPublicPermission();
-						ResourcePerm				getPermission(const QString &mail) throw(Exception);
+						ResourcePerm				getPublicPermission() const;
+						ResourcePerm				getPermission(const QString &mail) const throw(Exception);
 						QMap<QString, ResourcePerm>	getPermissionTable() const;
 
 						ResourceHeader &			operator=(const ResourceHeader &cpy);
