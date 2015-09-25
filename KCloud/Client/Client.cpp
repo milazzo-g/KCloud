@@ -222,13 +222,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 
 				clog("Faccio il logout!");
 				logout();
-			}else{
-
-				clog("Unknown Command!");
-			}
-			break;
-		case 2:
-			if(QRegExp("setZipDir", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+			}else if(QRegExp("setzipdir", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog(QString("Setting zip dir to: /Users/Danilo/Desktop"));
 				try{
@@ -238,6 +232,23 @@ void KCloud::Client::execCommand(const QString &cmd){
 					clog(e.what());
 					m_resource->clear();
 				}
+			}else{
+
+				clog("Unknown Command!");
+			}
+			break;
+		case 2:
+			if(QRegExp("setZipDir", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog(QString("Setting zip dir to: " + arg[1]));
+				try{
+					m_resource->setZipDir(arg[0]);
+				}catch(Exception &e){
+					clog("Exception occurred!");
+					clog(e.what());
+					m_resource->clear();
+				}
+
 			}else if(QRegExp("setZipName", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog(QString("Setting zip name to: ") + arg[1]);
@@ -275,7 +286,10 @@ void KCloud::Client::execCommand(const QString &cmd){
 					throw NullUserPointer();
 				}else{
 					try{
-						m_packet->setForResourceUp(arg[1], *m_user, arg[2].toULongLong());
+						QMap<QString, ResourceHeader::ResourcePerm> map;
+						map.insert("milazzo.ga@gmail.com", ResourceHeader::Write);
+
+						m_packet->setForResourceUp(arg[1], *m_user, arg[2].toULongLong(), map, ResourceHeader::Read);
 						m_resource->setResourcePath(arg[1]);
 						m_lastCommand = m_packet->getClientCommand();
 						sendCommand();
