@@ -110,6 +110,7 @@ void KCloud::WorkerServer::logout(){					////Completata ma meglio riguardare poi
 				clog("Logout Ok!");
 				if(m_user){
 					delete m_user;
+					m_user = NULL;
 				}
 				m_packet->answerToLogout(CommandPacket::LogoutOk);
 				break;
@@ -211,6 +212,9 @@ void KCloud::WorkerServer::passwordChange(){
 
 void KCloud::WorkerServer::forcedLogout(){
 
+	if(m_user == NULL){
+		return;
+	}
 	try{
 		m_usersManager->forceLogout(*m_user);
 	}catch(Exception &e){
@@ -226,6 +230,21 @@ void KCloud::WorkerServer::finalizeUpload(){
 	clog(QString("Resource received from ") + m_socket->peerAddress().toString());
 	clog(QString("Finalizing for ") + m_socket->peerAddress().toString());
 	m_resource->decompress(m_head);
+
+	try{
+		QStringList errors;
+		m_resourcesManager->aBadassFunction(m_dir.path(), m_head, *m_user, errors);
+		clog("Users not founded: ");
+		foreach(QString e, errors){
+			clog(e);
+		}
+	}catch(Exception &e){
+		clog("Exception Occurred!");
+		clog(e.what());
+		clog(m_resourcesManager->lastDriverError());
+		clog(m_resourcesManager->lastSqlError());
+	}
+
 	disconnect	(m_packet, SIGNAL(objectSended()), this, SLOT(receiveResource()	)						);
 	connect		(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()	), Qt::UniqueConnection	);
 	m_packet->answerToResourceUp(CommandPacket::ResourceUpFinalizeOk);

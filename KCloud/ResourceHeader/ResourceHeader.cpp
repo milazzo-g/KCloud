@@ -152,12 +152,12 @@ KCloud::ResourceHeader::ResourceType KCloud::ResourceHeader::getType() const{
 	return m_type;
 }
 
-KCloud::ResourceHeader::ResourcePerm KCloud::ResourceHeader::getPublicPermission(){
+KCloud::ResourceHeader::ResourcePerm KCloud::ResourceHeader::getPublicPermission() const{
 
 	return m_publicPerm;
 }
 
-KCloud::ResourceHeader::ResourcePerm KCloud::ResourceHeader::getPermission(const QString &mail) throw(Exception){
+KCloud::ResourceHeader::ResourcePerm KCloud::ResourceHeader::getPermission(const QString &mail) const throw(Exception){
 
 	User::checkMail(mail);
 	if(m_permissionTable.contains(mail)){

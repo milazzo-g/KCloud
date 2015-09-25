@@ -61,6 +61,7 @@ namespace KCloud{
 			const	static	QString			placeHolder_hash;
 			const	static	QString			placeHolder_space;
 			const	static	QString			placeHolder_status;
+			const	static	QString			placeHolder_permission;
 
 			const	static	QString			placeHolder_id;
 			const	static	QString			placeHolder_parent;

@@ -7,6 +7,9 @@ const QString KCloud::ResourcesManager::queryResources_3(" SELECT permission FRO
 const QString KCloud::ResourcesManager::queryResources_4(" SELECT permission FROM sharing where resource = :id AND  user = :email ");
 const QString KCloud::ResourcesManager::queryResources_5(" SELECT * FROM resources where parent = :parent AND name = :name ");
 const QString KCloud::ResourcesManager::queryResources_6(" SELECT space FROM users where email = :email ");
+const QString KCloud::ResourcesManager::queryResources_7(" INSERT INTO resources (parent, owner, name, type, size) VALUES ( :parent , :email, :name, :type, :size ) ");
+const QString KCloud::ResourcesManager::queryResources_8(" INSERT INTO publicResources VALUES ( :id , :permission ) ");
+const QString KCloud::ResourcesManager::queryResources_9(" INSERT INTO sharing VALUES ( :email , :id , :permission ) ");
 
 
 KCloud::ResourcesManager::ResourcesManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
@@ -36,6 +39,21 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::check
 		return PermError;
 	}
 
+}
+
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::aBadassFunction(const QString &path, const KCloud::ResourceHeader &head, const KCloud::User &usr, QStringList &errors) throw (Exception){
+
+	if(open()){
+		ResourceHeader h	= head;
+		h.m_id				= h.m_parentId;
+		h.m_parentId		= 0;
+		recursiveAdd(path, h, usr, errors);
+		close();
+	}else{
+		throw OpenFailure();
+	}
+	/**Ricordiamocelo**/
+	return UploadOK;
 }
 
 bool KCloud::ResourcesManager::isOwner(const KCloud::User &usr, const quint64 &id) throw (Exception){
@@ -153,3 +171,91 @@ KCloud::ResourceHeader::ResourcePerm KCloud::ResourcesManager::sharedPerm(const 
 	}
 	return ResourceHeader::PermUndef;
 }
+
+void KCloud::ResourcesManager::recursiveAdd(const QString &path, const ResourceHeader &head, const User &usr, QStringList &errors) throw (Exception){
+
+	QDir dir(path);
+	QFileInfoList list = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
+
+	foreach (QFileInfo f, list){
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_7);
+		query.bindValue(placeHolder_parent, head.getId());
+		query.bindValue(placeHolder_mail, usr.getEmail());
+		query.bindValue(placeHolder_name, f.fileName());
+
+		if(f.isDir()){
+			ResourceHeader n_head(f.absoluteFilePath(),
+								  usr, head.getId(),
+								  head.getPermissionTable(),
+								  head.getPublicPermission());
+			n_head.m_size = 0;
+			query.bindValue(placeHolder_type, sqlEnumDir);
+			query.bindValue(placeHolder_size, n_head.getSize());
+			tryExec(query);
+			n_head.m_id = query.lastInsertId().toULongLong();
+
+			query.clear();
+			if(head.getPublicPermission() != ResourceHeader::PermUndef){
+				query.prepare(queryResources_8);
+				query.bindValue(placeHolder_id, n_head.getId());
+				query.bindValue(placeHolder_permission,
+								head.getPublicPermission() == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
+				tryExec(query);
+				query.clear();
+			}
+			if(!head.getPermissionTable().empty()){
+				foreach(QString usr, head.getPermissionTable().keys()){
+					query.prepare(queryResources_9);
+					query.bindValue(placeHolder_mail, usr);
+					query.bindValue(placeHolder_id, n_head.getId());
+					query.bindValue(placeHolder_permission,
+									head.getPermission(usr) == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
+					try{
+						tryExec(query);
+					}catch(Exception &e){
+						errors << usr;
+					}
+				}
+			}
+			recursiveAdd(f.absoluteFilePath(), n_head, usr, errors);
+		}else{
+
+			query.bindValue(placeHolder_type, sqlEnumFile);
+			query.bindValue(placeHolder_size, f.size());
+			tryExec(query);
+			QString lastIdStr = query.lastInsertId().toString();
+			quint64 lastIdInt = query.lastInsertId().toULongLong();
+
+			query.clear();
+			if(head.getPublicPermission() != ResourceHeader::PermUndef){
+				query.prepare(queryResources_8);
+				query.bindValue(placeHolder_id, lastIdInt);
+				query.bindValue(placeHolder_permission,
+								head.getPublicPermission() == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
+				tryExec(query);
+				query.clear();
+			}
+			if(!head.getPermissionTable().empty()){
+				foreach(QString user, head.getPermissionTable().keys()){
+					query.prepare(queryResources_9);
+					query.bindValue(placeHolder_mail, user);
+					query.bindValue(placeHolder_id, lastIdInt);
+					query.bindValue(placeHolder_permission,
+									head.getPermission(user) == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
+					try{
+						tryExec(query);
+					}catch(Exception &e){
+						if(!errors.contains(user)){
+							errors << user;
+						}
+					}
+				}
+			}
+			QSettings appSettings;
+			QFile::rename(f.absoluteFilePath(), appSettings.value(RESOURCES).toString() + QString("/") + lastIdStr);
+		}
+	}
+}
+
+
