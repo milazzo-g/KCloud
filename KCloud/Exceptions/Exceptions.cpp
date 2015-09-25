@@ -268,6 +268,26 @@ KCloud::Exception::Type KCloud::CorruptPacketException::type() const{
 	return CorruptPacket;
 }
 
+/*
+ *		Connessione caduta
+ *
+*/
+
+KCloud::Exception::ExceptionSubclass KCloud::ConnectionFallException::subclass() const{
+
+	return Basic;
+}
+
+const char *KCloud::ConnectionFallException::what() const throw (){
+
+	return "Exception : The connection is fallen";
+}
+
+KCloud::Exception::Type KCloud::ConnectionFallException::type() const{
+
+	return ConnectionFall;
+}
+
 
 /*
  *		Eccezioni Client
@@ -297,6 +317,21 @@ KCloud::Exception::Type KCloud::UnreachableServer::type() const{
 
 	return ClientUnreachableServer;
 }
+
+const char *KCloud::NotLogged::what() const throw (){
+
+	return "ClientException : User is not logged";
+}
+
+KCloud::Exception::Type KCloud::NotLogged::type() const{
+
+	return ClientNotLogged;
+}
+
+/*
+ *		Eccezioni Database
+ *
+ */
 
 KCloud::Exception::ExceptionSubclass KCloud::DatabaseException::subclass() const{
 
@@ -332,4 +367,5 @@ KCloud::Exception::Type KCloud::MultipleRowsForPrimaryKey::type() const{
 
 	return DatabaseMultipleRowsForPrimaryKey;
 }
+
 

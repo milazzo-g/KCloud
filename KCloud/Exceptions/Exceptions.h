@@ -46,9 +46,11 @@ namespace KCloud{
 				DatabaseNotOpen,
 				DatabaseQueryError,
 				DatabaseMultipleRowsForPrimaryKey,
+
 				//Client
 				ClientNullUserPointer,
 				ClientUnreachableServer,
+				ClientNotLogged,
 
 				//MainServer
 
@@ -57,7 +59,8 @@ namespace KCloud{
 				//varie ed eventuali l'importante è dargli un nome con il commmento
 				Core,
 				Unknown,
-				CorruptPacket
+				CorruptPacket,
+				ConnectionFall
 			};
 
 			virtual const char *		what()		const throw ();
@@ -202,6 +205,14 @@ namespace KCloud{
 			virtual	Type				type()		const;
 	};
 
+	class EXCEPTIONSSHARED_EXPORT ConnectionFallException : public Exception{
+
+		public:
+			virtual ExceptionSubclass	subclass()	const;
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
 	/*
 	 *		Eccezioni Database
 	 *
@@ -252,6 +263,13 @@ namespace KCloud{
 	};
 
 	class EXCEPTIONSSHARED_EXPORT UnreachableServer : public ClientException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class EXCEPTIONSSHARED_EXPORT NotLogged : public ClientException{
 
 		public:
 			virtual const char *		what()		const throw ();

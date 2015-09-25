@@ -27,42 +27,43 @@ namespace KCloud{
 														~Client();
 		public slots:
 			virtual		void							parse() throw (Exception);
-					void							login() throw (Exception);
-			virtual		void							logout();
-			virtual		void							resourceUp();
+						void							login() throw (Exception);							//fatto		ok
+			virtual		void							logout();											//fatto		ok
+			virtual		void							resourceUp();										//fatto		ok
 			virtual		void							resourceMod();
 			virtual		void							resourceDel();
-			virtual		void							resourceTree();
-			virtual		void							resourceDown();
+			virtual		void							resourceTree() throw (KCloud::Exception); 			//fatto ma non salva niente
+			virtual		void							resourceDown();										//fatto
 			virtual		void							userRegister();
 			virtual		void							resourcePerm();
 			virtual		void							resourceShare();
 			virtual		void							passwordChange();
 
-						void							setUserForLogin(const QString &email, const QString &pwd) throw (Exception);
-						void							connectToHost(const QString &addr, const quint16 &port) throw (Exception);
+						void							setUserForLogin(const QString &email, const QString &pwd) throw (Exception);			//setta l'utente prima del login
+						void							connectToHost(const QString &addr, const quint16 &port) throw (Exception);				//setta i parametri di connessione
 						void							newUpload(const QString &localPath,
 																	User *sessionUser,
 																	const quint64 &parentId,
 																	const QMap<QString, ResourceHeader::ResourcePerm> &permissionTable = QMap<QString, ResourceHeader::ResourcePerm>(),
-																	ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception);
-						void							newDownload(const quint64 &resourceId, const QString &savePath = "") throw (Exception);
-
-						void							removeTempFile() throw (Exception);
-						void							finalizeResource() throw (Exception);
+																	ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception); //setta i parametri per l'upload
+						void							newDownload(const quint64 &resourceId, const QString &savePath = "") throw (Exception);		//setta i parametri per il download
+						void							setSessionUser();																			//setta l'utente di sessione dopo la risposta di login ok dal server
+						void							removeTempFile() throw (Exception);															//rimuove il file temporaneo, chiamata dopo invio ok
+						void							finalizeResource() throw (Exception);														//finalizza la risorsa dopo la ricezione
 		protected:
 						void							run();
 		private slots:
 						void							closeAll();
 						void							execCommand(const QString &cmd);
 						void							clog(const QString &log);
+						bool							isLogged();
 		private:
 						QCoreApplication *				m_coreApplication;
 						Console	*						m_console;
 						WorkMode						m_workMode;
 						CommandPacket::ClientCommand	m_lastCommand;
 						ResourceHeader					m_head;
-
+						bool							m_loginState;
 
 	};
 }

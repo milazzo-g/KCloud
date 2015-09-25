@@ -12,19 +12,19 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 
 		m_coreApplication	= QCoreApplication::instance();
 		m_console			= new Console(this);
-
+		m_loginState		= false;
 		m_coreApplication->setApplicationName("KCloudClient");
 		m_coreApplication->setApplicationVersion("1.0");
 		m_coreApplication->setOrganizationName("Unikore");
 		m_coreApplication->setOrganizationDomain("www.unikore.it");
 
-		connect(m_console, SIGNAL(input(QString)), this		, SLOT(execCommand(QString)));
-		connect(m_console, SIGNAL(finished()	), m_console, SLOT(deleteLater())		);
-		connect(m_socket, SIGNAL(disconnected()), this, SLOT(closeAll()));
+		connect(m_console,	SIGNAL(input(QString)),		this,			SLOT(execCommand(QString)), Qt::UniqueConnection);
+		connect(m_console,  SIGNAL(finished()),			m_console,		SLOT(deleteLater()),		Qt::UniqueConnection);
+		connect(m_socket,	SIGNAL(disconnected()),		this,			SLOT(closeAll()),			Qt::UniqueConnection);
 
 		m_console->start();
 	}
-	connect(m_packet, SIGNAL(objectReceived()), this, SLOT(parse()));
+	connect(m_packet, SIGNAL(objectReceived()), this, SLOT(parse()), Qt::UniqueConnection);
 }
 
 KCloud::Client::~Client(){
@@ -44,7 +44,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				case CommandPacket::LoginOk:
 					clog("Login OK!");
-					*m_user = m_packet->getUser();
+					setSessionUser();
 					break;
 
 				case CommandPacket::AlreadyLogged:
@@ -117,7 +117,11 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 					break;
 
 				case CommandPacket::ResourceUpFinalizeFail:
-					clog(QString("Caricamento non finalizzato"));
+					clog(QString("Caricamento non finalizzato, per i seguenti utenti"));
+
+					foreach (QString err, m_packet->getLastError()){
+						clog(err);
+					}
 
 					try{
 
@@ -154,6 +158,26 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 					throw CorruptPacketException();
 					break;
 			}
+			break;
+
+		case CommandPacket::ResourceTree:
+
+			switch (m_packet->getServerAnswer()){
+
+				case CommandPacket::ResourceTreeOk:
+					clog("Ricevuto albero delle risorse");
+					break;
+
+				case CommandPacket::ResourceTreeError:
+					clog("Errore nella richiesta dell'albero delle risorse");
+					break;
+
+				default:
+					throw CorruptPacketException();
+					break;
+			}
+			break;
+
 		default:
 			clog("Processamento comandi non ancora implementato per questi valori!");
 			break;
@@ -167,8 +191,8 @@ void KCloud::Client::login() throw (KCloud::Exception){
 	}else{
 		m_packet->setForLogin(*m_user);
 		m_lastCommand = m_packet->getClientCommand();
-		sendCommand();
 		connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+		sendCommand();
 	}
 }
 
@@ -176,14 +200,14 @@ void KCloud::Client::logout(){
 
 	m_packet->setForLogout();
 	m_lastCommand = m_packet->getClientCommand();
-	sendCommand();
 	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+	sendCommand();
 }
 
 void KCloud::Client::resourceUp(){
 
-	sendResource();
 	connect(m_resource, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+	sendResource();
 }
 
 void KCloud::Client::resourceMod(){
@@ -194,8 +218,15 @@ void KCloud::Client::resourceDel(){
 
 }
 
-void KCloud::Client::resourceTree(){
+void KCloud::Client::resourceTree() throw (KCloud::Exception){
 
+	if(!isLogged()){
+		throw NotLogged();
+	}
+	m_packet->setForResourceTree();
+	m_lastCommand = m_packet->getClientCommand();
+	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+	sendCommand();
 }
 
 void KCloud::Client::resourceDown(){
@@ -240,11 +271,16 @@ void KCloud::Client::newUpload(const QString &localPath,
 							   const QMap<QString, KCloud::ResourceHeader::ResourcePerm> &permissionTable,
 							   KCloud::ResourceHeader::ResourcePerm publicPerm) throw (Exception){
 
+	if(!isLogged()){
+
+		throw NotLogged();
+	}
 	if(m_user == NULL){
+
 		throw NullUserPointer();
 	}else{
-		try{
 
+		try{
 			QSettings appSettings;
 			m_packet->setForResourceUp(localPath, User(*sessionUser), parentId, permissionTable, publicPerm);
 			m_resource->setResourcePath(localPath);
@@ -265,6 +301,9 @@ void KCloud::Client::newDownload(const quint64 &resourceId, const QString &saveP
 
 	QString path;
 
+	if(!isLogged()){
+		throw NotLogged();
+	}
 	if(savePath.isEmpty()){
 
 		QSettings appSettings;
@@ -282,6 +321,18 @@ void KCloud::Client::newDownload(const quint64 &resourceId, const QString &saveP
 	m_lastCommand = m_packet->getClientCommand();
 	sendCommand();
 	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+}
+
+void KCloud::Client::setSessionUser(){
+
+	if(m_user){
+
+		*m_user = m_packet->getUser();
+		m_loginState = true;
+	}else{
+
+		throw NullUserPointer();
+	}
 }
 
 void KCloud::Client::removeTempFile() throw (Exception){
@@ -354,6 +405,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 			}else if(QRegExp("connect", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				connectToHost(TEST_HOST, TEST_PORT);
+				clog("Connesso al server");
 			}else if(QRegExp("login", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog("Faccio il login con user_test!");
@@ -363,6 +415,10 @@ void KCloud::Client::execCommand(const QString &cmd){
 
 				clog("Faccio il logout!");
 				logout();
+			}else if(QRegExp("resourceList", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog("Chiedo la lista delle risorse!");
+				resourceTree();
 			}else{
 
 				clog("Unknown Command!");
@@ -373,6 +429,11 @@ void KCloud::Client::execCommand(const QString &cmd){
 
 				clog(QString("Download file con id: " + arg[1]));
 				newDownload(arg[1].toULongLong());
+			}else if(QRegExp("remove", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog(QString("Rimozione risorsa con id = " + arg[1]));
+				m_packet->setForResourceDel(arg[1].toULongLong());
+
 			}else{
 
 				clog("Unknown Command!");
@@ -392,21 +453,28 @@ void KCloud::Client::execCommand(const QString &cmd){
 			}else if(QRegExp("connect", Qt::CaseInsensitive).exactMatch(arg[0])){
 
 				clog(QString("Mi sto collegando: host = " + arg[1] + ", port = " + arg[2]));
-				bool exc = false;
 				try{
 					connectToHost(arg[1], QString(arg[2]).toUShort());
 				}catch(Exception &e){
-					exc = true;
 					clog("Exception occurred!");
 					clog(e.what());
 				}
-				if(exc){
-					clog("Connected!");
-				}
 			}else if(QRegExp("upload", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog(QString("Upload file: " + arg[1] + "id parent: " + arg[2].toULongLong()));
+				clog(QString("Upload file = " + arg[1] + ",	 id parent = " + arg[2].toULongLong()));
+
+				//per avere condivisione
+//				QMap<QString, ResourceHeader::ResourcePerm> map;
+//				map.insert("milazzo.ga@gmail.com", ResourceHeader::Write);
+//				map.insert("gesu@bambino.it", ResourceHeader::Read);
+//				newUpload(arg[1], m_user, arg[2].toULongLong(), map, ResourceHeader::Read);
+
+				//normalmente
 				newUpload(arg[1], m_user, arg[2].toULongLong());
+			}else if(QRegExp("download", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog(QString("Download file con id: " + arg[1]));
+				newDownload(arg[1].toULongLong());
 			}else{
 
 				clog("Unknown Command!");
@@ -423,4 +491,9 @@ void KCloud::Client::clog(const QString &log){
 	str += " ";
 	str += log;
 	m_console->output(str);
+}
+
+bool KCloud::Client::isLogged(){
+
+	return m_loginState;
 }
