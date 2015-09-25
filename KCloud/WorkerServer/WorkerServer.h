@@ -55,6 +55,7 @@ namespace KCloud{
 						QString				keyLast() const;
 		private:
 						void				clog(const QString &log);
+						void				removeDir(const QString &path);
 						ResourceHeader		m_head;
 						UsersManager *		m_usersManager;
 						ResourcesManager *	m_resourcesManager;

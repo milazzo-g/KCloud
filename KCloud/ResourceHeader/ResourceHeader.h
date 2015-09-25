@@ -44,12 +44,19 @@ namespace KCloud{
 																   const QMap<QString, ResourcePerm> &permissionTable = QMap<QString, ResourcePerm>(),
 																   ResourcePerm publicPerm = PermUndef,
 																   QObject *parent = 0) throw (Exception);
+													ResourceHeader(const QString &path,
+																   const QString &sessionUser,
+																   const quint64 &parentId,
+																   const QMap<QString, ResourcePerm> &permissionTable = QMap<QString, ResourcePerm>(),
+																   ResourcePerm publicPerm = PermUndef,
+																   QObject *parent = 0) throw (Exception);
 													ResourceHeader(const quint64 &id, QObject *parent = 0);
 													ResourceHeader(const ResourceHeader &cpy);
 						void						clear();
 						void						setName(const QString &name);
 						void						setParentId(const quint64 &id);
 						void						setOwner(const User &sessionUser);
+						void						setOwner(const QString &sessionUser);
 						void						setPermissionTable(const QMap<QString, ResourcePerm> &permissioTable = QMap<QString, ResourcePerm>());
 						bool						addPermission(const QString &mail, ResourcePerm perm) throw(Exception);
 						bool						modPermission(const QString &mail, ResourcePerm perm) throw(Exception);

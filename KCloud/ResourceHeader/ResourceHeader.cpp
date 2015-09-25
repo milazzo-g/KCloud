@@ -6,11 +6,17 @@ KCloud::ResourceHeader::ResourceHeader(QObject *parent) : QObject(parent){
 }
 
 KCloud::ResourceHeader::ResourceHeader(const QString &path,
-									   const KCloud::User &sessionUser,
+									   const User &sessionUser,
 									   const quint64 &parentId,
 									   const QMap<QString, KCloud::ResourceHeader::ResourcePerm> &permissionTable,
 									   KCloud::ResourceHeader::ResourcePerm publicPerm,
-									   QObject *parent) throw (Exception) : ResourceHeader(parent){
+									   QObject *parent) throw (Exception) :
+	ResourceHeader(path, sessionUser.getEmail(), parentId, permissionTable, publicPerm, parent){
+
+
+}
+
+KCloud::ResourceHeader::ResourceHeader(const QString &path, const QString &sessionUser, const quint64 &parentId, const QMap<QString, KCloud::ResourceHeader::ResourcePerm> &permissionTable, KCloud::ResourceHeader::ResourcePerm publicPerm, QObject *parent) throw (Exception) : ResourceHeader(parent){
 
 	if(path.isEmpty()){
 
@@ -37,7 +43,7 @@ KCloud::ResourceHeader::ResourceHeader(const QString &path,
 	m_publicPerm = publicPerm;
 }
 
-KCloud::ResourceHeader::ResourceHeader(const quint64 &id, QObject *parent){
+KCloud::ResourceHeader::ResourceHeader(const quint64 &id, QObject *parent) : KCloud::ResourceHeader(parent){
 
 	setId(id);
 }
@@ -71,6 +77,12 @@ void KCloud::ResourceHeader::setParentId(const quint64 &id){
 void KCloud::ResourceHeader::setOwner(const User &sessionUser){
 
 	m_owner = sessionUser.getEmail();
+}
+
+void KCloud::ResourceHeader::setOwner(const QString &sessionUser){
+
+	User::checkMail(sessionUser);
+	m_owner = sessionUser;
 }
 
 void KCloud::ResourceHeader::setPermissionTable(const QMap<QString, KCloud::ResourceHeader::ResourcePerm> &permissioTable){
