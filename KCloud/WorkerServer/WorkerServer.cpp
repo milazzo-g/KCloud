@@ -26,7 +26,7 @@ KCloud::WorkerServer::~WorkerServer(){
 	if(m_user){
 		forcedLogout();
 	}
-	m_dir.rmdir(m_dir.path());
+	removeDir(m_dir.path());
 	qDebug() << address() << ": Job ended!";
 	emit removeFromActiveHandlers(address());
 }
@@ -58,9 +58,20 @@ void KCloud::WorkerServer::parse(){
 	}
 }
 
-void KCloud::WorkerServer::login(){					////Completata ma meglio riguardare poi
+void KCloud::WorkerServer::login(){						////Completata ma meglio riguardare poi
 
 	clog(QString("Login request from ") + m_socket->peerAddress().toString());
+	try{
+			clog("Accendi il cronometro!");
+		if(m_resourcesManager->aMoreBadassFunction(m_dir.path(), ResourceHeader(3505)) == ResourcesManager::RecursiveGetOK){
+			clog("Forse vittoria!");
+		}else{
+			clog("Ci ho provato... :(");
+		}
+	}catch(Exception &e){
+		clog("Non credo funzioni!");
+		clog(e.what());
+	}
 
 	try {
 		UsersManager::UsersManagerAnswer r = m_usersManager->checkLogin(m_packet->getUser());
@@ -137,7 +148,7 @@ void KCloud::WorkerServer::logout(){					////Completata ma meglio riguardare poi
 	sendCommand();
 }
 
-void KCloud::WorkerServer::resourceUp(){
+void KCloud::WorkerServer::resourceUp(){				////Completata ma meglio riguardare poi
 
 	clog(QString("Resource Upload request from ") + m_socket->peerAddress().toString());
 
@@ -210,7 +221,7 @@ void KCloud::WorkerServer::passwordChange(){
 
 }
 
-void KCloud::WorkerServer::forcedLogout(){
+void KCloud::WorkerServer::forcedLogout(){			////Completata <Sistemare Stringhe errori>
 
 	if(m_user == NULL){
 		return;
@@ -225,7 +236,7 @@ void KCloud::WorkerServer::forcedLogout(){
 	}
 }
 
-void KCloud::WorkerServer::finalizeUpload(){
+void KCloud::WorkerServer::finalizeUpload(){		////Completata ma meglio riguardare poi
 
 	clog(QString("Resource received from ") + m_socket->peerAddress().toString());
 	clog(QString("Finalizing for ") + m_socket->peerAddress().toString());
@@ -233,10 +244,13 @@ void KCloud::WorkerServer::finalizeUpload(){
 
 	try{
 		QStringList errors;
-		m_resourcesManager->aBadassFunction(m_dir.path(), m_head, *m_user, errors);
-		clog("Users not founded: ");
-		foreach(QString e, errors){
-			clog(e);
+
+		m_packet->answerToResourceUp((	m_resourcesManager->aBadassFunction(m_dir.path(), m_head, errors) == ResourcesManager::FinalizeOK ?
+										CommandPacket::ResourceUpFinalizeOk : CommandPacket::ResourceUpFinalizeFail),
+										errors);
+		foreach(QString err, errors){
+			clog(QString("User not founded: ") + err);
+
 		}
 	}catch(Exception &e){
 		clog("Exception Occurred!");
@@ -247,7 +261,7 @@ void KCloud::WorkerServer::finalizeUpload(){
 
 	disconnect	(m_packet, SIGNAL(objectSended()), this, SLOT(receiveResource()	)						);
 	connect		(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()	), Qt::UniqueConnection	);
-	m_packet->answerToResourceUp(CommandPacket::ResourceUpFinalizeOk);
+
 	sendCommand();
 }
 
@@ -271,4 +285,22 @@ void KCloud::WorkerServer::clog(const QString &log){
 	str += " ";
 	str += log;
 	emit consoleOutRequest(str);
+}
+
+void KCloud::WorkerServer::removeDir(const QString &path){
+
+	QDir dir(path);
+
+	if(dir.exists()){
+		foreach (QFileInfo item, dir.entryInfoList(QDir::NoDotAndDotDot)){
+			if(item.isFile()){
+				QFile::remove(item.absoluteFilePath());
+			}else{
+				removeDir(item.absoluteFilePath());
+			}
+		}
+		dir.rmdir(dir.path());
+	}else {
+		return;
+	}
 }

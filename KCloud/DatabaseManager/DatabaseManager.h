@@ -43,12 +43,18 @@ namespace KCloud{
 			};
 
 			enum resourceTableValue{
-				Id,
-				Parent,
-				Owner,
-				Name,
-				Type,
-				Size
+				res_Id,
+				res_Parent,
+				res_Owner,
+				res_Name,
+				res_Type,
+				res_Size
+			};
+
+			enum sharingTableValue{
+				sha_User,
+				sha_Resource,
+				sha_Permission
 			};
 
 			const	static	QString			sqlEnumDir;

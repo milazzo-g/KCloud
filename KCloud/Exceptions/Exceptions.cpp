@@ -317,3 +317,23 @@ KCloud::Exception::Type KCloud::MultipleRowsForPrimaryKey::type() const{
 
 	return DatabaseMultipleRowsForPrimaryKey;
 }
+
+const char *KCloud::ResourceNotExists::what() const throw (){
+
+	return "DatabaseException : No Resources with this id!";
+}
+
+KCloud::Exception::Type KCloud::ResourceNotExists::type() const{
+
+	return DatabaseResourceNotFound;
+}
+
+const char *KCloud::UserNotExists::what() const throw (){
+
+	return "DatabaseException : No Users with this email!";
+}
+
+KCloud::Exception::Type KCloud::UserNotExists::type() const{
+
+	return DatabaseUserNotFound;
+}
