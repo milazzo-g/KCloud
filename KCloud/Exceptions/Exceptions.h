@@ -36,6 +36,7 @@ namespace KCloud{
 				ResourceZippingError,
 				ResourceUnZippingError,
 				ResourceNotReady,
+				ResourceRemoveTempFileFail,
 
 				//NetObject
 				NetObjectInvalidSocket,
@@ -143,6 +144,13 @@ namespace KCloud{
 	};
 
 	class EXCEPTIONSSHARED_EXPORT NotReadyException : public ResourceException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
+	class EXCEPTIONSSHARED_EXPORT RemoveTempFileException : public ResourceException{
 
 		public:
 			virtual const char *		what()		const throw ();

@@ -175,6 +175,21 @@ KCloud::Exception::Type KCloud::NotReadyException::type() const{
 }
 
 /*
+ *		Errore nella cancellazione del file temporaneo
+ *
+*/
+const char *KCloud::RemoveTempFileException::what() const throw (){
+
+	return "ResourceException : Unable to remove temporary file!";
+}
+
+KCloud::Exception::Type KCloud::RemoveTempFileException::type() const{
+
+	return ResourceRemoveTempFileFail;
+}
+
+
+/*
  *		######### Eccezioni NetObject
  *
 */
@@ -317,3 +332,4 @@ KCloud::Exception::Type KCloud::MultipleRowsForPrimaryKey::type() const{
 
 	return DatabaseMultipleRowsForPrimaryKey;
 }
+

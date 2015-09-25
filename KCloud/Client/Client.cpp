@@ -1,5 +1,11 @@
 #include "Client.h"
 #include <QDebug>
+
+#define TEST_USER		"test@test.it"
+#define TEST_PASSWORD	"test"
+#define TEST_HOST		"192.168.1.12"
+#define TEST_PORT		8000
+
 KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : Engine(parent){
 
 	if(mode == AsConsoleThread){
@@ -99,15 +105,28 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				case CommandPacket::ResourceUpFinalizeOk:
 					clog(QString("Caricamento completato con successo"));
-					if(m_resource->removeZipFile()){
-						clog(QString("Cancellato file temporaneo"));
-					}else{
-						clog(QString("Errore nella cancellazione del file temporaneo"));
+
+					try{
+
+						removeTempFile();
+					}catch(Exception &e){
+
+						clog("Exception occurred!");
+						clog(e.what());
 					}
 					break;
 
 				case CommandPacket::ResourceUpFinalizeFail:
-					clog(QString("Caricamento non finalizzato non si sa cosa cazzo è successo"));
+					clog(QString("Caricamento non finalizzato"));
+
+					try{
+
+						removeTempFile();
+					}catch(Exception &e){
+
+						clog("Exception occurred!");
+						clog(e.what());
+					}
 					break;
 
 				default:
@@ -115,6 +134,26 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 			}
 			break;
 
+		case CommandPacket::ResourceDown:
+
+			switch (m_packet->getServerAnswer()){
+				case CommandPacket::ResourceDownOk:
+					clog("Scaricamento consentito");
+					resourceDown();
+					break;
+
+				case CommandPacket::ResourceDownInvalidId:
+					clog("Scaricamento Fallito, Id non valido");
+					break;
+
+				case CommandPacket::ResourceDownFail:
+					clog("Scaricamento fallito");
+					break;
+
+				default:
+					throw CorruptPacketException();
+					break;
+			}
 		default:
 			clog("Processamento comandi non ancora implementato per questi valori!");
 			break;
@@ -161,6 +200,9 @@ void KCloud::Client::resourceTree(){
 
 void KCloud::Client::resourceDown(){
 
+	m_head = m_packet->getFirstResourceHeader();
+	connect(m_resource, SIGNAL(objectReceived()), this, SLOT(finalizeResource()), Qt::UniqueConnection);
+	receiveResource();
 }
 
 void KCloud::Client::userRegister(){
@@ -192,6 +234,106 @@ void KCloud::Client::connectToHost(const QString &addr, const quint16 &port) thr
 	}
 }
 
+void KCloud::Client::newUpload(const QString &localPath,
+							   KCloud::User *sessionUser,
+							   const quint64 &parentId,
+							   const QMap<QString, KCloud::ResourceHeader::ResourcePerm> &permissionTable,
+							   KCloud::ResourceHeader::ResourcePerm publicPerm) throw (Exception){
+
+	if(m_user == NULL){
+		throw NullUserPointer();
+	}else{
+		try{
+
+			QSettings appSettings;
+			m_packet->setForResourceUp(localPath, User(*sessionUser), parentId, permissionTable, publicPerm);
+			m_resource->setResourcePath(localPath);
+			m_resource->setZipDir(appSettings.value(TMPF_PATH).toString());
+			m_resource->setZipName(m_packet->getFirstResourceHeader().getName());
+			m_lastCommand = m_packet->getClientCommand();
+			sendCommand();
+			connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+		}catch(Exception &e){
+			clog("Exception occurred");
+			clog(e.what());
+			m_packet->clear();
+		}
+	}
+}
+
+void KCloud::Client::newDownload(const quint64 &resourceId, const QString &savePath) throw (Exception){
+
+	QString path;
+
+	if(savePath.isEmpty()){
+
+		QSettings appSettings;
+		path = appSettings.value(DOWN_PATH).toString();
+	}else{
+
+		if(QFileInfo(savePath).exists() && QFileInfo(savePath).isDir()){
+			path = savePath;
+		}else{
+			throw BadPathException();
+		}
+	}
+	m_packet->setForResourceDown(resourceId);
+	m_resource->setZipDir(path);
+	m_lastCommand = m_packet->getClientCommand();
+	sendCommand();
+	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+}
+
+void KCloud::Client::removeTempFile() throw (Exception){
+
+	if(!m_resource->removeZipFile()){
+
+		throw RemoveTempFileException();
+	}
+	m_resource->clear();
+}
+
+void KCloud::Client::finalizeResource(){
+
+	m_resource->setZipName(m_head.getName());
+	try{
+		m_resource->decompress(m_head);
+	}catch(Exception &e){
+		clog("Exception occurred");
+		clog(e.what());
+	}
+
+	clog("Download completato");
+}
+
+void KCloud::Client::run(){
+
+	QSettings	appSettings;
+	QDir		dir;
+	if(!appSettings.contains(T_STARTED)){
+
+		appSettings.setValue(T_STARTED, 0);
+	}
+
+	if(appSettings.value(T_STARTED).toLongLong() <= 0){
+
+		dir = dir.home();
+		dir.mkdir(m_coreApplication->applicationName());
+		dir.cd(m_coreApplication->applicationName());
+		appSettings.setValue(ROOT_PATH, dir.path());
+		dir.mkdir(_DOWNLOAD);
+		dir.cd(_DOWNLOAD);
+		appSettings.setValue(DOWN_PATH, dir.path());
+		dir.cdUp();
+		dir.mkdir(_TEMPFILE);
+		dir.cd(_TEMPFILE);
+		appSettings.setValue(TMPF_PATH, dir.path());
+	}
+
+	qint64 i = appSettings.value(T_STARTED).toLongLong();
+	appSettings.setValue(T_STARTED, i++);
+}
+
 void KCloud::Client::closeAll(){
 
 	m_console->quit();
@@ -211,48 +353,26 @@ void KCloud::Client::execCommand(const QString &cmd){
 				closeAll();
 			}else if(QRegExp("connect", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog("Mi sto collegando!");
-				connectToHost("192.168.1.3", QString("8000").toUShort());
+				connectToHost(TEST_HOST, TEST_PORT);
 			}else if(QRegExp("login", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog("Faccio il login!");
-				setUserForLogin("test@test.it", "test");
+				clog("Faccio il login con user_test!");
+				setUserForLogin(TEST_USER, TEST_PASSWORD);
 				login();
 			}else if(QRegExp("logout", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog("Faccio il logout!");
 				logout();
-			}else if(QRegExp("setzipdir", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
-
-				clog(QString("Setting zip dir to: /Users/Danilo/Desktop"));
-				try{
-					m_resource->setZipDir("/Users/Danilo/Desktop");
-				}catch(Exception &e){
-					clog("Exception occurred!");
-					clog(e.what());
-					m_resource->clear();
-				}
 			}else{
 
 				clog("Unknown Command!");
 			}
 			break;
 		case 2:
-			if(QRegExp("setZipDir", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+			if(QRegExp("download", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog(QString("Setting zip dir to: " + arg[1]));
-				try{
-					m_resource->setZipDir(arg[0]);
-				}catch(Exception &e){
-					clog("Exception occurred!");
-					clog(e.what());
-					m_resource->clear();
-				}
-
-			}else if(QRegExp("setZipName", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
-
-				clog(QString("Setting zip name to: ") + arg[1]);
-				m_resource->setZipName(arg[1]);
+				clog(QString("Download file con id: " + arg[1]));
+				newDownload(arg[1].toULongLong());
 			}else{
 
 				clog("Unknown Command!");
@@ -260,6 +380,8 @@ void KCloud::Client::execCommand(const QString &cmd){
 			break;
 		case 3:
 			if(QRegExp("login", Qt::CaseInsensitive).exactMatch(arg[0])){
+
+				clog(QString("Faccio il login"));
 				try{
 					setUserForLogin(arg[1], arg[2]);
 					login();
@@ -268,6 +390,8 @@ void KCloud::Client::execCommand(const QString &cmd){
 					clog(e.what());
 				}
 			}else if(QRegExp("connect", Qt::CaseInsensitive).exactMatch(arg[0])){
+
+				clog(QString("Mi sto collegando: host = " + arg[1] + ", port = " + arg[2]));
 				bool exc = false;
 				try{
 					connectToHost(arg[1], QString(arg[2]).toUShort());
@@ -282,24 +406,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 			}else if(QRegExp("upload", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog(QString("Upload file: " + arg[1] + "id parent: " + arg[2].toULongLong()));
-				if(m_user == NULL){
-					throw NullUserPointer();
-				}else{
-					try{
-						QMap<QString, ResourceHeader::ResourcePerm> map;
-						map.insert("milazzo.ga@gmail.com", ResourceHeader::Write);
-
-						m_packet->setForResourceUp(arg[1], *m_user, arg[2].toULongLong(), map, ResourceHeader::Read);
-						m_resource->setResourcePath(arg[1]);
-						m_lastCommand = m_packet->getClientCommand();
-						sendCommand();
-						connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
-					}catch(Exception &e){
-						clog("Exception occurred");
-						clog(e.what());
-						m_packet->clear();
-					}
-				}
+				newUpload(arg[1], m_user, arg[2].toULongLong());
 			}else{
 
 				clog("Unknown Command!");
@@ -315,5 +422,5 @@ void KCloud::Client::clog(const QString &log){
 	QString str(Console::Green + this->metaObject()->className() + Console::Reset);
 	str += " ";
 	str += log;
-	m_console->output(log);
+	m_console->output(str);
 }
