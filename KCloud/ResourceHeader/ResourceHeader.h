@@ -61,6 +61,7 @@ namespace KCloud{
 						quint64						getParentId() const;
 						QString						getOwner() const;
 						QString						getName()const;
+						QString						toString() const;
 						ResourceType				getType() const;
 						ResourcePerm				getPublicPermission() const;
 						ResourcePerm				getPermission(const QString &mail) const throw(Exception);

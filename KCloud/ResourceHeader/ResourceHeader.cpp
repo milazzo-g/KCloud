@@ -147,6 +147,31 @@ QString KCloud::ResourceHeader::getName() const{
 	return m_name;
 }
 
+QString KCloud::ResourceHeader::toString() const{
+
+	QString out;
+	out +=	"\nSize		=	 ";
+	out	+=	m_size;
+	out	+=	"	\n";
+	out +=	"Id			=	 ";
+	out +=	m_id;
+	out +=	"	\n";
+	out +=	"ParentId	=	 ";
+	out +=	m_parentId;
+	out +=	"	\n";
+	out +=	"Owner		=	 ";
+	out +=	m_owner;
+	out +=	"	\n";
+	out +=	"Name		=	 ";
+	out +=	m_name;
+	out +=	"	\n";
+	out +=	"Type		=	 ";
+	out +=	m_type;
+	out +=	"	\n";
+
+	return out;
+}
+
 KCloud::ResourceHeader::ResourceType KCloud::ResourceHeader::getType() const{
 
 	return m_type;
