@@ -162,25 +162,23 @@ QString KCloud::ResourceHeader::getName() const{
 QString KCloud::ResourceHeader::toString() const{
 
 	QString out;
-	out +=	"\nSize		=	 ";
-	out	+=	m_size;
-	out	+=	"	\n";
-	out +=	"Id			=	 ";
-	out +=	m_id;
-	out +=	"	\n";
-	out +=	"ParentId	=	 ";
-	out +=	m_parentId;
-	out +=	"	\n";
-	out +=	"Owner		=	 ";
+	out +=	"\nSize \t=\t";
+	out	+=	QString::number(m_size);
+	out	+=	"\t\n";
+	out +=	"Id	\t=\t";
+	out +=	QString::number(m_id);
+	out +=	"\t\n";
+	out +=	"ParentId \t=\t ";
+	out +=	QString::number(m_parentId);
+	out +=	"\t\n";
+	out +=	"Owner \t=\t ";
 	out +=	m_owner;
-	out +=	"	\n";
-	out +=	"Name		=	 ";
+	out +=	"\t\n";
+	out +=	"Name \t=\t";
 	out +=	m_name;
-	out +=	"	\n";
-	out +=	"Type		=	 ";
-	out +=	m_type;
-	out +=	"	\n";
-
+	out +=	"\t\n";
+	out +=	"Type \t=\t ";
+	out +=	(int)m_type;
 	return out;
 }
 

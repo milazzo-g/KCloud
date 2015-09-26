@@ -26,6 +26,7 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 	connect(m_packet,	SIGNAL(objectSended()),		this,			SLOT(receiveCommand()),		Qt::UniqueConnection);
 	connect(m_packet,	SIGNAL(objectReceived()),	this,			SLOT(parse()),				Qt::UniqueConnection);
 	connect(m_resource, SIGNAL(objectReceived()),	this,			SLOT(finalizeResource()),	Qt::UniqueConnection);
+	connect(m_resource, SIGNAL(objectSended()),		this,			SLOT(receiveCommand()),		Qt::UniqueConnection);
 }
 
 KCloud::Client::~Client(){
@@ -384,6 +385,11 @@ void KCloud::Client::saveResourcesTree(){
 
 	m_resourcesTree.clear();
 	m_resourcesTree.append(m_packet->getResourceTree());
+	foreach (ResourceHeader gesu, m_resourcesTree){
+
+		clog(gesu.toString());
+	}
+	clog(QString::number(m_resourcesTree.size()));
 }
 
 void KCloud::Client::removeTempFile() throw (Exception){
