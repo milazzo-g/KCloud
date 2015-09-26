@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
 
 	QCoreApplication a(argc, argv);
 
-	bool mode = CLIENT;
+	bool mode = SERVER;
 
 	if(mode == SERVER){
 		MainServer *server	= new MainServer(&a);

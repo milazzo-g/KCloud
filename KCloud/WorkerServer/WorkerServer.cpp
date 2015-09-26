@@ -61,6 +61,9 @@ void KCloud::WorkerServer::parse(){
 		case CommandPacket::ResourceDel:
 			resourceDel();
 			break;
+		case CommandPacket::ResourceTree:
+			resourceTree();
+			break;
 		default:
 			break;
 	}
@@ -247,6 +250,31 @@ void KCloud::WorkerServer::resourceDel(){
 
 void KCloud::WorkerServer::resourceTree(){
 
+	clog(QString("Resource Tree request from ") + m_socket->peerAddress().toString());
+
+	if(userIsLogged()){
+		try{
+			QList<ResourceHeader> list = m_resourcesManager->resourceTree(*m_user);
+
+			if(list.isEmpty()){
+				clog(QString("Resource Tree failed for ") + m_socket->peerAddress().toString());
+				m_packet->answerToResourceTree(CommandPacket::ResourceTreeError, list);
+			}else{
+				clog(QString("Resource Tree OK for ") + m_socket->peerAddress().toString());
+				m_packet->answerToResourceTree(CommandPacket::ResourceTreeOk, list);
+			}
+
+		}catch(Exception &e){
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
+			m_packet->answerToResourceTree(CommandPacket::ServerInternalError, QList<ResourceHeader>(), errors);
+		}
+	}else{
+		m_packet->answerToResourceTree(CommandPacket::NotLoggedUser, QList<ResourceHeader>());
+	}
+	sendCommand();
 }
 
 void KCloud::WorkerServer::resourceDown(){				////Permessi OK
@@ -268,7 +296,7 @@ void KCloud::WorkerServer::resourceDown(){				////Permessi OK
 					m_resource->setResourcePath(filesMoved[0]);
 					m_resource->setZipDir(m_dir.path());
 					m_resource->setZipName(QFileInfo(filesMoved[0]).fileName());
-					m_packet->answerToResourceDown(CommandPacket::ResourceDownOk, m_resourcesManager->getHeader(resourceId));
+					m_packet->answerToResourceDown(CommandPacket::ResourceDownOk, m_resourcesManager->headerForId(resourceId));
 
 					disconnect	(m_packet	, SIGNAL(objectSended()), this, SLOT(receiveCommand()	)						);
 					connect		(m_packet	, SIGNAL(objectSended()), this, SLOT(sendResource()		), Qt::UniqueConnection	);
@@ -364,7 +392,6 @@ void KCloud::WorkerServer::finalizeDownload(){
 
 	clog(QString("Resource sended to ") + m_socket->peerAddress().toString());
 	clog(QString("Finalizing for ") + m_socket->peerAddress().toString());
-	QThread::sleep(5);
 	clog(QString("Removing ") + m_resource->getResourcePath());
 	clog((recursiveRemove(m_resource->getResourcePath()) ? QString("OK") : (Console::Red + QString("FAIL") + Console::Reset)));
 	clog(QString("Removing ") + m_resource->getZipPath());
