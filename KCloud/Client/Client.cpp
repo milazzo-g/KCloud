@@ -404,13 +404,27 @@ void KCloud::Client::execCommand(const QString &cmd){
 				closeAll();
 			}else if(QRegExp("connect", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				connectToHost(TEST_HOST, TEST_PORT);
-				clog("Connesso al server");
+				bool flag = false;
+				try{
+					connectToHost(TEST_HOST, TEST_PORT);
+				}catch(Exception &e){
+					flag = true;
+					clog("Exception occurred!");
+					clog(e.what());
+				}
+				if(!flag){
+					clog("Connesso al server");
+				}
 			}else if(QRegExp("login", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog("Faccio il login con user_test!");
-				setUserForLogin(TEST_USER, TEST_PASSWORD);
-				login();
+				try{
+					setUserForLogin(TEST_USER, TEST_PASSWORD);
+					login();
+				}catch(Exception &e){
+					clog("Exception occurred!");
+					clog(e.what());
+				}
 			}else if(QRegExp("logout", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog("Faccio il logout!");
@@ -428,7 +442,13 @@ void KCloud::Client::execCommand(const QString &cmd){
 			if(QRegExp("download", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog(QString("Download file con id: " + arg[1]));
-				newDownload(arg[1].toULongLong());
+				try{
+					newDownload(arg[1].toULongLong());
+				}catch(Exception &e){
+					clog("Exception occurred!");
+					clog(e.what());
+				}
+
 			}else if(QRegExp("remove", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog(QString("Rimozione risorsa con id = " + arg[1]));
@@ -470,11 +490,21 @@ void KCloud::Client::execCommand(const QString &cmd){
 //				newUpload(arg[1], m_user, arg[2].toULongLong(), map, ResourceHeader::Read);
 
 				//normalmente
-				newUpload(arg[1], m_user, arg[2].toULongLong());
+				try{
+					newUpload(arg[1], m_user, arg[2].toULongLong());
+				}catch(Exception &e){
+					clog("Exception occurred!");
+					clog(e.what());
+				}
 			}else if(QRegExp("download", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog(QString("Download file con id: " + arg[1]));
-				newDownload(arg[1].toULongLong());
+				clog(QString("Download file con id: " + arg[1] + ", in dir: " + arg[2]));
+				try{
+					newDownload(arg[1].toULongLong(), arg[2]);
+				}catch(Exception &e){
+					clog("Exception occurred!");
+					clog(e.what());
+				}
 			}else{
 
 				clog("Unknown Command!");
