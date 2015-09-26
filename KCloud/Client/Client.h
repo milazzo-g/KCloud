@@ -56,14 +56,14 @@ namespace KCloud{
 						void							closeAll();
 						void							execCommand(const QString &cmd);
 						void							clog(const QString &log);
-						bool							isLogged();
+						bool							isLogged() throw(Exception);
 		private:
 						QCoreApplication *				m_coreApplication;
 						Console	*						m_console;
 						WorkMode						m_workMode;
 						CommandPacket::ClientCommand	m_lastCommand;
 						ResourceHeader					m_head;
-						bool							m_loginState;
+
 
 	};
 }
