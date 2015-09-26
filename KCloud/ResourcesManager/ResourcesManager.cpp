@@ -1,4 +1,5 @@
 #include "ResourcesManager.h"
+#include <QThread>
 #include "../MainServer/defines.h"
 
 const QString KCloud::ResourcesManager::queryResources_1(" SELECT owner FROM resources WHERE id = :id ");
@@ -17,7 +18,8 @@ const QString KCloud::ResourcesManager::queryResources_13(" SELECT * FROM users 
 const QString KCloud::ResourcesManager::queryResources_14(" SELECT * FROM sharing WHERE resource = :id ");
 const QString KCloud::ResourcesManager::queryResources_15(" SELECT permission FROM publicResources where resource = :id ");
 const QString KCloud::ResourcesManager::queryResources_16(" SELECT * FROM resources where parent = :id and type = :type ");
-
+const QString KCloud::ResourcesManager::queryResources_17(" DELETE FROM resources WHERE parent = :id AND type = :type ");
+const QString KCloud::ResourcesManager::queryResources_18(" DELETE FROM resources WHERE id = :id ");
 
 
 KCloud::ResourcesManager::ResourcesManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
@@ -35,12 +37,13 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::check
 
 	if(open()){
 		try{
-			if(userSpace(usr) + head.getSize() > ___4GB___){
+			if(userSpace(usr.getEmail()) + head.getSize() > ___4GB___){
 				return SpaceFull;
 			}
-			bool res1 = isOwner(usr, head.getParentId())								||
+			bool res1 = isOwner(usr, head.getParentId())	||
 						sharedPerm(usr, head.getParentId()) == ResourceHeader::Write	||
-						publicPerm(head.getParentId()		== ResourceHeader::Write);
+						publicPerm(head.getParentId())		== ResourceHeader::Write;
+
 			bool res2 = !resourceExists(head);
 			bool res3 = resourceType(head.getParentId()) == ResourceHeader::Dir;
 			close();
@@ -62,13 +65,10 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::check
 		}catch(Exception &e){
 			close();
 			switch (e.type()) {
-				case Exception::DatabaseUserNotFound:
-					return UserNotFound;
 				case Exception::DatabaseResourceNotFound:
 					return ParentNotFound;
 				default:
 					throw e;
-					break;
 			}
 		}
 	}else{
@@ -76,7 +76,7 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::check
 	}
 }
 
-KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::aBadassFunction(const QString &path, const KCloud::ResourceHeader &incomplete, QStringList &errors) throw (Exception){
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::addResources(const QString &path, const KCloud::ResourceHeader &incomplete, QStringList &errors) throw (Exception){
 
 	if(open()){
 		errors = recursiveAdd(path, incomplete);
@@ -91,15 +91,36 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::aBada
 	}
 }
 
-KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::aMoreBadassFunction(const QString &path, const KCloud::ResourceHeader &resource, QStringList &filesMoved) throw (Exception){
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::getResources(const User &usr, const QString &path, const KCloud::ResourceHeader &resource, QStringList &filesMoved) throw (Exception){
 
 	if(open()){
 		if(!resourceExists(resource.getId())){
 			return RecursiveGetFail;
 		}
-		ResourceHeader header = getHeader(resource.getId());
-		filesMoved = recursiveGet(path, header);
-		return RecursiveGetOK;
+		ResourceHeader::ResourcePerm sharedPermission = sharedPerm(usr, resource.getId());
+		ResourceHeader::ResourcePerm publicPermission = publicPerm(resource.getId());
+		if(isOwner(usr.getEmail(), resource.getId()) || (sharedPermission != ResourceHeader::PermUndef || publicPermission != ResourceHeader::PermUndef)){
+			ResourceHeader header = getHeader(resource.getId());
+			filesMoved = recursiveGet(path, header);
+			return RecursiveGetOK;
+		}else{
+			return PermError;
+		}
+	}else{
+		throw OpenFailure();
+	}
+}
+
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::delResources(const KCloud::User &usr, const KCloud::ResourceHeader &head) throw (Exception){
+
+	if(open()){
+		ResourceHeader toDel = getHeader(head.getId());
+		if(!isOwner(usr, toDel.getId()) || toDel.getName() == usr.getEmail()){
+			return PermError;
+		}else{
+			recursiveDel(toDel);
+			return DeleteOK;
+		}
 	}else{
 		throw OpenFailure();
 	}
@@ -129,7 +150,6 @@ bool KCloud::ResourcesManager::isOwner(const QString &usr, const quint64 &id) th
 		}else{
 			throw MultipleRowsForPrimaryKey();
 		}
-		return (query.size() == 1 ? true : false);
 	}else{
 		throw OpenFailure();
 	}
@@ -212,12 +232,12 @@ bool KCloud::ResourcesManager::userExists(const QString &usr) throw (Exception){
 /*
  * OK!!!!!!! -> Definitiva
  */
-qint64 KCloud::ResourcesManager::userSpace(const KCloud::User &usr) throw (Exception){
+qint64 KCloud::ResourcesManager::userSpace(const QString &usr) throw (Exception){
 
 	if(isOpen()){
 		QSqlQuery query(m_db);
 		query.prepare(queryResources_6);
-		query.bindValue(placeHolder_mail, usr.getEmail());
+		query.bindValue(placeHolder_mail, usr);
 		tryExec(query);
 		if(query.size() == 0){
 			throw UserNotExists();
@@ -267,7 +287,7 @@ KCloud::ResourceHeader::ResourceType KCloud::ResourcesManager::resourceType(cons
 			throw ResourceNotExists();
 		}else if(query.size() == 1){
 			query.seek(0);
-			return (query.value(0) == sqlEnumDir ? ResourceHeader::Dir : ResourceHeader::File);
+			return (query.value(0).toString() == sqlEnumDir ? ResourceHeader::Dir : ResourceHeader::File);
 		}else{
 			throw MultipleRowsForPrimaryKey();
 		}
@@ -286,10 +306,10 @@ KCloud::ResourceHeader::ResourcePerm KCloud::ResourcesManager::publicPerm(const 
 		query.bindValue(placeHolder_id, id);
 		tryExec(query);
 		if(!query.size()){
-			throw ResourceNotExists();
+			return ResourceHeader::PermUndef;
 		}else if(query.size() == 1){
 			query.seek(0);
-			return (query.value(0) == sqlEnumRead ? ResourceHeader::Read : ResourceHeader::Write);
+			return (query.value(0).toString() == sqlEnumRead ? ResourceHeader::Read : ResourceHeader::Write);
 		}else{
 			throw MultipleRowsForPrimaryKey();
 		}
@@ -312,7 +332,7 @@ KCloud::ResourceHeader::ResourcePerm KCloud::ResourcesManager::sharedPerm(const 
 			return ResourceHeader::PermUndef;
 		}else if(query.size() == 1){
 			query.seek(0);
-			return (query.value(0) == sqlEnumRead ? ResourceHeader::Read : ResourceHeader::Write);
+			return (query.value(0).toString() == sqlEnumRead ? ResourceHeader::Read : ResourceHeader::Write);
 		}else{
 			throw MultipleRowsForPrimaryKey();
 		}
@@ -327,8 +347,6 @@ QStringList KCloud::ResourcesManager::recursiveAdd(const QString &path, const KC
 	QDir dir(path);
 	QFileInfoList list = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 
-	trace << " PATH = " << path;
-
 	foreach (QFileInfo f, list){
 		ResourceHeader newResource(f.absoluteFilePath(),
 								   incomplete.getOwner(),
@@ -337,6 +355,7 @@ QStringList KCloud::ResourcesManager::recursiveAdd(const QString &path, const KC
 								   incomplete.getPublicPermission());
 
 		newResource = addResource(newResource);
+		updateSpace(newResource.getOwner(), newResource.getId(), Increment);
 		setPublicPermission(newResource);
 		errors += setSharedPermission(newResource);
 		newResource.setParentId(newResource.getId());
@@ -366,8 +385,8 @@ QStringList KCloud::ResourcesManager::recursiveGet(const QString &path, const KC
 					list.last());
 	}else{
 		QDir current(path);
-		QList<ResourceHeader> childFiles = getChilds(item.getId(), OnlyFiles);
-		QList<ResourceHeader> childDirs = getChilds(item.getId(), OnlyDirs);
+		QList<ResourceHeader> childFiles	= getChilds(item.getId(), OnlyFiles);
+		QList<ResourceHeader> childDirs		= getChilds(item.getId(), OnlyDirs);
 
 		current.mkdir(item.getName());
 		current.cd(item.getName());
@@ -387,17 +406,53 @@ QStringList KCloud::ResourcesManager::recursiveGet(const QString &path, const KC
 	}
 	return list;
 }
+
+void KCloud::ResourcesManager::recursiveDel(const KCloud::ResourceHeader &head) throw (Exception){
+
+	if(isOpen()){
+		QSettings appSettings;
+		if(head.getType() == ResourceHeader::Dir){
+
+			QList<ResourceHeader> childFiles	= getChilds(head.getId(), OnlyFiles);
+			QList<ResourceHeader> childDirs		= getChilds(head.getId(), OnlyDirs);
+
+			foreach (ResourceHeader file, childFiles) {
+				updateSpace(head.getOwner(), file.getId(), Decrement);
+				QFile::remove(appSettings.value(RESOURCES).toString() + QString("/") + QString::number(file.getId()));
+			}
+
+			QSqlQuery query(m_db);
+			query.prepare(queryResources_17);
+			query.bindValue(placeHolder_id, head.getId());
+			query.bindValue(placeHolder_type, sqlEnumFile);
+			tryExec(query);
+
+			foreach (ResourceHeader dir, childDirs) {
+				recursiveDel(dir);
+			}
+			delResource(head);
+		}else{
+			QFile::remove(appSettings.value(RESOURCES).toString() + QString("/") + QString::number(head.getId()));
+			updateSpace(head.getOwner(), head.getId(), Decrement);
+			delResource(head);
+		}
+	}else{
+		throw OpenFailure();
+	}
+
+}
+
 /*
  * OK!!!!!!! -> Definitiva
  */
-void KCloud::ResourcesManager::updateSpace(const User &usr, const quint64 &id, const KCloud::ResourcesManager::SpaceUpdateMode &mode) throw (Exception){
+void KCloud::ResourcesManager::updateSpace(const QString &usr, const quint64 &id, const KCloud::ResourcesManager::SpaceUpdateMode mode) throw (Exception){
 
 	if(isOpen()){
 		QSqlQuery query(m_db);
 		query.prepare(queryResources_10);
 		query.bindValue(placeHolder_space, (mode == Increment ? userSpace(usr) + resourceSize(id) :
 																userSpace(usr) - resourceSize(id)));
-		query.bindValue(placeHolder_mail, usr.getEmail());
+		query.bindValue(placeHolder_mail, usr);
 		tryExec(query);
 	}else{
 		throw OpenFailure();
@@ -522,6 +577,22 @@ KCloud::ResourceHeader KCloud::ResourcesManager::addResource(const KCloud::Resou
 
 			return newResource;
 		}
+	}else{
+		throw OpenFailure();
+	}
+}
+
+void KCloud::ResourcesManager::delResource(const KCloud::ResourceHeader &header) throw (Exception){
+
+	if(isOpen()){
+		if(!resourceExists(header.getId())){
+			throw ResourceNotExists();
+		}
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_18);
+		query.bindValue(placeHolder_id, header.getId());
+		tryExec(query);
+
 	}else{
 		throw OpenFailure();
 	}
