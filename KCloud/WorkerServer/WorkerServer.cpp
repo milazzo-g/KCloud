@@ -311,8 +311,8 @@ void KCloud::WorkerServer::finalizeDownload(){
 	clog(QString("Finalizing for ") + m_socket->peerAddress().toString());
 	clog(QString("Removing ") + m_resource->getResourcePath());
 	clog((recursiveRemove(m_resource->getResourcePath()) ? QString("OK") : (Console::Red + QString("FAIL") + Console::Reset)));
-	clog(QString("Removing ") + m_resource->getZipPath());
-	clog((m_resource->removeZipFile() ? QString("OK") : (Console::Red + QString("FAIL") + Console::Reset)));
+	//clog(QString("Removing ") + m_resource->getZipPath());
+	//clog((m_resource->removeZipFile() ? QString("OK") : (Console::Red + QString("FAIL") + Console::Reset)));
 	clog("Download request processed.");
 
 	disconnect	(m_packet	, SIGNAL(objectSended()), this, SLOT(sendResource()		)						);
