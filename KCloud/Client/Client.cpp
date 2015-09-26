@@ -12,7 +12,6 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 
 		m_coreApplication	= QCoreApplication::instance();
 		m_console			= new Console(this);
-		m_loginState		= false;
 		m_coreApplication->setApplicationName("KCloudClient");
 		m_coreApplication->setApplicationVersion("1.0");
 		m_coreApplication->setOrganizationName("Unikore");
@@ -36,151 +35,159 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 	qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "RISPOSTA DEL SERVER ENUM = ->>>>>>>>>>" << m_packet->getServerAnswer();
 
-	switch (m_lastCommand){
+	if(m_packet->getServerAnswer() == CommandPacket::NotLoggedUser){
 
-		case CommandPacket::Login:
+		throw NotLogged();
+	}else if(m_packet->getServerAnswer() == CommandPacket::ServerInternalError){
 
-			switch (m_packet->getServerAnswer()){
+		clog("Errore interno al server");
+	}else{
+		switch (m_lastCommand){
 
-				case CommandPacket::LoginOk:
-					clog("Login OK!");
-					setSessionUser();
-					break;
+			case CommandPacket::Login:
 
-				case CommandPacket::AlreadyLogged:
-					clog(QString("Errore nel login, utente già loggato"));
-					break;
+				switch (m_packet->getServerAnswer()){
 
-				case CommandPacket::WrongEmail:
-					clog("Errore nel login, email non valida");
-					break;
+					case CommandPacket::LoginOk:
+						clog("Login OK!");
+						setSessionUser();
+						break;
 
-				case CommandPacket::WrongPassword:
-					clog("Errore nel login, password non valida");
-					break;
+					case CommandPacket::AlreadyLogged:
+						clog(QString("Errore nel login, utente già loggato"));
+						break;
 
-				default:
-					throw CorruptPacketException();
-					break;
+					case CommandPacket::WrongEmail:
+						clog("Errore nel login, email non valida");
+						break;
 
-			}
-			break;
+					case CommandPacket::WrongPassword:
+						clog("Errore nel login, password non valida");
+						break;
 
-		case CommandPacket::Logout:
+					default:
+						throw CorruptPacketException();
+						break;
 
-			switch (m_packet->getServerAnswer()){
-				case CommandPacket::LogoutOk:
-					clog("Logout ok");
-					closeAll();
-					break;
+				}
+				break;
 
-				case CommandPacket::LogoutFail:
-					clog("Errore nel logout");
-					break;
+			case CommandPacket::Logout:
 
-				default:
-					throw CorruptPacketException();
-					break;
-			}
-			break;
-		case CommandPacket::ResourceUp:
+				switch (m_packet->getServerAnswer()){
+					case CommandPacket::LogoutOk:
+						clog("Logout ok");
+						closeAll();
+						break;
 
-			switch (m_packet->getServerAnswer()){
-				case CommandPacket::ResourceUpOk:
-					clog(QString("Caricamento consentito"));
-					resourceUp();
-					break;
+					case CommandPacket::LogoutFail:
+						clog("Errore nel logout");
+						break;
 
-				case CommandPacket::ResourceUpFail:
-					clog(QString("Caricamento rifiutato"));
-					break;
+					default:
+						throw CorruptPacketException();
+						break;
+				}
+				break;
+			case CommandPacket::ResourceUp:
 
-				case CommandPacket::ResourceUpInvalidPerm:
-					clog(QString("Caricamento rifiutato, permessi insufficienti"));
-					break;
+				switch (m_packet->getServerAnswer()){
+					case CommandPacket::ResourceUpOk:
+						clog(QString("Caricamento consentito"));
+						resourceUp();
+						break;
 
-				case CommandPacket::ResourceUpSpaceExhausted:
-					clog(QString("Caricamento rifiutato, spazio sul server esaurito"));
-					break;
+					case CommandPacket::ResourceUpFail:
+						clog(QString("Caricamento rifiutato"));
+						break;
 
-				case CommandPacket::ResourceUpFinalizeOk:
-					clog(QString("Caricamento completato con successo"));
+					case CommandPacket::ResourceUpInvalidPerm:
+						clog(QString("Caricamento rifiutato, permessi insufficienti"));
+						break;
 
-					try{
+					case CommandPacket::ResourceUpSpaceExhausted:
+						clog(QString("Caricamento rifiutato, spazio sul server esaurito"));
+						break;
 
-						removeTempFile();
-					}catch(Exception &e){
+					case CommandPacket::ResourceUpFinalizeOk:
+						clog(QString("Caricamento completato con successo"));
 
-						clog("Exception occurred!");
-						clog(e.what());
-					}
-					break;
+						try{
 
-				case CommandPacket::ResourceUpFinalizeFail:
-					clog(QString("Caricamento non finalizzato, per i seguenti utenti"));
+							removeTempFile();
+						}catch(Exception &e){
 
-					foreach (QString err, m_packet->getLastError()){
-						clog(err);
-					}
+							clog("Exception occurred!");
+							clog(e.what());
+						}
+						break;
 
-					try{
+					case CommandPacket::ResourceUpFinalizeFail:
+						clog(QString("Caricamento non finalizzato, per i seguenti utenti"));
 
-						removeTempFile();
-					}catch(Exception &e){
+						foreach (QString err, m_packet->getLastError()){
+							clog(err);
+						}
 
-						clog("Exception occurred!");
-						clog(e.what());
-					}
-					break;
+						try{
 
-				default:
-					break;
-			}
-			break;
+							removeTempFile();
+						}catch(Exception &e){
 
-		case CommandPacket::ResourceDown:
+							clog("Exception occurred!");
+							clog(e.what());
+						}
+						break;
 
-			switch (m_packet->getServerAnswer()){
-				case CommandPacket::ResourceDownOk:
-					clog("Scaricamento consentito");
-					resourceDown();
-					break;
+					default:
+						break;
+				}
+				break;
 
-				case CommandPacket::ResourceDownInvalidId:
-					clog("Scaricamento Fallito, Id non valido");
-					break;
+			case CommandPacket::ResourceDown:
 
-				case CommandPacket::ResourceDownFail:
-					clog("Scaricamento fallito");
-					break;
+				switch (m_packet->getServerAnswer()){
+					case CommandPacket::ResourceDownOk:
+						clog("Scaricamento consentito");
+						resourceDown();
+						break;
 
-				default:
-					throw CorruptPacketException();
-					break;
-			}
-			break;
+					case CommandPacket::ResourceDownInvalidId:
+						clog("Scaricamento Fallito, Id non valido");
+						break;
 
-		case CommandPacket::ResourceTree:
+					case CommandPacket::ResourceDownFail:
+						clog("Scaricamento fallito");
+						break;
 
-			switch (m_packet->getServerAnswer()){
+					default:
+						throw CorruptPacketException();
+						break;
+				}
+				break;
 
-				case CommandPacket::ResourceTreeOk:
-					clog("Ricevuto albero delle risorse");
-					break;
+			case CommandPacket::ResourceTree:
 
-				case CommandPacket::ResourceTreeError:
-					clog("Errore nella richiesta dell'albero delle risorse");
-					break;
+				switch (m_packet->getServerAnswer()){
 
-				default:
-					throw CorruptPacketException();
-					break;
-			}
-			break;
+					case CommandPacket::ResourceTreeOk:
+						clog("Ricevuto albero delle risorse");
+						break;
 
-		default:
-			clog("Processamento comandi non ancora implementato per questi valori!");
-			break;
+					case CommandPacket::ResourceTreeError:
+						clog("Errore nella richiesta dell'albero delle risorse");
+						break;
+
+					default:
+						throw CorruptPacketException();
+						break;
+				}
+				break;
+
+			default:
+				clog("Processamento comandi non ancora implementato per questi valori!");
+				break;
+		}
 	}
 }
 
@@ -232,6 +239,7 @@ void KCloud::Client::resourceTree() throw (KCloud::Exception){
 void KCloud::Client::resourceDown(){
 
 	m_head = m_packet->getFirstResourceHeader();
+	m_resource->setZipName(m_head.getName());
 	connect(m_resource, SIGNAL(objectReceived()), this, SLOT(finalizeResource()), Qt::UniqueConnection);
 	receiveResource();
 }
@@ -254,6 +262,9 @@ void KCloud::Client::passwordChange(){
 
 void KCloud::Client::setUserForLogin(const QString &email, const QString &pwd) throw (KCloud::Exception){
 
+	if(m_socket->state() != QAbstractSocket::ConnectedState){
+		throw UnreachableServer();
+	}
 	m_user = new User(email, pwd, User::Encrypt, this);
 }
 
@@ -275,26 +286,22 @@ void KCloud::Client::newUpload(const QString &localPath,
 
 		throw NotLogged();
 	}
-	if(m_user == NULL){
 
-		throw NullUserPointer();
-	}else{
-
-		try{
-			QSettings appSettings;
-			m_packet->setForResourceUp(localPath, User(*sessionUser), parentId, permissionTable, publicPerm);
-			m_resource->setResourcePath(localPath);
-			m_resource->setZipDir(appSettings.value(TMPF_PATH).toString());
-			m_resource->setZipName(m_packet->getFirstResourceHeader().getName());
-			m_lastCommand = m_packet->getClientCommand();
-			sendCommand();
-			connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
-		}catch(Exception &e){
-			clog("Exception occurred");
-			clog(e.what());
-			m_packet->clear();
-		}
+	try{
+		QSettings appSettings;
+		m_packet->setForResourceUp(localPath, User(*sessionUser), parentId, permissionTable, publicPerm);
+		m_resource->setResourcePath(localPath);
+		m_resource->setZipDir(appSettings.value(TMPF_PATH).toString());
+		m_resource->setZipName(m_packet->getFirstResourceHeader().getName());
+		m_lastCommand = m_packet->getClientCommand();
+		sendCommand();
+		connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+	}catch(Exception &e){
+		clog("Exception occurred");
+		clog(e.what());
+		m_packet->clear();
 	}
+
 }
 
 void KCloud::Client::newDownload(const quint64 &resourceId, const QString &savePath) throw (Exception){
@@ -328,7 +335,6 @@ void KCloud::Client::setSessionUser(){
 	if(m_user){
 
 		*m_user = m_packet->getUser();
-		m_loginState = true;
 	}else{
 
 		throw NullUserPointer();
@@ -346,8 +352,8 @@ void KCloud::Client::removeTempFile() throw (Exception){
 
 void KCloud::Client::finalizeResource(){
 
-	m_resource->setZipName(m_head.getName());
 	try{
+		qDebug() << m_resource->getZipPath();
 		m_resource->decompress(m_head);
 	}catch(Exception &e){
 		clog("Exception occurred");
@@ -355,6 +361,7 @@ void KCloud::Client::finalizeResource(){
 	}
 
 	clog("Download completato");
+	receiveCommand();
 }
 
 void KCloud::Client::run(){
@@ -481,7 +488,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 				}
 			}else if(QRegExp("upload", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
-				clog(QString("Upload file = " + arg[1] + ",	 id parent = " + arg[2].toULongLong()));
+				clog(QString("Upload file = " + arg[1] + ",	 id parent = " + arg[2]));
 
 				//per avere condivisione
 //				QMap<QString, ResourceHeader::ResourcePerm> map;
@@ -523,7 +530,13 @@ void KCloud::Client::clog(const QString &log){
 	m_console->output(str);
 }
 
-bool KCloud::Client::isLogged(){
+bool KCloud::Client::isLogged() throw(Exception){
 
-	return m_loginState;
+	if(m_user){
+
+		return m_user->isLogged();
+	}else{
+
+		throw NullUserPointer();
+	}
 }
