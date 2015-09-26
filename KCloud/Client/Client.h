@@ -31,8 +31,8 @@ namespace KCloud{
 			virtual		void							logout();											//fatto		ok
 			virtual		void							resourceUp();										//fatto		ok
 			virtual		void							resourceMod();
-			virtual		void							resourceDel();
-			virtual		void							resourceTree() throw (KCloud::Exception); 			//fatto ma non salva niente
+			virtual		void							resourceDel();										//non utilizzata
+			virtual		void							resourceTree() throw (KCloud::Exception); 			//fatto
 			virtual		void							resourceDown();										//fatto
 			virtual		void							userRegister();
 			virtual		void							resourcePerm();
@@ -47,7 +47,9 @@ namespace KCloud{
 																	const QMap<QString, ResourceHeader::ResourcePerm> &permissionTable = QMap<QString, ResourceHeader::ResourcePerm>(),
 																	ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception); //setta i parametri per l'upload
 						void							newDownload(const quint64 &resourceId, const QString &savePath = "") throw (Exception);		//setta i parametri per il download
-						void							setSessionUser();																			//setta l'utente di sessione dopo la risposta di login ok dal server
+						void							newRemove(const quint64 &resourceId) throw (Exception);				//setta i parametri per la rimozione
+						void							setSessionUser();								//setta l'utente di sessione dopo la risposta di login ok dal server
+						void							saveResourcesTree();							//salva l'albero delle risorse
 						void							removeTempFile() throw (Exception);															//rimuove il file temporaneo, chiamata dopo invio ok
 						void							finalizeResource() throw (Exception);														//finalizza la risorsa dopo la ricezione
 		protected:
@@ -63,6 +65,7 @@ namespace KCloud{
 						WorkMode						m_workMode;
 						CommandPacket::ClientCommand	m_lastCommand;
 						ResourceHeader					m_head;
+						QList<ResourceHeader>			m_resourcesTree;
 
 
 	};

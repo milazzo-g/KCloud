@@ -19,11 +19,13 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 
 		connect(m_console,	SIGNAL(input(QString)),		this,			SLOT(execCommand(QString)), Qt::UniqueConnection);
 		connect(m_console,  SIGNAL(finished()),			m_console,		SLOT(deleteLater()),		Qt::UniqueConnection);
-		connect(m_socket,	SIGNAL(disconnected()),		this,			SLOT(closeAll()),			Qt::UniqueConnection);
-
 		m_console->start();
 	}
-	connect(m_packet, SIGNAL(objectReceived()), this, SLOT(parse()), Qt::UniqueConnection);
+
+	connect(m_socket,	SIGNAL(disconnected()),		this,			SLOT(closeAll()),			Qt::UniqueConnection);
+	connect(m_packet,	SIGNAL(objectSended()),		this,			SLOT(receiveCommand()),		Qt::UniqueConnection);
+	connect(m_packet,	SIGNAL(objectReceived()),	this,			SLOT(parse()),				Qt::UniqueConnection);
+	connect(m_resource, SIGNAL(objectReceived()),	this,			SLOT(finalizeResource()),	Qt::UniqueConnection);
 }
 
 KCloud::Client::~Client(){
@@ -105,6 +107,14 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 						clog(QString("Caricamento rifiutato, permessi insufficienti"));
 						break;
 
+					case CommandPacket::ResourceUpParentIsNotDir:
+						clog(QString("Caricamento rifiutato, il parent id è un file!"));
+						break;
+
+					case CommandPacket::ResourceUpAlreadyExists:
+						clog(QString("Caricamento rifiutato, presente file con lo stesso nome!"));
+						break;
+
 					case CommandPacket::ResourceUpSpaceExhausted:
 						clog(QString("Caricamento rifiutato, spazio sul server esaurito"));
 						break;
@@ -156,6 +166,10 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 						clog("Scaricamento Fallito, Id non valido");
 						break;
 
+					case CommandPacket::ResourceDownInvalidPerm:
+						clog("Scaricamento Fallito, permessi insufficienti");
+						break;
+
 					case CommandPacket::ResourceDownFail:
 						clog("Scaricamento fallito");
 						break;
@@ -172,12 +186,34 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 					case CommandPacket::ResourceTreeOk:
 						clog("Ricevuto albero delle risorse");
+						saveResourcesTree();
 						break;
 
 					case CommandPacket::ResourceTreeError:
 						clog("Errore nella richiesta dell'albero delle risorse");
 						break;
 
+					default:
+						throw CorruptPacketException();
+						break;
+				}
+				break;
+
+			case CommandPacket::ResourceDel:
+
+				switch (m_packet->getServerAnswer()) {
+					case CommandPacket::ResourceDelOk:
+						clog("Cancellazione avvenuta con successo");
+						break;
+
+					case CommandPacket::ResourceDelInvalidPerm:
+						clog("Cancellazione non riuscita, permessi insufficienti!");
+						break;
+
+					case CommandPacket::ResourceDelFail:
+						clog("Cancellazione non riuscita!");
+
+						break;
 					default:
 						throw CorruptPacketException();
 						break;
@@ -198,7 +234,6 @@ void KCloud::Client::login() throw (KCloud::Exception){
 	}else{
 		m_packet->setForLogin(*m_user);
 		m_lastCommand = m_packet->getClientCommand();
-		connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 		sendCommand();
 	}
 }
@@ -207,20 +242,18 @@ void KCloud::Client::logout(){
 
 	m_packet->setForLogout();
 	m_lastCommand = m_packet->getClientCommand();
-	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	sendCommand();
 }
 
 void KCloud::Client::resourceUp(){
 
-	connect(m_resource, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	sendResource();
 }
 
 void KCloud::Client::resourceMod(){
 
 }
-
+// da eliminare
 void KCloud::Client::resourceDel(){
 
 }
@@ -232,7 +265,6 @@ void KCloud::Client::resourceTree() throw (KCloud::Exception){
 	}
 	m_packet->setForResourceTree();
 	m_lastCommand = m_packet->getClientCommand();
-	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	sendCommand();
 }
 
@@ -240,7 +272,6 @@ void KCloud::Client::resourceDown(){
 
 	m_head = m_packet->getFirstResourceHeader();
 	m_resource->setZipName(m_head.getName());
-	connect(m_resource, SIGNAL(objectReceived()), this, SLOT(finalizeResource()), Qt::UniqueConnection);
 	receiveResource();
 }
 
@@ -295,7 +326,6 @@ void KCloud::Client::newUpload(const QString &localPath,
 		m_resource->setZipName(m_packet->getFirstResourceHeader().getName());
 		m_lastCommand = m_packet->getClientCommand();
 		sendCommand();
-		connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	}catch(Exception &e){
 		clog("Exception occurred");
 		clog(e.what());
@@ -327,7 +357,16 @@ void KCloud::Client::newDownload(const quint64 &resourceId, const QString &saveP
 	m_resource->setZipDir(path);
 	m_lastCommand = m_packet->getClientCommand();
 	sendCommand();
-	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
+}
+
+void KCloud::Client::newRemove(const quint64 &resourceId) throw (Exception){
+
+	if(!isLogged()){
+		throw NotLogged();
+	}
+	m_packet->setForResourceDel(resourceId);
+	m_lastCommand = m_packet->getClientCommand();
+	sendCommand();
 }
 
 void KCloud::Client::setSessionUser(){
@@ -339,6 +378,12 @@ void KCloud::Client::setSessionUser(){
 
 		throw NullUserPointer();
 	}
+}
+
+void KCloud::Client::saveResourcesTree(){
+
+	m_resourcesTree.clear();
+	m_resourcesTree.append(m_packet->getResourceTree());
 }
 
 void KCloud::Client::removeTempFile() throw (Exception){
@@ -353,15 +398,12 @@ void KCloud::Client::removeTempFile() throw (Exception){
 void KCloud::Client::finalizeResource() throw (Exception){
 
 	try{
-		qDebug() << m_resource->getZipPath();
 		m_resource->decompress(m_head);
 	}catch(Exception &e){
 		clog("Exception occurred");
 		clog(e.what());
 	}
-
 	clog("Download completato");
-	receiveCommand();
 }
 
 void KCloud::Client::run(){
@@ -459,7 +501,12 @@ void KCloud::Client::execCommand(const QString &cmd){
 			}else if(QRegExp("remove", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
 
 				clog(QString("Rimozione risorsa con id = " + arg[1]));
-				m_packet->setForResourceDel(arg[1].toULongLong());
+				try{
+					newRemove(arg[1].toULongLong());
+				}catch(Exception &e){
+					clog("Exception occurred!");
+					clog(e.what());
+				}
 
 			}else{
 
