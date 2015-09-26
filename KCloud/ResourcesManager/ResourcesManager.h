@@ -35,11 +35,12 @@ namespace KCloud{
 			};
 			explicit										ResourcesManager(const QString &name, QObject *parent = 0);
 															~ResourcesManager();
-							ResourceHeader					getHeader(const quint64 &id) throw (Exception);
+							ResourceHeader					headerForId(const quint64 &id) throw (Exception);
 							ResourcesManagerAnswer			checkForUpload(const User &usr, ResourceHeader &head) throw (Exception);
 							ResourcesManagerAnswer			addResources(const QString &path, const ResourceHeader &incomplete, QStringList &errors) throw (Exception);
 							ResourcesManagerAnswer			getResources(const User &usr, const QString &path, const ResourceHeader &resource, QStringList &filesMoved) throw (Exception);
 							ResourcesManagerAnswer			delResources(const User &usr, const ResourceHeader &head) throw (Exception);
+							QList<ResourceHeader>			resourceTree(const User &usr);
 		private:
 			enum SpaceUpdateMode{
 				Increment,
@@ -51,6 +52,7 @@ namespace KCloud{
 				OnlyFiles
 			};
 
+							ResourceHeader								getHeader(const quint64 &id) throw (Exception);
 							bool										isOwner(const User &usr, const quint64 &id) throw (Exception);
 							bool										isOwner(const QString &usr, const quint64 &id) throw (Exception);
 							bool										resourceExists(ResourceHeader &header) throw (Exception);
@@ -74,6 +76,9 @@ namespace KCloud{
 							void										delResource(const ResourceHeader &header) throw (Exception);
 							QList<ResourceHeader>						getFileChild(const quint64 &id) throw (Exception);
 							QList<ResourceHeader>						getChilds(const quint64 &id, const ChildGetMode &mode) throw (Exception);
+							QList<ResourceHeader>						getOwned(const User &usr) throw (Exception);
+							QList<ResourceHeader>						getShared(const User &usr) throw (Exception);
+							QList<ResourceHeader>						getPublic() throw (Exception);
 
 
 			const	static	QString							queryResources_1;
@@ -94,6 +99,9 @@ namespace KCloud{
 			const	static	QString							queryResources_16;
 			const	static	QString							queryResources_17;
 			const	static	QString							queryResources_18;
+			const	static	QString							queryResources_19;
+			const	static	QString							queryResources_20;
+			const	static	QString							queryResources_21;
 	};
 }
 
