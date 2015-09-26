@@ -4,6 +4,7 @@
 
 KCloud::Resource::Resource(QObject *parent) : NetObject(parent){
 
+	m_zipFile = NULL;
 }
 
 QString KCloud::Resource::getResourcePath() const{

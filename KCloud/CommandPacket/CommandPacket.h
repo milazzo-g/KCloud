@@ -25,6 +25,7 @@ namespace KCloud{
 		public:
 					enum ServerAnswer{
 						UnsetAnswer,
+						NotLoggedUser,
 						LoginOk,
                         WrongEmail,
                         WrongPassword,
