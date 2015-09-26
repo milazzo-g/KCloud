@@ -169,10 +169,11 @@ void KCloud::CommandPacket::answerToResourceUp(KCloud::CommandPacket::ServerAnsw
 	setErrorStringList(errorList);
 }
 
-void KCloud::CommandPacket::answerToResourceDown(KCloud::CommandPacket::ServerAnswer &answer, const QStringList &errorList){
+void KCloud::CommandPacket::answerToResourceDown(KCloud::CommandPacket::ServerAnswer answer, const ResourceHeader &head, const QStringList &errorList){
 
 	clear();
 	setServerAnswer(answer);
+	setFirstResourceHeader(head);
 	setErrorStringList(errorList);
 }
 

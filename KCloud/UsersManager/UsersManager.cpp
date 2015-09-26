@@ -48,6 +48,7 @@ KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkLogin(const 
 					query.bindValue(placeHolder_status, sqlEnumLogged);
 					query.bindValue(placeHolder_mail, m_user.getEmail());
 					tryExec(query);
+					m_user.setLogged();
 					return LoginOK;
 				}
 				return UserWrongHash;

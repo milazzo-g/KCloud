@@ -84,14 +84,14 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::aBada
 	}
 }
 
-KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::aMoreBadassFunction(const QString &path, const KCloud::ResourceHeader &resource) throw (Exception){
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::aMoreBadassFunction(const QString &path, const KCloud::ResourceHeader &resource, QStringList &filesMoved) throw (Exception){
 
 	if(open()){
 		if(!resourceExists(resource.getId())){
 			return RecursiveGetFail;
 		}
 		ResourceHeader header = getHeader(resource.getId());
-		recursiveGet(path, header);
+		filesMoved = recursiveGet(path, header);
 		return RecursiveGetOK;
 	}else{
 		throw OpenFailure();
@@ -320,6 +320,8 @@ QStringList KCloud::ResourcesManager::recursiveAdd(const QString &path, const KC
 	QDir dir(path);
 	QFileInfoList list = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 
+	trace << " PATH = " << path;
+
 	foreach (QFileInfo f, list){
 		ResourceHeader newResource(f.absoluteFilePath(),
 								   incomplete.getOwner(),
@@ -348,11 +350,13 @@ QStringList KCloud::ResourcesManager::recursiveAdd(const QString &path, const KC
 
 QStringList KCloud::ResourcesManager::recursiveGet(const QString &path, const KCloud::ResourceHeader &item) throw (Exception){
 
+	QStringList list;
 	QSettings appSettings;
 	if(item.getType() == ResourceHeader::File){
+		list << (path + QString("/") + item.getName());
 		QFile::copy(appSettings.value(RESOURCES).toString() +
 					QString("/") + QString::number(item.getId()),
-					path + QString("/") + item.getName());
+					list.last());
 	}else{
 		QDir current(path);
 		QList<ResourceHeader> childFiles = getChilds(item.getId(), OnlyFiles);
@@ -361,17 +365,20 @@ QStringList KCloud::ResourcesManager::recursiveGet(const QString &path, const KC
 		current.mkdir(item.getName());
 		current.cd(item.getName());
 
+		list << current.path();
+
 		foreach (ResourceHeader file, childFiles){
+			list << (current.path() + QString("/") + file.getName());
 			QFile::copy(appSettings.value(RESOURCES).toString() +
 						QString("/") + QString::number(file.getId()),
-						current.path() + QString("/") + file.getName());
+						list.last());
 		}
 
 		foreach (ResourceHeader dir, childDirs) {
-			recursiveGet(current.path(), dir);
+			list += recursiveGet(current.path(), dir);
 		}
 	}
-	return QStringList();
+	return list;
 }
 /*
  * OK!!!!!!! -> Definitiva

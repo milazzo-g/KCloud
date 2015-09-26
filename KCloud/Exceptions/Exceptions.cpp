@@ -387,3 +387,18 @@ KCloud::Exception::Type KCloud::UserNotExists::type() const{
 
 	return DatabaseUserNotFound;
 }
+
+KCloud::Exception::ExceptionSubclass KCloud::WorkerSeverException::subclass() const{
+
+	return WorkerServer;
+}
+
+const char *KCloud::RecursionError::what() const throw (){
+
+	return "WorkerServerException : Recursion error! ";
+}
+
+KCloud::Exception::Type KCloud::RecursionError::type() const{
+
+	return ServerRecursionError;
+}

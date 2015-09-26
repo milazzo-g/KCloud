@@ -344,7 +344,7 @@ void KCloud::Client::removeTempFile() throw (Exception){
 	m_resource->clear();
 }
 
-void KCloud::Client::finalizeResource(){
+void KCloud::Client::finalizeResource() throw (Exception){
 
 	m_resource->setZipName(m_head.getName());
 	try{

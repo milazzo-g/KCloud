@@ -89,7 +89,7 @@ namespace KCloud{
                     void                    answerToResourceDel(ServerAnswer answer, const QStringList &errorList = QStringList());
 					void					answerToResourceUp(ServerAnswer answer, const QStringList &errorList = QStringList());
                     void					answerToLogout(ServerAnswer answer, const QStringList &errorStringList = QStringList());
-					void					answerToResourceDown(ServerAnswer &answer, const QStringList &errorList = QStringList());
+					void					answerToResourceDown(ServerAnswer answer, const ResourceHeader &head = ResourceHeader(), const QStringList &errorList = QStringList());
 					void					answerToLogin(ServerAnswer answer, const User &usr = User(), const QStringList &errorStringList = QStringList());
                     void					answerToResourceTree(ServerAnswer answer, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
 

@@ -49,6 +49,7 @@ namespace KCloud{
 		private slots:
 						void				forcedLogout();
 						void				finalizeUpload();
+						void				finalizeDownload();
 		public:
 						QString				address() const;
 						QString				keyFirst() const;
@@ -56,7 +57,7 @@ namespace KCloud{
 		private:
 						bool				userIsLogged() const;
 						void				clog(const QString &log);
-						void				removeDir(const QString &path);
+						bool				recursiveRemove(const QString &path);
 						ResourceHeader		m_head;
 						UsersManager *		m_usersManager;
 						ResourcesManager *	m_resourcesManager;

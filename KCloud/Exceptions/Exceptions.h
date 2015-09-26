@@ -57,6 +57,7 @@ namespace KCloud{
 				//MainServer
 
 				//WorkerServer
+				ServerRecursionError,
 
 				//varie ed eventuali l'importante è dargli un nome con il commmento
 				Core,
@@ -291,6 +292,25 @@ namespace KCloud{
 			virtual const char *		what()		const throw ();
 			virtual	Type				type()		const;
 	};
+	/*
+	 *		Eccezioni WorkerServer
+	 *
+	 */
+	class EXCEPTIONSSHARED_EXPORT WorkerSeverException : public Exception{
+
+		public:
+			virtual ExceptionSubclass	subclass()	const;
+	};
+
+	class EXCEPTIONSSHARED_EXPORT RecursionError : public WorkerSeverException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
 }
+
+
 
 #endif // EXCEPTIONS_H

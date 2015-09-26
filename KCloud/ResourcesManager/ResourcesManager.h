@@ -32,9 +32,10 @@ namespace KCloud{
 			};
 			explicit										ResourcesManager(const QString &name, QObject *parent = 0);
 															~ResourcesManager();
+							ResourceHeader					getHeader(const quint64 &id) throw (Exception);
 							ResourcesManagerAnswer			checkForUpload(const User &usr, ResourceHeader &head) throw (Exception);
 							ResourcesManagerAnswer			aBadassFunction(const QString &path, const ResourceHeader &incomplete, QStringList &errors) throw (Exception);
-							ResourcesManagerAnswer			aMoreBadassFunction(const QString &path, const ResourceHeader &resource) throw (Exception);
+							ResourcesManagerAnswer			aMoreBadassFunction(const QString &path, const ResourceHeader &resource, QStringList &filesMoved) throw (Exception);
 		private:
 			enum SpaceUpdateMode{
 				Increment,
@@ -65,7 +66,6 @@ namespace KCloud{
 							QStringList									setSharedPermission(const ResourceHeader &header) throw (Exception);
 							QMap<QString, ResourceHeader::ResourcePerm>	getSharedPermission(const quint64 &id) throw (Exception);
 							ResourceHeader								addResource(const ResourceHeader &header) throw (Exception);
-							ResourceHeader								getHeader(const quint64 &id) throw (Exception);
 							QList<ResourceHeader>						getFileChild(const quint64 &id) throw (Exception);
 							QList<ResourceHeader>						getChilds(const quint64 &id, const ChildGetMode &mode) throw (Exception);
 

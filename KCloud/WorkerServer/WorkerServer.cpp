@@ -18,7 +18,9 @@ KCloud::WorkerServer::WorkerServer(int sd, QObject *parent) : Engine(parent){
 	m_usersManager		= new UsersManager(keyLast(), this);
 
 	connect(m_socket	, SIGNAL(disconnected()		), this, SLOT(quit())									);
-	connect(m_resource	, SIGNAL(objectReceived()	), this, SLOT(finalizeUpload()), Qt::UniqueConnection	);
+	connect(m_resource	, SIGNAL(objectReceived()	), this, SLOT(finalizeUpload()	), Qt::UniqueConnection	);
+	connect(m_resource	, SIGNAL(objectSended()		), this, SLOT(finalizeDownload()), Qt::UniqueConnection	);
+	connect(m_packet	, SIGNAL(objectSended()		), this, SLOT(receiveCommand()	), Qt::UniqueConnection	);
 }
 
 KCloud::WorkerServer::~WorkerServer(){
@@ -26,7 +28,7 @@ KCloud::WorkerServer::~WorkerServer(){
 	if(m_user){
 		forcedLogout();
 	}
-	removeDir(m_dir.path());
+	recursiveRemove(m_dir.path());
 	qDebug() << address() << ": Job ended!";
 	emit removeFromActiveHandlers(address());
 }
@@ -97,8 +99,6 @@ void KCloud::WorkerServer::login(){						////Completata ma meglio riguardare poi
 		errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
 		m_packet->answerToLogin(CommandPacket::ServerInternalError, m_packet->getUser(), errors);
 	}
-
-	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	sendCommand();
 }
 
@@ -108,7 +108,7 @@ void KCloud::WorkerServer::logout(){					////Completata ma meglio riguardare poi
 
 	if(userIsLogged()){
 		try {
-			UsersManager::UsersManagerAnswer r = (m_user == NULL ? UsersManager::UserNotFound : m_usersManager->checkLogout(*m_user));
+			UsersManager::UsersManagerAnswer r = m_usersManager->checkLogout(*m_user);
 			switch (r){
 				case UsersManager::LogoutOK:
 					clog("Logout Ok!");
@@ -137,11 +137,9 @@ void KCloud::WorkerServer::logout(){					////Completata ma meglio riguardare poi
 			m_packet->answerToLogout(CommandPacket::ServerInternalError, errors);
 		}
 	}else{
-
+		m_packet->answerToLogout(CommandPacket::NotLoggedUser);
 	}
 
-
-	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	sendCommand();
 }
 
@@ -149,39 +147,43 @@ void KCloud::WorkerServer::resourceUp(){				////Completata ma meglio riguardare 
 
 	clog(QString("Resource Upload request from ") + m_socket->peerAddress().toString());
 
-	try{
-		m_head = m_packet->getFirstResourceHeader();
-		ResourcesManager::ResourcesManagerAnswer r = (m_user == NULL ? ResourcesManager::PermError : m_resourcesManager->checkForUpload(*m_user, m_head));
-		switch (r) {
-			case ResourcesManager::UploadOK:
-				m_packet->answerToResourceUp(CommandPacket::ResourceUpOk);
-				m_resource->setZipName(m_head.getName());
-				m_resource->setZipDir(m_dir.path());
+	if(userIsLogged()){
+		try{
+			m_head = m_packet->getFirstResourceHeader();
+			ResourcesManager::ResourcesManagerAnswer r = m_resourcesManager->checkForUpload(*m_user, m_head);
+			switch (r) {
+				case ResourcesManager::UploadOK:
+					m_packet->answerToResourceUp(CommandPacket::ResourceUpOk);
+					m_resource->setZipName(m_head.getName());
+					m_resource->setZipDir(m_dir.path());
 
-				disconnect	(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand())							);
-				connect		(m_packet, SIGNAL(objectSended()), this, SLOT(receiveResource()), Qt::UniqueConnection	);
+					disconnect	(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand())							);
+					connect		(m_packet, SIGNAL(objectSended()), this, SLOT(receiveResource()), Qt::UniqueConnection	);
 
-				break;
-			case ResourcesManager::PermError:
-				m_packet->answerToResourceUp(CommandPacket::ResourceUpInvalidPerm);
-				break;
-			case ResourcesManager::SpaceFull:
-				m_packet->answerToResourceUp(CommandPacket::ResourceUpSpaceExhausted);
-				break;
-			case ResourcesManager::AlreadyExists:
-				m_packet->answerToResourceUp(CommandPacket::ResourceUpFail);
-				break;
-			default:
-				clog("Generalmente non dovremmo essere qui!");
-				clog(QString("m_resourcesManager->checkForUpload(*m_user, m_packet->getFirstResourceHeader())") + QString::number((qint32)r));
-				break;
+					break;
+				case ResourcesManager::PermError:
+					m_packet->answerToResourceUp(CommandPacket::ResourceUpInvalidPerm);
+					break;
+				case ResourcesManager::SpaceFull:
+					m_packet->answerToResourceUp(CommandPacket::ResourceUpSpaceExhausted);
+					break;
+				case ResourcesManager::AlreadyExists:
+					m_packet->answerToResourceUp(CommandPacket::ResourceUpFail);
+					break;
+				default:
+					clog("Generalmente non dovremmo essere qui!");
+					clog(QString("m_resourcesManager->checkForUpload(*m_user, m_packet->getFirstResourceHeader())") + QString::number((qint32)r));
+					break;
+			}
+		}catch(Exception &e){
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+			m_packet->answerToResourceUp(CommandPacket::ServerInternalError, errors);
 		}
-	}catch(Exception &e){
-		clog("Exception Occurred!");
-		clog(e.what());
-		QStringList errors;
-		errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
-		m_packet->answerToLogin(CommandPacket::ServerInternalError, m_packet->getUser(), errors);
+	}else{
+		m_packet->answerToResourceUp(CommandPacket::NotLoggedUser);
 	}
 	sendCommand();
 }
@@ -201,12 +203,46 @@ void KCloud::WorkerServer::resourceTree(){
 void KCloud::WorkerServer::resourceDown(){
 
 	clog(QString("Resource Download request from ") + m_socket->peerAddress().toString());
-	try{
-		ResourcesManager::ResourcesManagerAnswer r = m_resourcesManager->aMoreBadassFunction()
-	}catch(Exception &e){
-		clog("Non credo funzioni!");
-		clog(e.what());
+	if(userIsLogged()){
+		try{
+			QStringList filesMoved;
+			quint64		resourceId = m_packet->getFirstResourceHeader().getId();
+			ResourcesManager::ResourcesManagerAnswer r =	m_resourcesManager->aMoreBadassFunction(m_dir.path(),
+															m_packet->getFirstResourceHeader(), filesMoved);
+			switch (r) {
+				case ResourcesManager::RecursiveGetOK:
+					if(filesMoved.isEmpty()){
+						m_packet->answerToResourceDown(CommandPacket::ResourceDownFail);
+						break;
+					}
+					m_resource->setResourcePath(filesMoved[0]);
+					m_resource->setZipDir(m_dir.path());
+					m_resource->setZipName(QFileInfo(filesMoved[0]).fileName());
+					m_packet->answerToResourceDown(CommandPacket::ResourceDownOk, m_resourcesManager->getHeader(resourceId));
+
+					disconnect	(m_packet	, SIGNAL(objectSended()), this, SLOT(receiveCommand()	)						);
+					connect		(m_packet	, SIGNAL(objectSended()), this, SLOT(sendResource()		), Qt::UniqueConnection	);
+
+					break;
+				case ResourcesManager::RecursiveGetFail:
+					m_packet->answerToResourceDown(CommandPacket::ResourceDownInvalidId);
+					break;
+				default:
+					clog("Generalmente non dovremmo essere qui!");
+					clog(QString("m_resourcesManager->aMoreBadassFunction(m_dir.path(), m_packet->getFirstResourceHeader());") + QString::number((qint32)r));
+					break;
+			}
+		}catch(Exception &e){
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+			m_packet->answerToResourceDown(CommandPacket::ServerInternalError, ResourceHeader(), errors);
+		}
+	}else{
+		m_packet->answerToResourceDown(CommandPacket::NotLoggedUser);
 	}
+	sendCommand();
 }
 
 void KCloud::WorkerServer::userRegister(){
@@ -269,6 +305,22 @@ void KCloud::WorkerServer::finalizeUpload(){		////Completata ma meglio riguardar
 	sendCommand();
 }
 
+void KCloud::WorkerServer::finalizeDownload(){
+
+	clog(QString("Resource sended to ") + m_socket->peerAddress().toString());
+	clog(QString("Finalizing for ") + m_socket->peerAddress().toString());
+	clog(QString("Removing ") + m_resource->getResourcePath());
+	clog((recursiveRemove(m_resource->getResourcePath()) ? QString("OK") : (Console::Red + QString("FAIL") + Console::Reset)));
+	clog(QString("Removing ") + m_resource->getZipPath());
+	clog((m_resource->removeZipFile() ? QString("OK") : (Console::Red + QString("FAIL") + Console::Reset)));
+	clog("Download request processed.");
+
+	disconnect	(m_packet	, SIGNAL(objectSended()), this, SLOT(sendResource()		)						);
+	connect		(m_packet	, SIGNAL(objectSended()), this, SLOT(receiveCommand()	), Qt::UniqueConnection	);
+
+	receiveCommand();
+}
+
 QString KCloud::WorkerServer::address() const{
 
 	return QString("0x%1").arg((quintptr)this, QT_POINTER_SIZE * 2, 16, QChar('0'));
@@ -285,7 +337,7 @@ QString KCloud::WorkerServer::keyLast() const{
 
 bool KCloud::WorkerServer::userIsLogged() const{
 
-	return !(m_user == NULL);
+	return (!(m_user == NULL) && m_user->isLogged());
 }
 
 void KCloud::WorkerServer::clog(const QString &log){
@@ -296,20 +348,40 @@ void KCloud::WorkerServer::clog(const QString &log){
 	emit consoleOutRequest(str);
 }
 
-void KCloud::WorkerServer::removeDir(const QString &path){
+bool KCloud::WorkerServer::recursiveRemove(const QString &path){
 
-	QDir dir(path);
 
-	if(dir.exists()){
-		foreach (QFileInfo item, dir.entryInfoList(QDir::NoDotAndDotDot)){
-			if(item.isFile()){
-				QFile::remove(item.absoluteFilePath());
+	QFileInfo info(path);
+
+	if(info.exists()){
+		if(info.isFile()){
+
+			if(!QFile::remove(info.absoluteFilePath())){
+				clog(QString("    Errore nella rimozione di : ") + info.absolutePath());
+				return false;
 			}else{
-				removeDir(item.absoluteFilePath());
+				clog(QString("    Rimosso : ") + info.absolutePath());
+				return true;
 			}
+		}else{
+			QDir dir(path);
+			bool res;
+			foreach (QFileInfo item, dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot)) {
+				clog(QString("<+> ") + item.absoluteFilePath());
+				res = recursiveRemove(item.absoluteFilePath());
+			}
+			if(!dir.rmdir(dir.path())){
+
+				clog(QString("[*] Errore nella rimozione di : ") + info.absolutePath());
+				return false;
+			}else{
+
+				clog(QString("[*] Rimosso : ") + info.absolutePath());
+				return true;
+			}
+			//return (res && dir.rmdir(dir.path()));
 		}
-		dir.rmdir(dir.path());
-	}else {
-		return;
+	}else{
+		return false;
 	}
 }
