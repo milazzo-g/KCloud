@@ -54,6 +54,7 @@ namespace KCloud{
 						QString				keyFirst() const;
 						QString				keyLast() const;
 		private:
+						bool				userIsLogged() const;
 						void				clog(const QString &log);
 						void				removeDir(const QString &path);
 						ResourceHeader		m_head;

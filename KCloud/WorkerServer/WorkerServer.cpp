@@ -53,6 +53,9 @@ void KCloud::WorkerServer::parse(){
 		case CommandPacket::ResourceUp:
 			resourceUp();
 			break;
+		case CommandPacket::ResourceDown:
+			resourceDown();
+			break;
 		default:
 			break;
 	}
@@ -61,17 +64,6 @@ void KCloud::WorkerServer::parse(){
 void KCloud::WorkerServer::login(){						////Completata ma meglio riguardare poi
 
 	clog(QString("Login request from ") + m_socket->peerAddress().toString());
-	try{
-			clog("Accendi il cronometro!");
-		if(m_resourcesManager->aMoreBadassFunction(m_dir.path(), ResourceHeader(3505)) == ResourcesManager::RecursiveGetOK){
-			clog("Forse vittoria!");
-		}else{
-			clog("Ci ho provato... :(");
-		}
-	}catch(Exception &e){
-		clog("Non credo funzioni!");
-		clog(e.what());
-	}
 
 	try {
 		UsersManager::UsersManagerAnswer r = m_usersManager->checkLogin(m_packet->getUser());
@@ -114,35 +106,40 @@ void KCloud::WorkerServer::logout(){					////Completata ma meglio riguardare poi
 
 	clog(QString("Logout request from ") + m_socket->peerAddress().toString());
 
-	try {
-		UsersManager::UsersManagerAnswer r = (m_user == NULL ? UsersManager::UserNotFound : m_usersManager->checkLogout(*m_user));
-		switch (r){
-			case UsersManager::LogoutOK:
-				clog("Logout Ok!");
-				if(m_user){
-					delete m_user;
-					m_user = NULL;
-				}
-				m_packet->answerToLogout(CommandPacket::LogoutOk);
-				break;
-			case UsersManager::UserNotFound:
-			case UsersManager::UserWrongHash:
-			case UsersManager::UserAlreadyUnLogged:
-				clog("Logout Fail!");
-				m_packet->answerToLogout(CommandPacket::LogoutFail);
-				break;
-			default:
-				clog("Generalmente non dovremmo essere qui!");
-				clog(QString("m_usersManager->checkLogout(m_packet->getUser())") + QString::number((qint32)r));
-				break;
+	if(userIsLogged()){
+		try {
+			UsersManager::UsersManagerAnswer r = (m_user == NULL ? UsersManager::UserNotFound : m_usersManager->checkLogout(*m_user));
+			switch (r){
+				case UsersManager::LogoutOK:
+					clog("Logout Ok!");
+					if(m_user){
+						delete m_user;
+						m_user = NULL;
+					}
+					m_packet->answerToLogout(CommandPacket::LogoutOk);
+					break;
+				case UsersManager::UserNotFound:
+				case UsersManager::UserWrongHash:
+				case UsersManager::UserAlreadyUnLogged:
+					clog("Logout Fail!");
+					m_packet->answerToLogout(CommandPacket::LogoutFail);
+					break;
+				default:
+					clog("Generalmente non dovremmo essere qui!");
+					clog(QString("m_usersManager->checkLogout(m_packet->getUser())") + QString::number((qint32)r));
+					break;
+			}
+		} catch (Exception &e) {
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+			m_packet->answerToLogout(CommandPacket::ServerInternalError, errors);
 		}
-	} catch (Exception &e) {
-		clog("Exception Occurred!");
-		clog(e.what());
-		QStringList errors;
-		errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
-		m_packet->answerToLogin(CommandPacket::ServerInternalError, m_packet->getUser(), errors);
+	}else{
+
 	}
+
 
 	connect(m_packet, SIGNAL(objectSended()), this, SLOT(receiveCommand()), Qt::UniqueConnection);
 	sendCommand();
@@ -203,6 +200,13 @@ void KCloud::WorkerServer::resourceTree(){
 
 void KCloud::WorkerServer::resourceDown(){
 
+	clog(QString("Resource Download request from ") + m_socket->peerAddress().toString());
+	try{
+		ResourcesManager::ResourcesManagerAnswer r = m_resourcesManager->aMoreBadassFunction()
+	}catch(Exception &e){
+		clog("Non credo funzioni!");
+		clog(e.what());
+	}
 }
 
 void KCloud::WorkerServer::userRegister(){
@@ -241,7 +245,7 @@ void KCloud::WorkerServer::finalizeUpload(){		////Completata ma meglio riguardar
 	clog(QString("Resource received from ") + m_socket->peerAddress().toString());
 	clog(QString("Finalizing for ") + m_socket->peerAddress().toString());
 	m_resource->decompress(m_head);
-
+	m_resource->clear();
 	try{
 		QStringList errors;
 
@@ -277,6 +281,11 @@ QString KCloud::WorkerServer::keyFirst() const{
 
 QString KCloud::WorkerServer::keyLast() const{
 	return m_key2;
+}
+
+bool KCloud::WorkerServer::userIsLogged() const{
+
+	return !(m_user == NULL);
 }
 
 void KCloud::WorkerServer::clog(const QString &log){
