@@ -7,7 +7,7 @@
 #define ROOT_PATH		"ROOT_PATH"
 #define INSTANCES		"INSTANCES"
 #define RESOURCES		"RESOURCES"
-#define ___4GB___		40000000000
+#define ___4GB___		4294967296
 #define trace			qDebug() << __FILE__ << "@[" << __LINE__ << "] -> " << __FUNCTION__
 
 //client

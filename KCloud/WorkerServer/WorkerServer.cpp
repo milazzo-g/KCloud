@@ -58,6 +58,9 @@ void KCloud::WorkerServer::parse(){
 		case CommandPacket::ResourceDown:
 			resourceDown();
 			break;
+		case CommandPacket::ResourceDel:
+			resourceDel();
+			break;
 		default:
 			break;
 	}
@@ -143,7 +146,7 @@ void KCloud::WorkerServer::logout(){					////Completata ma meglio riguardare poi
 	sendCommand();
 }
 
-void KCloud::WorkerServer::resourceUp(){				////Completata ma meglio riguardare poi
+void KCloud::WorkerServer::resourceUp(){				////Riguardare per forza!
 
 	clog(QString("Resource Upload request from ") + m_socket->peerAddress().toString());
 
@@ -153,6 +156,7 @@ void KCloud::WorkerServer::resourceUp(){				////Completata ma meglio riguardare 
 			ResourcesManager::ResourcesManagerAnswer r = m_resourcesManager->checkForUpload(*m_user, m_head);
 			switch (r) {
 				case ResourcesManager::UploadOK:
+					clog(m_socket->peerAddress().toString() + QString(" can upload"));
 					m_packet->answerToResourceUp(CommandPacket::ResourceUpOk);
 					m_resource->setZipName(m_head.getName());
 					m_resource->setZipDir(m_dir.path());
@@ -162,24 +166,36 @@ void KCloud::WorkerServer::resourceUp(){				////Completata ma meglio riguardare 
 
 					break;
 				case ResourcesManager::PermError:
+					clog(m_socket->peerAddress().toString() + QString(" not have permission"));
 					m_packet->answerToResourceUp(CommandPacket::ResourceUpInvalidPerm);
 					break;
 				case ResourcesManager::SpaceFull:
+					clog(m_socket->peerAddress().toString() + QString(" not have space"));
 					m_packet->answerToResourceUp(CommandPacket::ResourceUpSpaceExhausted);
 					break;
 				case ResourcesManager::AlreadyExists:
+					clog(m_socket->peerAddress().toString() + QString(" can't overwrite"));
+					m_packet->answerToResourceUp(CommandPacket::ResourceUpAlreadyExists);
+					break;
+				case ResourcesManager::NotADir:
+					clog(m_socket->peerAddress().toString() + QString(" wrong parent"));
+					m_packet->answerToResourceUp(CommandPacket::ResourceUpParentIsNotDir);
+					break;
+				case ResourcesManager::ParentNotFound:
+					clog(m_socket->peerAddress().toString() + QString(" invalid parent"));
 					m_packet->answerToResourceUp(CommandPacket::ResourceUpFail);
 					break;
 				default:
 					clog("Generalmente non dovremmo essere qui!");
-					clog(QString("m_resourcesManager->checkForUpload(*m_user, m_packet->getFirstResourceHeader())") + QString::number((qint32)r));
+					clog(QString("m_resourcesManager->checkForUpload(*m_user, m_packet->getFirstResourceHeader()) ") + QString::number((qint32)r));
+					m_packet->answerToResourceUp(CommandPacket::ResourceUpFail);
 					break;
 			}
 		}catch(Exception &e){
 			clog("Exception Occurred!");
 			clog(e.what());
 			QStringList errors;
-			errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
 			m_packet->answerToResourceUp(CommandPacket::ServerInternalError, errors);
 		}
 	}else{
@@ -194,26 +210,60 @@ void KCloud::WorkerServer::resourceMod(){
 
 void KCloud::WorkerServer::resourceDel(){
 
+	clog(QString("Resource Delete request from ") + m_socket->peerAddress().toString());
+
+	if(userIsLogged()){
+		try{
+			ResourcesManager::ResourcesManagerAnswer r = m_resourcesManager->delResources(*m_user, m_packet->getFirstResourceHeader());
+
+			switch (r) {
+				case ResourcesManager::PermError:
+					clog(m_socket->peerAddress().toString() + " not have permissions");
+					m_packet->answerToResourceDel(CommandPacket::ResourceDelInvalidPerm);
+					break;
+				case ResourcesManager::DeleteOK:
+					clog(m_socket->peerAddress().toString() + " delete ok");
+					m_packet->answerToResourceDel(CommandPacket::ResourceDelOk);
+					break;
+				default:
+					clog("Generalmente non dovremmo essere qui!");
+					clog(QString("m_resourcesManager->delResources(*m_user, m_packet->getFirstResourceHeader()) ") + QString::number((qint32)r));
+					m_packet->answerToResourceDel(CommandPacket::ResourceDelFail);
+					break;
+			}
+
+		}catch(Exception &e){
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
+			m_packet->answerToResourceDel(CommandPacket::ServerInternalError, errors);
+		}
+	}else{
+		m_packet->answerToResourceDel(CommandPacket::NotLoggedUser);
+	}
+	sendCommand();
 }
 
 void KCloud::WorkerServer::resourceTree(){
 
 }
 
-void KCloud::WorkerServer::resourceDown(){
+void KCloud::WorkerServer::resourceDown(){				////Permessi OK
 
 	clog(QString("Resource Download request from ") + m_socket->peerAddress().toString());
 	if(userIsLogged()){
 		try{
 			QStringList filesMoved;
 			quint64		resourceId = m_packet->getFirstResourceHeader().getId();
-			ResourcesManager::ResourcesManagerAnswer r =	m_resourcesManager->aMoreBadassFunction(m_dir.path(),
-															m_packet->getFirstResourceHeader(), filesMoved);
+			ResourcesManager::ResourcesManagerAnswer r =	m_resourcesManager->getResources(*m_user,
+															m_dir.path(),
+															m_packet->getFirstResourceHeader(),
+															filesMoved);
 			switch (r) {
 				case ResourcesManager::RecursiveGetOK:
 					if(filesMoved.isEmpty()){
-						m_packet->answerToResourceDown(CommandPacket::ResourceDownFail);
-						break;
+						throw RecursionError();
 					}
 					m_resource->setResourcePath(filesMoved[0]);
 					m_resource->setZipDir(m_dir.path());
@@ -227,16 +277,21 @@ void KCloud::WorkerServer::resourceDown(){
 				case ResourcesManager::RecursiveGetFail:
 					m_packet->answerToResourceDown(CommandPacket::ResourceDownInvalidId);
 					break;
+				case ResourcesManager::PermError:
+					clog("siamo qua!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
+					m_packet->answerToResourceDown(CommandPacket::ResourceDownInvalidPerm);
+					break;
 				default:
 					clog("Generalmente non dovremmo essere qui!");
-					clog(QString("m_resourcesManager->aMoreBadassFunction(m_dir.path(), m_packet->getFirstResourceHeader());") + QString::number((qint32)r));
+					clog(QString("m_resourcesManager->getResources(m_dir.path(), m_packet->getFirstResourceHeader());") + QString::number((qint32)r));
+					m_packet->answerToResourceDown(CommandPacket::ResourceDownFail);
 					break;
 			}
 		}catch(Exception &e){
 			clog("Exception Occurred!");
 			clog(e.what());
 			QStringList errors;
-			errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
 			m_packet->answerToResourceDown(CommandPacket::ServerInternalError, ResourceHeader(), errors);
 		}
 	}else{
@@ -285,7 +340,7 @@ void KCloud::WorkerServer::finalizeUpload(){		////Completata ma meglio riguardar
 	try{
 		QStringList errors;
 
-		m_packet->answerToResourceUp((	m_resourcesManager->aBadassFunction(m_dir.path(), m_head, errors) == ResourcesManager::FinalizeOK ?
+		m_packet->answerToResourceUp((	m_resourcesManager->addResources(m_dir.path(), m_head, errors) == ResourcesManager::FinalizeOK ?
 										CommandPacket::ResourceUpFinalizeOk : CommandPacket::ResourceUpFinalizeFail),
 										errors);
 		foreach(QString err, errors){
@@ -369,7 +424,7 @@ bool KCloud::WorkerServer::recursiveRemove(const QString &path){
 			bool res;
 			foreach (QFileInfo item, dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot)) {
 
-				res = recursiveRemove(item.absoluteFilePath());
+				res  = recursiveRemove(item.absoluteFilePath());
 			}
 			if(!dir.rmdir(dir.path())){
 
@@ -378,9 +433,8 @@ bool KCloud::WorkerServer::recursiveRemove(const QString &path){
 			}else{
 
 				clog(QString("[D] Removed : ") + info.absoluteDir().relativeFilePath(info.fileName()));
-				return true;
+				return (true && res);
 			}
-			//return (res && dir.rmdir(dir.path()));
 		}
 	}else{
 		return false;
