@@ -40,12 +40,10 @@ void KCloud::Resource::setResourcePath(const QString &path) throw(Exception){
 void KCloud::Resource::setZipName(const QString &name, const QString &ext){
 
 	m_zipName = name;
-	if(!m_zipName.contains(ZIP)){
-		if(ext == ""){
-			m_zipName += ZIP;
-		}else{
-			m_zipName += ext;
-		}
+	if(ext == "" || !ext.startsWith(".")){
+		m_zipName += ZIP;
+	}else{
+		m_zipName += ext;
 	}
 }
 
