@@ -49,6 +49,9 @@ namespace KCloud{
                         ResourceDelOk,
                         ResourceDelFail,
 						ResourceDelInvalidPerm,
+						UserRegisterOk,
+						UsernameAlreadyInUse,
+						UserRegisterFail,
 						ServerInternalError
 					};
 
@@ -59,7 +62,8 @@ namespace KCloud{
 						ResourceUp,
                         ResourceDel,
                         ResourceDown,
-                        ResourceTree
+						ResourceTree,
+						UserRegister
 
 					};
 
@@ -67,15 +71,16 @@ namespace KCloud{
 											~CommandPacket();
 
 					void					clear();
-		virtual		void					prepareForSend() throw(Exception);
 		virtual		void					prepareForRecv();
+		virtual		void					prepareForSend() throw(Exception);
 
                     //mancano modifica risorse, cambio permessi, condivisione, cambio password e altro....
-                    void					setForLogin(const User &usr);
 					void					setForLogout();
-                    void                    setForResourceDel(const quint64 &id);
 					void					setForResourceTree();
+					void					setForLogin(const User &usr);
+					void                    setForResourceDel(const quint64 &id);
                     void					setForResourceDown(const quint64 &resourceId);
+					void					setForUserRegister(const QString &email, const QString &password);
 					void					setForResourceUp(const QString &localPath,
 															 const User &sessionUser,
 															 const quint64 &parentId,
@@ -84,18 +89,18 @@ namespace KCloud{
 
 					User					getUser() const;
 					QStringList				getLastError() const;
+					QList<ResourceHeader>	getResourceTree() const;
                     ServerAnswer			getServerAnswer() const;
                     ClientCommand			getClientCommand() const;
 					ResourceHeader			getFirstResourceHeader() const;
-                    QList<ResourceHeader>	getResourceTree() const;
 
-                    void                    answerToResourceDel(ServerAnswer answer, const QStringList &errorList = QStringList());
 					void					answerToResourceUp(ServerAnswer answer, const QStringList &errorList = QStringList());
+                    void                    answerToResourceDel(ServerAnswer answer, const QStringList &errorList = QStringList());
+					void					answerToUserRegister(ServerAnswer answer, const QStringList &errorList = QStringList());
                     void					answerToLogout(ServerAnswer answer, const QStringList &errorStringList = QStringList());
-					void					answerToResourceDown(ServerAnswer answer, const ResourceHeader &head = ResourceHeader(), const QStringList &errorList = QStringList());
 					void					answerToLogin(ServerAnswer answer, const User &usr = User(), const QStringList &errorStringList = QStringList());
                     void					answerToResourceTree(ServerAnswer answer, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
-
+					void					answerToResourceDown(ServerAnswer answer, const ResourceHeader &head = ResourceHeader(), const QStringList &errorList = QStringList());
 
 		protected slots:
 

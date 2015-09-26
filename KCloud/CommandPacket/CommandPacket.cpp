@@ -77,6 +77,14 @@ void KCloud::CommandPacket::setForResourceDown(const quint64 &resourceId){
 	setClientCommand(ResourceDown);
 }
 
+void KCloud::CommandPacket::setForUserRegister(const QString &email, const QString &password){
+
+	clear();
+	User usr(email, password);
+	setUser(usr);
+	setClientCommand(UserRegister);
+}
+
 void KCloud::CommandPacket::setUser(const KCloud::User &usr){
 
 	m_currentUser = usr;
@@ -116,7 +124,14 @@ void KCloud::CommandPacket::answerToResourceDel(KCloud::CommandPacket::ServerAns
 
     clear();
     setServerAnswer(answer);
-    setErrorStringList(errorList);
+	setErrorStringList(errorList);
+}
+
+void KCloud::CommandPacket::answerToUserRegister(KCloud::CommandPacket::ServerAnswer answer, const QStringList &errorList){
+
+	clear();
+	setServerAnswer(answer);
+	setErrorStringList(errorList);
 }
 
 KCloud::CommandPacket::ClientCommand KCloud::CommandPacket::getClientCommand() const{
