@@ -1,19 +1,20 @@
 import QtQuick 2.3
 import QtQuick.Window 2.2
+import QtQuick.Controls 1.4
+ApplicationWindow{
 
-Window {
-    visible: true
+	visible: true
+	minimumHeight: 640
+	minimumWidth: 320
+	maximumHeight: minimumHeight
+	maximumWidth: minimumWidth
 
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            Qt.quit();
-        }
-    }
 
-    Text {
-        text: qsTr("Hello World")
-        anchors.centerIn: parent
-    }
+		KButton{
+			anchors.centerIn: parent
+		}
+
 }
+
+
 
