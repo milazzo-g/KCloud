@@ -52,6 +52,8 @@ namespace KCloud{
 						UserRegisterOk,
 						UsernameAlreadyInUse,
 						UserRegisterFail,
+						PasswordChangeOk,
+						PasswordChangeFail,
 						ServerInternalError
 					};
 
@@ -63,7 +65,8 @@ namespace KCloud{
                         ResourceDel,
                         ResourceDown,
 						ResourceTree,
-						UserRegister
+						UserRegister,
+						PasswordChange
 
 					};
 
@@ -78,9 +81,10 @@ namespace KCloud{
 					void					setForLogout();
 					void					setForResourceTree();
 					void					setForLogin(const User &usr);
+					void					setForUserRegister(const User &usr);
 					void                    setForResourceDel(const quint64 &id);
+					void					setForPasswordChange(const User &usr);
                     void					setForResourceDown(const quint64 &resourceId);
-					void					setForUserRegister(const QString &email, const QString &password);
 					void					setForResourceUp(const QString &localPath,
 															 const User &sessionUser,
 															 const quint64 &parentId,
@@ -98,10 +102,10 @@ namespace KCloud{
                     void                    answerToResourceDel(ServerAnswer answer, const QStringList &errorList = QStringList());
 					void					answerToUserRegister(ServerAnswer answer, const QStringList &errorList = QStringList());
                     void					answerToLogout(ServerAnswer answer, const QStringList &errorStringList = QStringList());
+					void					answerToPasswordChange(ServerAnswer answer, const QStringList &errorList = QStringList());
 					void					answerToLogin(ServerAnswer answer, const User &usr = User(), const QStringList &errorStringList = QStringList());
                     void					answerToResourceTree(ServerAnswer answer, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
 					void					answerToResourceDown(ServerAnswer answer, const ResourceHeader &head = ResourceHeader(), const QStringList &errorList = QStringList());
-
 		protected slots:
 
 		virtual		void					send(const qint64 block = 0);

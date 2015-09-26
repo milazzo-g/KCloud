@@ -40,6 +40,13 @@ void KCloud::CommandPacket::setForLogin(const KCloud::User &usr){
 
 }
 
+void KCloud::CommandPacket::setForPasswordChange(const KCloud::User &usr){
+
+	clear();
+	setUser(usr);
+	setClientCommand(PasswordChange);
+}
+
 void KCloud::CommandPacket::setForLogout(){
 
 	clear();
@@ -77,10 +84,9 @@ void KCloud::CommandPacket::setForResourceDown(const quint64 &resourceId){
 	setClientCommand(ResourceDown);
 }
 
-void KCloud::CommandPacket::setForUserRegister(const QString &email, const QString &password){
+void KCloud::CommandPacket::setForUserRegister(const User &usr){
 
 	clear();
-	User usr(email, password);
 	setUser(usr);
 	setClientCommand(UserRegister);
 }
