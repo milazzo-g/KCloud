@@ -38,6 +38,7 @@ namespace KCloud{
                         ResourceUpFail,
                         ResourceUpInvalidPerm,
 						ResourceUpSpaceExhausted,
+						ResourceUpParentIsNotDir,
 						ResourceUpFinalizeOk,
 						ResourceUpFinalizeFail,
 						ResourceDownOk,

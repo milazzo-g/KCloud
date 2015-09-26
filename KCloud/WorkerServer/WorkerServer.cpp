@@ -358,26 +358,26 @@ bool KCloud::WorkerServer::recursiveRemove(const QString &path){
 		if(info.isFile()){
 
 			if(!QFile::remove(info.absoluteFilePath())){
-				clog(QString("    Errore nella rimozione di : ") + info.absolutePath());
+				clog(QString("[F] ") + Console::Red + QString("Error while removing : ") + Console::Reset + info.absoluteDir().relativeFilePath(info.fileName()));
 				return false;
 			}else{
-				clog(QString("    Rimosso : ") + info.absolutePath());
+				clog(QString("[F] Removed : ") + info.absoluteDir().relativeFilePath(info.fileName()));
 				return true;
 			}
 		}else{
 			QDir dir(path);
 			bool res;
 			foreach (QFileInfo item, dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot)) {
-				clog(QString("<+> ") + item.absoluteFilePath());
+
 				res = recursiveRemove(item.absoluteFilePath());
 			}
 			if(!dir.rmdir(dir.path())){
 
-				clog(QString("[*] Errore nella rimozione di : ") + info.absolutePath());
+				clog(QString("[D] ") + Console::Red + QString("Error while removing : ") + Console::Reset + info.absoluteDir().relativeFilePath(info.fileName()));
 				return false;
 			}else{
 
-				clog(QString("[*] Rimosso : ") + info.absolutePath());
+				clog(QString("[D] Removed : ") + info.absoluteDir().relativeFilePath(info.fileName()));
 				return true;
 			}
 			//return (res && dir.rmdir(dir.path()));

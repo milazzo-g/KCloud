@@ -17,18 +17,20 @@ namespace KCloud{
 		Q_OBJECT
 		public:
 			enum ResourcesManagerAnswer{
-				UserOK,
-				UserNotFound,
-				UserWrongHash,
-				PermError,
-				SpaceFull,
-				UploadOK,
-				AlreadyExists,
-				ParentNotFound,
-				FinalizeOK,
-				FinalizeIssues,
-				RecursiveGetOK,
-				RecursiveGetFail
+				UserOK,					//	0
+				UserNotFound,			//	1
+				UserWrongHash,			//	2
+				PermError,				//	3
+				SpaceFull,				//	4
+				UploadOK,				//	5
+				AlreadyExists,			//	6
+				ParentNotFound,			//	7
+				NotADir,				//	8
+				NotAFile,				//	9
+				FinalizeOK,				//	10
+				FinalizeIssues,			//	11
+				RecursiveGetOK,			//	12
+				RecursiveGetFail		//	13
 			};
 			explicit										ResourcesManager(const QString &name, QObject *parent = 0);
 															~ResourcesManager();

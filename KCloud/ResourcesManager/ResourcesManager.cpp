@@ -42,10 +42,17 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::check
 						sharedPerm(usr, head.getParentId()) == ResourceHeader::Write	||
 						publicPerm(head.getParentId()		== ResourceHeader::Write);
 			bool res2 = !resourceExists(head);
+			bool res3 = resourceType(head.getParentId()) == ResourceHeader::Dir;
 			close();
 			if(res1){
 				if(res2){
-					return UploadOK;
+					if(res3){
+
+						return UploadOK;
+					}else{
+
+						return NotADir;
+					}
 				}else{
 					return AlreadyExists;
 				}
