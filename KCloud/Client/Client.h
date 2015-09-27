@@ -25,30 +25,34 @@ namespace KCloud{
 			};
 														Client(const WorkMode mode, QObject *parent = 0);
 														~Client();
+		signals:
+						void							serverAnswer(CommandPacket::ServerAnswer answer);
+						void							clientError(Exception::Type type);
+						void							resourceReceived();
+						void							resourceSended();
 		public slots:
 			virtual		void							parse() throw (Exception);
-						void							login() throw (Exception);							//fatto		ok
+						void							login(const QString &mail, const QString &pass, const User::PwdMode mode);
 			virtual		void							logout();											//fatto		ok
 			virtual		void							resourceUp();										//fatto		ok
 			virtual		void							resourceMod();
-			virtual		void							resourceDel();										//non utilizzata
-			virtual		void							resourceTree() throw (KCloud::Exception); 			//fatto
+			virtual		void							resourceDel(const quint64 &resourceId);										//non utilizzata
+			virtual		void							resourceTree();										//fatto
 			virtual		void							resourceDown();										//fatto
-			virtual		void							userRegister();
+			virtual		void							userRegister(const QString &email, const QString &password, const User::PwdMode mode);
 			virtual		void							resourcePerm();
 			virtual		void							resourceShare();
 			virtual		void							passwordChange();
+						void							disconnectFromHost();
+						QStringList						lastErrors();
 
-						void							setUserForLogin(const QString &email, const QString &pwd) throw (Exception);			//setta l'utente prima del login
-						void							connectToHost(const QString &addr, const quint16 &port) throw (Exception);				//setta i parametri di connessione
+						void							connectToHost(const QString &addr, const quint16 &port);
 						void							newUpload(const QString &localPath,
 																	User *sessionUser,
 																	const quint64 &parentId,
 																	const QMap<QString, ResourceHeader::ResourcePerm> &permissionTable = QMap<QString, ResourceHeader::ResourcePerm>(),
 																	ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception); //setta i parametri per l'upload
-						void							newDownload(const quint64 &resourceId, const QString &savePath = "") throw (Exception);		//setta i parametri per il download
-						void							newRemove(const quint64 &resourceId) throw (Exception);				//setta i parametri per la rimozione
-						void							newUserRegister(const QString &email, const QString &password) throw (Exception);
+						void							newDownload(const quint64 &resourceId, const QString &savePath = "");		//setta i parametri per il download
 						void							setSessionUser();								//setta l'utente di sessione dopo la risposta di login ok dal server
 						void							saveResourcesTree();							//salva l'albero delle risorse
 						void							removeTempFile() throw (Exception);															//rimuove il file temporaneo, chiamata dopo invio ok
@@ -58,8 +62,11 @@ namespace KCloud{
 		private slots:
 						void							closeAll();
 						void							execCommand(const QString &cmd);
-						void							clog(const QString &log);
+						QString							clog(const QString &log);
 						bool							isLogged() throw(Exception);
+						void							notifyReceived();
+						void							notifySended();
+
 		private:
 						QCoreApplication *				m_coreApplication;
 						Console	*						m_console;
@@ -67,6 +74,7 @@ namespace KCloud{
 						CommandPacket::ClientCommand	m_lastCommand;
 						ResourceHeader					m_head;
 						QList<ResourceHeader>			m_resourcesTree;
+						QStringList						m_errors;
 
 
 	};

@@ -6,9 +6,10 @@
 #define TEST_HOST		"192.168.1.12"
 #define TEST_PORT		8000
 
-KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : Engine(parent){
+KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : Engine(parent){ ////OK
 
-	if(mode == AsConsoleThread){
+	m_workMode = mode;
+	if(m_workMode == AsConsoleThread){
 
 		m_coreApplication	= QCoreApplication::instance();
 		m_console			= new Console(this);
@@ -22,11 +23,12 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 		m_console->start();
 	}
 
-	connect(m_socket,	SIGNAL(disconnected()),		this,			SLOT(closeAll()),			Qt::UniqueConnection);
-	connect(m_packet,	SIGNAL(objectSended()),		this,			SLOT(receiveCommand()),		Qt::UniqueConnection);
-	connect(m_packet,	SIGNAL(objectReceived()),	this,			SLOT(parse()),				Qt::UniqueConnection);
-	connect(m_resource, SIGNAL(objectReceived()),	this,			SLOT(finalizeResource()),	Qt::UniqueConnection);
-	connect(m_resource, SIGNAL(objectSended()),		this,			SLOT(receiveCommand()),		Qt::UniqueConnection);
+	connect(m_packet,	SIGNAL(objectSended()),			this,			SLOT(receiveCommand()),			Qt::UniqueConnection);
+	connect(m_packet,	SIGNAL(objectReceived()),		this,			SLOT(parse()),					Qt::UniqueConnection);
+	connect(m_resource, SIGNAL(objectReceived()),		this,			SLOT(finalizeResource()),		Qt::UniqueConnection);
+	connect(m_resource, SIGNAL(objectSended()),			this,			SLOT(receiveCommand()),			Qt::UniqueConnection);
+	connect(m_resource, SIGNAL(objectReceived()),		this,			SLOT(notifyReceived()),			Qt::UniqueConnection);
+	connect(m_resource, SIGNAL(objectSended()),			this,			SLOT(notifySended()),			Qt::UniqueConnection);
 }
 
 KCloud::Client::~Client(){
@@ -36,239 +38,255 @@ KCloud::Client::~Client(){
 
 void KCloud::Client::parse() throw (KCloud::Exception){
 
-	qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "RISPOSTA DEL SERVER ENUM = ->>>>>>>>>>" << m_packet->getServerAnswer();
+	try{
+		CommandPacket::ServerAnswer r = m_packet->getServerAnswer();
 
-	if(m_packet->getServerAnswer() == CommandPacket::NotLoggedUser){
-
-		throw NotLogged();
-	}else if(m_packet->getServerAnswer() == CommandPacket::ServerInternalError){
-
-		clog("Errore interno al server");
-	}else{
+		if(r == CommandPacket::NotLoggedUser){
+			throw NotLogged();
+		}else if(r == CommandPacket::ServerInternalError){
+			clog("Errore interno al server");
+			m_errors << m_packet->getLastError();
+			emit serverAnswer(r);
+			return;
+		}
 		switch (m_lastCommand){
 
 			case CommandPacket::Login:
 
-				switch (m_packet->getServerAnswer()){
+				switch (r){
 
 					case CommandPacket::LoginOk:
 						clog("Login OK!");
 						setSessionUser();
+						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::AlreadyLogged:
 						clog(QString("Errore nel login, utente già loggato"));
+						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::WrongEmail:
 						clog("Errore nel login, email non valida");
+						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::WrongPassword:
 						clog("Errore nel login, password non valida");
+						emit serverAnswer(r);
 						break;
 
 					default:
 						throw CorruptPacketException();
 						break;
 
-				}
-				break;
+					}
+					break;
 
 			case CommandPacket::Logout:
 
-				switch (m_packet->getServerAnswer()){
-					case CommandPacket::LogoutOk:
-						clog("Logout ok");
-						closeAll();
-						break;
+					switch (r){
+						case CommandPacket::LogoutOk:
+							clog("Logout ok");
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::LogoutFail:
-						clog("Errore nel logout");
-						break;
+						case CommandPacket::LogoutFail:
+							clog("Errore nel logout");
+							emit serverAnswer(r);
+							break;
 
-					default:
-						throw CorruptPacketException();
-						break;
-				}
-				break;
+						default:
+							throw CorruptPacketException();
+							break;
+					}
+					break;
+
 			case CommandPacket::ResourceUp:
 
-				switch (m_packet->getServerAnswer()){
-					case CommandPacket::ResourceUpOk:
-						clog(QString("Caricamento consentito"));
-						resourceUp();
-						break;
+					switch (r){
+						case CommandPacket::ResourceUpOk:
+							clog(QString("Caricamento consentito"));
+							emit serverAnswer(r);
+							resourceUp();
+							break;
 
-					case CommandPacket::ResourceUpFail:
-						clog(QString("Caricamento rifiutato"));
-						break;
+						case CommandPacket::ResourceUpFail:
+							clog(QString("Caricamento rifiutato"));
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceUpInvalidPerm:
-						clog(QString("Caricamento rifiutato, permessi insufficienti"));
-						break;
+						case CommandPacket::ResourceUpInvalidPerm:
+							clog(QString("Caricamento rifiutato, permessi insufficienti"));
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceUpParentIsNotDir:
-						clog(QString("Caricamento rifiutato, il parent id è un file!"));
-						break;
+						case CommandPacket::ResourceUpParentIsNotDir:
+							clog(QString("Caricamento rifiutato, il parent id è un file!"));
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceUpAlreadyExists:
-						clog(QString("Caricamento rifiutato, presente file con lo stesso nome!"));
-						break;
+						case CommandPacket::ResourceUpAlreadyExists:
+							clog(QString("Caricamento rifiutato, presente file con lo stesso nome!"));
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceUpSpaceExhausted:
-						clog(QString("Caricamento rifiutato, spazio sul server esaurito"));
-						break;
+						case CommandPacket::ResourceUpSpaceExhausted:
+							clog(QString("Caricamento rifiutato, spazio sul server esaurito"));
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceUpFinalizeOk:
-						clog(QString("Caricamento completato con successo"));
-
-						try{
-
+						case CommandPacket::ResourceUpFinalizeOk:
+							clog(QString("Caricamento completato con successo"));
 							removeTempFile();
-						}catch(Exception &e){
+							emit serverAnswer(r);
+							break;
 
-							clog("Exception occurred!");
-							clog(e.what());
-						}
-						break;
-
-					case CommandPacket::ResourceUpFinalizeFail:
-						clog(QString("Caricamento non finalizzato, per i seguenti utenti"));
-
-						foreach (QString err, m_packet->getLastError()){
-							clog(err);
-						}
-
-						try{
-
+						case CommandPacket::ResourceUpFinalizeFail:
+							clog(QString("Caricamento non finalizzato, per i seguenti utenti"));
+							foreach (QString err, m_packet->getLastError()){
+								m_errors << clog(err);
+							}
 							removeTempFile();
-						}catch(Exception &e){
+							emit serverAnswer(r);
+							break;
 
-							clog("Exception occurred!");
-							clog(e.what());
-						}
-						break;
-
-					default:
-						break;
-				}
-				break;
+						default:
+							throw CorruptPacketException();
+							break;
+					}
+					break;
 
 			case CommandPacket::ResourceDown:
 
-				switch (m_packet->getServerAnswer()){
-					case CommandPacket::ResourceDownOk:
-						clog("Scaricamento consentito");
-						resourceDown();
-						break;
+					switch (r){
+						case CommandPacket::ResourceDownOk:
+							clog("Scaricamento consentito");
+							emit serverAnswer(r);
+							resourceDown();
+							break;
 
-					case CommandPacket::ResourceDownInvalidId:
-						clog("Scaricamento Fallito, Id non valido");
-						break;
+						case CommandPacket::ResourceDownInvalidId:
+							clog("Scaricamento Fallito, Id non valido");
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceDownInvalidPerm:
-						clog("Scaricamento Fallito, permessi insufficienti");
-						break;
+						case CommandPacket::ResourceDownInvalidPerm:
+							clog("Scaricamento Fallito, permessi insufficienti");
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceDownFail:
-						clog("Scaricamento fallito");
-						break;
+						case CommandPacket::ResourceDownFail:
+							clog("Scaricamento fallito");
+							emit serverAnswer(r);
+							break;
 
-					default:
-						throw CorruptPacketException();
-						break;
-				}
-				break;
+						default:
+							throw CorruptPacketException();
+							break;
+					}
+					break;
 
 			case CommandPacket::ResourceTree:
 
-				switch (m_packet->getServerAnswer()){
+					switch (r){
 
-					case CommandPacket::ResourceTreeOk:
-						clog("Ricevuto albero delle risorse");
-						saveResourcesTree();
-						break;
+						case CommandPacket::ResourceTreeOk:
+							clog("Ricevuto albero delle risorse");
+							saveResourcesTree();
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceTreeError:
-						clog("Errore nella richiesta dell'albero delle risorse");
-						break;
+						case CommandPacket::ResourceTreeError:
+							clog("Errore nella richiesta dell'albero delle risorse");
+							emit serverAnswer(r);
+							break;
 
-					default:
-						throw CorruptPacketException();
-						break;
-				}
-				break;
+						default:
+							throw CorruptPacketException();
+							break;
+					}
+					break;
 
 			case CommandPacket::ResourceDel:
 
-				switch (m_packet->getServerAnswer()) {
-					case CommandPacket::ResourceDelOk:
-						clog("Cancellazione avvenuta con successo");
-						break;
+					switch (r) {
+						case CommandPacket::ResourceDelOk:
+							clog("Cancellazione avvenuta con successo");
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceDelInvalidPerm:
-						clog("Cancellazione non riuscita, permessi insufficienti!");
-						break;
+						case CommandPacket::ResourceDelInvalidPerm:
+							clog("Cancellazione non riuscita, permessi insufficienti!");
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::ResourceDelFail:
-						clog("Cancellazione non riuscita!");
+						case CommandPacket::ResourceDelFail:
+							clog("Cancellazione non riuscita!");
+							emit serverAnswer(r);
+							break;
 
-						break;
-
-					default:
-						throw CorruptPacketException();
-						break;
-				}
-				break;
+						default:
+							throw CorruptPacketException();
+							break;
+					}
+					break;
 
 			case CommandPacket::UserRegister:
 
-				switch (m_packet->getServerAnswer()){
-					case CommandPacket::UserRegisterOk:
-						clog("Registrazione avvenuta con successo");
-						break;
+					switch (r){
+						case CommandPacket::UserRegisterOk:
+							clog("Registrazione avvenuta con successo");
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::UsernameAlreadyInUse:
-						clog("Registrazione fallita, username già in uso!");
-						break;
+						case CommandPacket::UsernameAlreadyInUse:
+							clog("Registrazione fallita, username già in uso!");
+							emit serverAnswer(r);
+							break;
 
-					case CommandPacket::UserRegisterFail:
-						clog("Registrazione fallita:");
-						break;
+						case CommandPacket::UserRegisterFail:
+							clog("Registrazione fallita:");
+							emit serverAnswer(r);
+							break;
 
-					default:
-						throw CorruptPacketException();
-						break;
-				}
-				break;
+						default:
+							throw CorruptPacketException();
+							break;
+					}
+					break;
 
 			default:
-				clog("Processamento comandi non ancora implementato per questi valori!");
+				qDebug() << "Non ancora implementate!";
 				break;
 		}
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
 	}
 }
 
-void KCloud::Client::login() throw (KCloud::Exception){
+void KCloud::Client::login(const QString &mail, const QString &pass, const KCloud::User::PwdMode mode){ ///ok
 
-	if(m_user == NULL){
-		throw NullUserPointer();
-	}else{
+	try{
+		m_user = new User(mail, pass, mode, this);
 		m_packet->setForLogin(*m_user);
 		m_lastCommand = m_packet->getClientCommand();
 		sendCommand();
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
 	}
 }
 
-void KCloud::Client::logout(){
+void KCloud::Client::logout(){	///ok
 
 	m_packet->setForLogout();
 	m_lastCommand = m_packet->getClientCommand();
 	sendCommand();
 }
 
-void KCloud::Client::resourceUp(){
+void KCloud::Client::resourceUp(){	///ok
 
 	sendResource();
 }
@@ -276,30 +294,57 @@ void KCloud::Client::resourceUp(){
 void KCloud::Client::resourceMod(){
 
 }
-// da eliminare
-void KCloud::Client::resourceDel(){
 
-}
+void KCloud::Client::resourceDel(const quint64 &resourceId){	///ok
 
-void KCloud::Client::resourceTree() throw (KCloud::Exception){
-
-	if(!isLogged()){
-		throw NotLogged();
+	try{
+		if(isLogged()){
+			m_packet->setForResourceDel(resourceId);
+			m_lastCommand = m_packet->getClientCommand();
+			sendCommand();
+		}else{
+			throw NotLogged();
+		}
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
 	}
-	m_packet->setForResourceTree();
-	m_lastCommand = m_packet->getClientCommand();
-	sendCommand();
 }
 
-void KCloud::Client::resourceDown(){
+void KCloud::Client::resourceTree(){	///ok
+
+	try{
+		if(isLogged()){
+			m_packet->setForResourceTree();
+			m_lastCommand = m_packet->getClientCommand();
+			sendCommand();
+		}else{
+			throw NotLogged();
+		}
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
+	}
+}
+
+void KCloud::Client::resourceDown(){	/////////Da riguardare
 
 	m_head = m_packet->getFirstResourceHeader();
 	m_resource->setZipName(m_head.getName());
 	receiveResource();
 }
 
-void KCloud::Client::userRegister(){
+void KCloud::Client::userRegister(const QString &email, const QString &password, const User::PwdMode mode){ ///ok
 
+	try{
+		User tmp(email, password, mode);
+		m_packet->setForUserRegister(tmp);
+		m_lastCommand = m_packet->getClientCommand();
+		sendCommand();
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
+	}
 }
 
 void KCloud::Client::resourcePerm(){
@@ -314,20 +359,20 @@ void KCloud::Client::passwordChange(){
 
 }
 
-void KCloud::Client::setUserForLogin(const QString &email, const QString &pwd) throw (KCloud::Exception){
-
-	if(m_socket->state() != QAbstractSocket::ConnectedState){
-		throw UnreachableServer();
-	}
-	m_user = new User(email, pwd, User::Encrypt, this);
+void KCloud::Client::disconnectFromHost(){
+	m_socket->disconnectFromHost();
 }
 
-void KCloud::Client::connectToHost(const QString &addr, const quint16 &port) throw (KCloud::Exception){
+QStringList KCloud::Client::lastErrors(){
+
+	QStringList err = m_errors;
+	m_errors.clear();
+	return err;
+}
+
+void KCloud::Client::connectToHost(const QString &addr, const quint16 &port){
 
 	m_socket->connectToHost(addr, port);
-	if(!(m_socket->waitForConnected())){
-		throw UnreachableServer();
-	}
 }
 
 void KCloud::Client::newUpload(const QString &localPath,
@@ -354,51 +399,38 @@ void KCloud::Client::newUpload(const QString &localPath,
 		clog(e.what());
 		m_packet->clear();
 	}
-
 }
 
-void KCloud::Client::newDownload(const quint64 &resourceId, const QString &savePath) throw (Exception){
+void KCloud::Client::newDownload(const quint64 &resourceId, const QString &savePath){ ///ok
 
 	QString path;
-
-	if(!isLogged()){
-		throw NotLogged();
-	}
-	if(savePath.isEmpty()){
-
-		QSettings appSettings;
-		path = appSettings.value(DOWN_PATH).toString();
-	}else{
-
-		if(QFileInfo(savePath).exists() && QFileInfo(savePath).isDir()){
-			path = savePath;
-		}else{
-			throw BadPathException();
+	try{
+		if(!isLogged()){
+			throw NotLogged();
 		}
+		if(savePath.isEmpty()){
+
+			QSettings appSettings;
+			path = appSettings.value(DOWN_PATH).toString();
+		}else{
+
+			if(QFileInfo(savePath).exists() && QFileInfo(savePath).isDir()){
+				path = savePath;
+			}else{
+				throw BadPathException();
+			}
+		}
+		m_packet->setForResourceDown(resourceId);
+		m_resource->setZipDir(path);
+		m_lastCommand = m_packet->getClientCommand();
+		sendCommand();
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
 	}
-	m_packet->setForResourceDown(resourceId);
-	m_resource->setZipDir(path);
-	m_lastCommand = m_packet->getClientCommand();
-	sendCommand();
 }
 
-void KCloud::Client::newRemove(const quint64 &resourceId) throw (Exception){
 
-	if(!isLogged()){
-		throw NotLogged();
-	}
-	m_packet->setForResourceDel(resourceId);
-	m_lastCommand = m_packet->getClientCommand();
-	sendCommand();
-}
-
-void KCloud::Client::newUserRegister(const QString &email, const QString &password) throw (Exception){
-
-	User tmp(email, password);
-	m_packet->setForUserRegister(tmp);
-	m_lastCommand = m_packet->getClientCommand();
-	sendCommand();
-}
 
 void KCloud::Client::setSessionUser(){
 
@@ -414,7 +446,8 @@ void KCloud::Client::setSessionUser(){
 void KCloud::Client::saveResourcesTree(){
 
 	m_resourcesTree.clear();
-	m_resourcesTree.append(m_packet->getResourceTree());
+	m_resourcesTree = m_packet->getResourceTree();
+
 	foreach (ResourceHeader gesu, m_resourcesTree){
 
 		clog(gesu.toString());
@@ -446,6 +479,11 @@ void KCloud::Client::run(){
 
 	QSettings	appSettings;
 	QDir		dir;
+
+	if(m_workMode == AsGuiThread){
+		exec();
+	}
+
 	if(!appSettings.contains(T_STARTED)){
 
 		appSettings.setValue(T_STARTED, 0);
@@ -468,6 +506,7 @@ void KCloud::Client::run(){
 
 	qint64 i = appSettings.value(T_STARTED).toLongLong();
 	appSettings.setValue(T_STARTED, i++);
+	exec();
 }
 
 void KCloud::Client::closeAll(){
@@ -504,8 +543,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 
 				clog("Faccio il login con user_test!");
 				try{
-					setUserForLogin(TEST_USER, TEST_PASSWORD);
-					login();
+					login(TEST_USER, TEST_PASSWORD, User::Encrypt);
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());
@@ -538,7 +576,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 
 				clog(QString("Rimozione risorsa con id = " + arg[1]));
 				try{
-					newRemove(arg[1].toULongLong());
+					resourceDel(arg[1].toULongLong());
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());
@@ -554,8 +592,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 
 				clog(QString("Faccio il login"));
 				try{
-					setUserForLogin(arg[1], arg[2]);
-					login();
+					login(arg[1], arg[2], User::Encrypt);
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());
@@ -599,7 +636,7 @@ void KCloud::Client::execCommand(const QString &cmd){
 
 				clog(QString("Richiesta registrazione utente, email = " + arg[1] + ", password = " + arg[2] ));
 				try{
-					newUserRegister(arg[1], arg[2]);
+					userRegister(arg[1], arg[2], User::Encrypt);
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());
@@ -614,12 +651,15 @@ void KCloud::Client::execCommand(const QString &cmd){
 	}
 }
 
-void KCloud::Client::clog(const QString &log){
+QString KCloud::Client::clog(const QString &log){
 
-	QString str(Console::Green + this->metaObject()->className() + Console::Reset);
-	str += " ";
-	str += log;
-	m_console->output(str);
+	if(m_workMode == AsConsoleThread){
+		QString str(Console::Green + this->metaObject()->className() + Console::Reset);
+		str += " ";
+		str += log;
+		m_console->output(str);
+	}
+	return log;
 }
 
 bool KCloud::Client::isLogged() throw(Exception){
@@ -631,4 +671,14 @@ bool KCloud::Client::isLogged() throw(Exception){
 
 		throw NullUserPointer();
 	}
+}
+
+void KCloud::Client::notifyReceived(){
+
+	emit resourceReceived();
+}
+
+void KCloud::Client::notifySended(){
+
+	emit resourceSended();
 }

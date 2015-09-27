@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>430</width>
+    <height>360</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,7 @@
       </font>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -89,7 +89,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="nextPageBtn">
+          <widget class="QPushButton" name="goToConnectionButton">
            <property name="text">
             <string>Avanti</string>
            </property>
@@ -138,7 +138,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="serverAddressEdit"/>
+        <widget class="QLineEdit" name="serverAddressEdit">
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_2">
@@ -148,7 +152,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="serverPortEdit"/>
+        <widget class="QLineEdit" name="serverPortEdit">
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_2">
@@ -164,7 +172,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="loaderLabel">
+        <widget class="QLabel" name="connectionLoaderLabel">
          <property name="text">
           <string/>
          </property>
@@ -174,7 +182,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="messageLabel">
+        <widget class="QLabel" name="connectionMessageLabel">
          <property name="font">
           <font>
            <italic>true</italic>
@@ -189,7 +197,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="nextPageBtn_2">
+        <widget class="QPushButton" name="goToRegisterButton">
          <property name="text">
           <string>Avanti</string>
          </property>
@@ -210,7 +218,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit"/>
+        <widget class="QLineEdit" name="lineEdit">
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_3">
@@ -224,26 +236,22 @@
          <property name="echoMode">
           <enum>QLineEdit::Password</enum>
          </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="confirmPasswordLabel">
          <property name="text">
           <string>Conferma Password</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit_3">
+        <widget class="QLineEdit" name="confirmPasswordEdit">
          <property name="echoMode">
           <enum>QLineEdit::Password</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="loaderLabel_2">
-         <property name="text">
-          <string>TextLabel</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -251,14 +259,61 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="messageLabel_2">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="alreadyRegistered">
+           <property name="text">
+            <string>Sono già registrato</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="registerLoaderLabel">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="registerMessageLabel">
          <property name="font">
           <font>
            <italic>true</italic>
           </font>
          </property>
          <property name="text">
-          <string>TextLabel</string>
+          <string/>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -266,9 +321,93 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="endBtn">
+        <widget class="QPushButton" name="goToPathConfig">
          <property name="text">
           <string>Registrati</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_5">
+      <attribute name="title">
+       <string>Cartelle</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>59</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Cartella di lavoro</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="workPathEdit">
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="changePathButton">
+         <property name="text">
+          <string>Cambia</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>58</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="pathConfigLoaderLabel">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="pathConfigMessageLabel">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="goToEndButton">
+         <property name="text">
+          <string>Avanti</string>
          </property>
         </widget>
        </item>
@@ -283,7 +422,7 @@
         <widget class="QTextEdit" name="endEdit"/>
        </item>
        <item>
-        <widget class="QPushButton" name="endBtn_2">
+        <widget class="QPushButton" name="endButton">
          <property name="text">
           <string>Fine</string>
          </property>
