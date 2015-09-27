@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/animations">
+        <file>loader.gif</file>
+    </qresource>
+    <qresource prefix="/icons"/>
+    <qresource prefix="/images">
+        <file>testImage.png</file>
+    </qresource>
+</RCC>

@@ -16,4 +16,4 @@ SUBDIRS += \
     MainServer \
     Client \
     WorkerServer \
-    GuiClient
+    GraphicClient
