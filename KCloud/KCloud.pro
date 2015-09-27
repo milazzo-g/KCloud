@@ -15,4 +15,5 @@ SUBDIRS += \
     Engine \
     MainServer \
     Client \
-    WorkerServer
+    WorkerServer \
+    GraphicClient
