@@ -175,6 +175,13 @@ void KCloud::CommandPacket::answerToLogout(KCloud::CommandPacket::ServerAnswer a
 	setErrorStringList(errorStringList);
 }
 
+void KCloud::CommandPacket::answerToPasswordChange(KCloud::CommandPacket::ServerAnswer answer, const QStringList &errorList){
+
+	clear();
+	setServerAnswer(answer);
+	setErrorStringList(errorList);
+}
+
 void KCloud::CommandPacket::answerToResourceTree(KCloud::CommandPacket::ServerAnswer answer, const QList<KCloud::ResourceHeader> res, const QStringList &errorList){
 
 	clear();

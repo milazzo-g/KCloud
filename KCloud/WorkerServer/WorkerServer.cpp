@@ -45,7 +45,7 @@ void KCloud::WorkerServer::parse(){
 
 	clog(QString("Command received from ") + m_socket->peerAddress().toString());
 
-	switch (m_packet->getClientCommand()) {
+	switch (m_packet->getClientCommand()){
 		case CommandPacket::Login:
 			login();
 			break;
@@ -66,6 +66,8 @@ void KCloud::WorkerServer::parse(){
 			break;
 		case CommandPacket::UserRegister:
 			userRegister();
+		case CommandPacket::PasswordChange:
+			passwordChange();
 		default:
 			break;
 	}
@@ -368,8 +370,36 @@ void KCloud::WorkerServer::resourceShare(){
 
 }
 
-void KCloud::WorkerServer::passwordChange(){
+void KCloud::WorkerServer::passwordChange(){			// da sistemare
 
+	clog(QString("Password change request from ") + m_socket->peerAddress().toString());
+
+	if(userIsLogged() && (m_packet->getUser().getEmail() == m_user->getEmail())){
+		try{
+
+			UsersManager::UsersManagerAnswer r = m_usersManager->checkPasswordChange(m_packet->getUser());
+
+			switch (r){
+				case UsersManager::UserPasswordChangeOk:
+					clog("Password change Ok!");
+					m_packet->answerToPasswordChange(CommandPacket::PasswordChangeOk);
+					break;
+				default:
+					clog("Generalmente non dovremmo essere qui!");
+					clog(QString("m_usersManager->checkPasswordChange(m_packet->getUser())") + QString::number((qint32)r));
+					break;
+			}
+		}catch(Exception &e){
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
+			m_packet->answerToPasswordChange(CommandPacket::ServerInternalError, errors);
+		}
+	}else{
+		m_packet->answerToPasswordChange(CommandPacket::NotLoggedUser);
+	}
+	sendCommand();
 }
 
 void KCloud::WorkerServer::forcedLogout(){			////Completata <Sistemare Stringhe errori>
