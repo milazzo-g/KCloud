@@ -4,6 +4,9 @@
 
 const QString KCloud::UsersManager::queryUser_1(" SELECT * FROM users WHERE email = :email ");
 const QString KCloud::UsersManager::queryUser_2(" UPDATE users SET status = :status WHERE email = :email ");
+const QString KCloud::UsersManager::queryUser_3(" SELECT * FROM users WHERE email = :email ");
+const QString KCloud::UsersManager::queryUser_4(" INSERT INTO users VALUES ( :email, :hash, 0, 'UnLogged') ");
+const QString KCloud::UsersManager::queryUser_5(" INSERT INTO resources (parent, owner, name, type, size) VALUES (1, :owner, :name, 'Dir', 0) ");
 
 KCloud::UsersManager::UsersManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
 
@@ -97,6 +100,36 @@ KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkLogout(const
 	return UserNotFound;
 }
 
+KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkUserRegister(const KCloud::User &usr) throw(Exception){
+
+	if(open()){
+
+		if(!userExists(usr)){
+
+			QSqlQuery query(m_db);
+			query.prepare(queryUser_4);
+			query.bindValue(placeHolder_mail, usr.getEmail());
+			query.bindValue(placeHolder_hash, usr.getHash());
+			tryExec(query);
+			query.clear();
+			query.prepare(queryUser_5);
+			query.bindValue(placeHolder_owner, usr.getEmail());
+			query.bindValue(placeHolder_name, usr.getEmail());
+			tryExec(query);
+			close();
+			return UserRegisterOk;
+		}else{
+
+			close();
+			return UsernameAlreadyInUse;
+		}
+
+	}else{
+
+		throw OpenFailure();
+	}
+}
+
 KCloud::User KCloud::UsersManager::getUser() const{
 
 	return m_user;
@@ -107,4 +140,28 @@ void KCloud::UsersManager::usrCopy(QSqlQuery &query){
 	m_user.m_hash	= query.value(DatabaseManager::Hash).toString();
 	m_user.m_space	= query.value(DatabaseManager::Space).toLongLong();
 	m_user.m_state	= query.value(DatabaseManager::Status).toString() == sqlEnumLogged ? true : false;
+}
+
+bool KCloud::UsersManager::userExists(const KCloud::User &usr) throw(Exception){
+
+	return userExists(usr.getEmail());
+}
+
+bool KCloud::UsersManager::userExists(const QString &usr) throw(Exception){
+
+	if(isOpen()){
+		QSqlQuery query(m_db);
+		query.prepare(queryUser_3);
+		query.bindValue(placeHolder_mail, usr);
+		tryExec(query);
+		if(!query.size()){
+			return false;
+		}else if(query.size() == 1){
+			return true;
+		}else{
+			throw MultipleRowsForPrimaryKey();
+		}
+	}else{
+		throw OpenFailure();
+	}
 }

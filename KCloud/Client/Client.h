@@ -48,6 +48,7 @@ namespace KCloud{
 																	ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception); //setta i parametri per l'upload
 						void							newDownload(const quint64 &resourceId, const QString &savePath = "") throw (Exception);		//setta i parametri per il download
 						void							newRemove(const quint64 &resourceId) throw (Exception);				//setta i parametri per la rimozione
+						void							newUserRegister(const QString &email, const QString &password) throw (Exception);
 						void							setSessionUser();								//setta l'utente di sessione dopo la risposta di login ok dal server
 						void							saveResourcesTree();							//salva l'albero delle risorse
 						void							removeTempFile() throw (Exception);															//rimuove il file temporaneo, chiamata dopo invio ok

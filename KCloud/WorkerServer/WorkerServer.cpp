@@ -64,6 +64,8 @@ void KCloud::WorkerServer::parse(){
 		case CommandPacket::ResourceTree:
 			resourceTree();
 			break;
+		case CommandPacket::UserRegister:
+			userRegister();
 		default:
 			break;
 	}
@@ -330,6 +332,32 @@ void KCloud::WorkerServer::resourceDown(){				////Permessi OK
 
 void KCloud::WorkerServer::userRegister(){
 
+	clog(QString("UserRegister request from ") + m_socket->peerAddress().toString());
+
+	try {
+		UsersManager::UsersManagerAnswer r =  m_usersManager->checkUserRegister(m_packet->getUser());
+		switch (r){
+			case UsersManager::UserRegisterOk:
+				clog("New UserRegister Ok!");
+				m_packet->answerToUserRegister(CommandPacket::UserRegisterOk);
+				break;
+			case UsersManager::UsernameAlreadyInUse:
+				clog("Username already in use!");
+				m_packet->answerToUserRegister(CommandPacket::UsernameAlreadyInUse);
+				break;
+			default:
+				clog("Generalmente non dovremmo essere qui!");
+				clog(QString("m_usersManager->checkUserRegister(m_packet->getUser())") + QString::number((qint32)r));
+				break;
+		}
+	} catch (Exception &e) {
+		clog("Exception Occurred!");
+		clog(e.what());
+		QStringList errors;
+		errors << QString(e.what()) << m_usersManager->lastSqlError() << m_usersManager->lastDriverError();
+		m_packet->answerToUserRegister(CommandPacket::ServerInternalError, errors);
+	}
+	sendCommand();
 }
 
 void KCloud::WorkerServer::resourcePerm(){

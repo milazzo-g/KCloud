@@ -215,6 +215,28 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 						clog("Cancellazione non riuscita!");
 
 						break;
+
+					default:
+						throw CorruptPacketException();
+						break;
+				}
+				break;
+
+			case CommandPacket::UserRegister:
+
+				switch (m_packet->getServerAnswer()){
+					case CommandPacket::UserRegisterOk:
+						clog("Registrazione avvenuta con successo");
+						break;
+
+					case CommandPacket::UsernameAlreadyInUse:
+						clog("Registrazione fallita, username già in uso!");
+						break;
+
+					case CommandPacket::UserRegisterFail:
+						clog("Registrazione fallita:");
+						break;
+
 					default:
 						throw CorruptPacketException();
 						break;
@@ -366,6 +388,14 @@ void KCloud::Client::newRemove(const quint64 &resourceId) throw (Exception){
 		throw NotLogged();
 	}
 	m_packet->setForResourceDel(resourceId);
+	m_lastCommand = m_packet->getClientCommand();
+	sendCommand();
+}
+
+void KCloud::Client::newUserRegister(const QString &email, const QString &password) throw (Exception){
+
+	User tmp(email, password);
+	m_packet->setForUserRegister(tmp);
 	m_lastCommand = m_packet->getClientCommand();
 	sendCommand();
 }
@@ -561,6 +591,15 @@ void KCloud::Client::execCommand(const QString &cmd){
 				clog(QString("Download file con id: " + arg[1] + ", in dir: " + arg[2]));
 				try{
 					newDownload(arg[1].toULongLong(), arg[2]);
+				}catch(Exception &e){
+					clog("Exception occurred!");
+					clog(e.what());
+				}
+			}else if(QRegExp("register", Qt::CaseInsensitive, QRegExp::RegExp).exactMatch(arg[0])){
+
+				clog(QString("Richiesta registrazione utente, email = " + arg[1] + ", password = " + arg[2] ));
+				try{
+					newUserRegister(arg[1], arg[2]);
 				}catch(Exception &e){
 					clog("Exception occurred!");
 					clog(e.what());
