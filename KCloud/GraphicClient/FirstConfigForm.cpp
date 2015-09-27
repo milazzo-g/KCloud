@@ -3,6 +3,8 @@
 
 FirstConfigForm::FirstConfigForm(QWidget *parent) : QDialog(parent), ui(new Ui::FirstConfigForm){
 
+	QRegExp rx1("^0*(?:6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{1,3}|[0-9])$");
+
 	ui->setupUi(this);
 	ui->tabWidget->setTabEnabled(1, false);
 	ui->tabWidget->setTabEnabled(2, false);
@@ -12,7 +14,10 @@ FirstConfigForm::FirstConfigForm(QWidget *parent) : QDialog(parent), ui(new Ui::
 	ui->endBtn_2->setEnabled(false);
 	ui->nextPageBtn->setEnabled(false);
 	ui->nextPageBtn_2->setEnabled(false);
-	ui->serverAddressEdit->setValidator(new QIntValidator(0, 65535, this));
+	ui->serverPortEdit->setValidator(new QRegExpValidator(rx1, this));
+
+	m_port = 0;
+
 	QFile lgpl(this);
 	lgpl.setFileName("./LGPL");
 	lgpl.open(QIODevice::ReadOnly);
@@ -44,14 +49,20 @@ void FirstConfigForm::on_nextPageBtn_clicked(){
 
 void FirstConfigForm::on_serverAddressEdit_textChanged(const QString &arg1){
 
-	QRegExp reg1("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$", Qt::CaseInsensitive);
-	QRegExp reg2("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$", Qt::CaseInsensitive);
 
-	if(reg1.exactMatch(arg1) || reg2.exactMatch(arg1)){
+	QStringList str = arg1.split(".");
+
+	bool res = true;
+
+	foreach (QString s, str) {
+		res = res && (s.toInt() >= 0 && s.toInt() <= 255);
+	}
+
+	if(str.size() != 4 || !res){
+		ui->messageLabel->setText("L'indirizzo del server non è un indirizzo valido!");
+	}else{
 		m_address = arg1;
 		ui->messageLabel->clear();
-	}else{
-		ui->messageLabel->setText("L'indirizzo del server non è un indirizzo valido!");
 	}
 
 	if(!m_address.isEmpty() && m_port != 0){
@@ -59,7 +70,12 @@ void FirstConfigForm::on_serverAddressEdit_textChanged(const QString &arg1){
 	}
 }
 
-void FirstConfigForm::on_serverPortEdit_textChanged(const QString &arg1)
-{
+void FirstConfigForm::on_serverPortEdit_textChanged(const QString &arg1){
+
+	m_port = arg1.toUShort();
+
+	if(!m_address.isEmpty() && m_port != 0){
+		ui->nextPageBtn_2->setEnabled(true);
+	}
 
 }
