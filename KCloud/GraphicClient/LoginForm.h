@@ -1,7 +1,10 @@
 #ifndef LOGINFORM_H
 #define LOGINFORM_H
 
+#include "../Client/Client.h"
 #include "../MainServer/defines.h"
+#include "../Exceptions/Exceptions.h"
+#include "../CommandPacket/CommandPacket.h"
 
 #include <QFont>
 #include <QMovie>
@@ -18,11 +21,14 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QCryptographicHash>
-
+#include <QCloseEvent>
+#include <QMessageBox>
 namespace Ui{
 
 	class LoginForm;
 }
+
+using namespace KCloud;
 
 class LoginForm : public QDialog{
 		Q_OBJECT
@@ -34,9 +40,22 @@ class LoginForm : public QDialog{
 
 	private slots:
 
-		void			updateMail(const QString &mail);
-		void			updateHash(const QString &hash);
-		void			connectHost();
+		void onServerAnswer(const CommandPacket::ServerAnswer res);
+
+		void onClientError(const Exception::Type extType);
+
+		void onClientConnected();
+
+		void onClientDisconnected();
+
+		void onClientSocketError(const QAbstractSocket::SocketError err);
+
+		void on_cancelBtn_clicked();
+
+		void on_loginBtn_clicked();
+
+	protected:
+		void closeEvent(QCloseEvent *event);
 
 	private:
 		Ui::LoginForm	*ui;
@@ -51,7 +70,7 @@ class LoginForm : public QDialog{
 		QGraphicsView	*m_graphics;
 		QGraphicsScene	*m_scene;
 		QPixmap			*m_pixmap;
-
+		Client			*m_client;
 		QString			m_resultMail;
 		QString			m_resultHash;
 };

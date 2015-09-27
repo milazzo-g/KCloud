@@ -336,7 +336,7 @@ void FirstConfigForm::on_endButton_clicked(){
 		appSettings.setValue(HOME_USER, m_email);
 		appSettings.setValue(HOME_PASS, m_hash1);
 	}
-	appSettings.setValue(T_STARTED, 0);
+	appSettings.setValue(T_STARTED, 1);
 	m_result = true;
 	this->close();
 }

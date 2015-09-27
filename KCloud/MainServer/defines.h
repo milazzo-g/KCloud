@@ -13,8 +13,8 @@
 //client
 #define TMPF_PATH		"TMPF_PATH"
 #define DOWN_PATH		"DOWN_PATH"
-#define _DOWNLOAD		"Download"
-#define _TEMPFILE		"Temp"
+#define _DOWNLOAD		"KCloudDownloads"
+#define _TEMPFILE		".Temp"
 
 #define HOST_ADDR		"HOST_ADDR"
 #define HOST_PORT		"HOST_PORT"

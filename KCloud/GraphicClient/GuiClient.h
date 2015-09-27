@@ -2,6 +2,7 @@
 #define GUICLIENT_H
 
 #include <QMainWindow>
+#include <QTimer>
 #include <QSettings>
 
 #include "../Client/Client.h"
@@ -16,6 +17,9 @@ class GuiClient : public QMainWindow{
 	public:
 		explicit GuiClient(QWidget *parent = 0);
 		~GuiClient();
+
+	private slots:
+		void on_pushButton_clicked();
 
 	private:
 		Ui::GuiClient	*ui;

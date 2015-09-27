@@ -16,16 +16,23 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 		FirstConfigForm f(client, this);
 		f.exec();
 		if(!f.getResult()){
-			this->close();
+			QTimer::singleShot(0, this, SLOT(close()));
 		}
+	}else{
+		qint64 i = appSettings.value(T_STARTED).toLongLong();
+		appSettings.setValue(T_STARTED, i++);
 	}
-
-	qint64 i = appSettings.value(T_STARTED).toLongLong();
-	appSettings.setValue(T_STARTED, i++);
-
 }
 
 GuiClient::~GuiClient()
 {
 	delete ui;
+}
+
+void GuiClient::on_pushButton_clicked(){
+
+	LoginForm r(this);
+
+	r.exec();
+
 }

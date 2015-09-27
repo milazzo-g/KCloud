@@ -22,9 +22,11 @@ LoginForm::LoginForm(QWidget *parent) :	QDialog(parent), ui(new Ui::LoginForm){
 	m_canel		= ui->cancelBtn;
 	m_login		= ui->loginBtn;
 
+	m_movie		= new QMovie(this);
 	m_pixmap	= new QPixmap(":/images/testImage.png");
 	m_scene		= new QGraphicsScene(this);
 
+	m_movie->setFileName(":/animations/loader.gif");
 	m_scene->addPixmap(m_pixmap->scaled(100, 100, Qt::KeepAspectRatio));
 	m_graphics->setScene(m_scene);
 	m_graphics->setStyleSheet("background: transparent; border-style: none;");
@@ -34,46 +36,56 @@ LoginForm::LoginForm(QWidget *parent) :	QDialog(parent), ui(new Ui::LoginForm){
 	m_message->clear();
 	m_loader->clear();
 
-	connect(m_email		, SIGNAL(textChanged(QString)	), this, SLOT(updateMail(QString))	);
-	connect(m_password	, SIGNAL(textChanged(QString)	), this, SLOT(updateHash(QString))	);
-	connect(m_login		, SIGNAL(clicked(bool)			), this, SLOT(connectHost())		);
-
+	//connect
 }
 
 LoginForm::~LoginForm(){
 
-	delete m_scene;
 	delete m_pixmap;
 	delete ui;
 }
 
-void LoginForm::updateMail(const QString &mail){
+void LoginForm::onServerAnswer(const CommandPacket::ServerAnswer res){
 
-	if(!mail.isEmpty() && !m_resultHash.isEmpty()){
-		m_login->setEnabled(true);
-	}else{
-		m_login->setEnabled(false);
-	}
-	m_resultMail = mail;
 }
 
-void LoginForm::updateHash(const QString &hash){
+void LoginForm::onClientError(const Exception::Type extType){
 
-	if(!hash.isEmpty() && !m_resultMail.isEmpty()){
-		m_login->setEnabled(true);
-	}else{
-		m_login->setEnabled(false);
-	}
-	m_resultHash = QCryptographicHash::hash(hash.toLocal8Bit(), QCryptographicHash::Md5).toHex();
+}
+
+void LoginForm::onClientConnected(){
+
+}
+
+void LoginForm::onClientDisconnected(){
+
+}
+
+void LoginForm::onClientSocketError(const QAbstractSocket::SocketError err){
+
 }
 
 
+void LoginForm::on_cancelBtn_clicked(){
 
-void LoginForm::connectHost(){
+	m_email->clear();
+	m_password->clear();
+	m_message->clear();
+}
 
-	m_movie = new QMovie(this);
-	m_movie->setFileName(":/animations/loader.gif");
+void LoginForm::on_loginBtn_clicked(){
+
+	QSettings appSettings;
+	QString hostAddress = appSettings.value(HOST_ADDR).toString();
+	quint16 hostPort = (quint16)appSettings.value(HOST_PORT).toInt();
 	m_loader->setMovie(m_movie);
 	m_movie->start();
-	m_message->setText(tr("Provo a connettermi al server..."));
+	m_message->setText(QString("Provo a connettermi al server ") + hostAddress);
+	m_client->connectToHost(hostAddress, hostPort);
+}
+
+void LoginForm::closeEvent(QCloseEvent * event){
+
+	event->ignore();
+	QMessageBox::information(this, "Suca", "non mi puoi chiudere neanche con il cazzo (KILL -SIGKILL [miopid])");
 }
