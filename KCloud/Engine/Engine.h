@@ -24,29 +24,31 @@ namespace KCloud{
 		Q_OBJECT
 		public:
 			explicit						Engine(QObject *parent = 0);
-											~Engine();
+			virtual							~Engine() = 0;
 		signals:
 						void				userLogin();
 						void				userLogout();
-						void				socketStateChanged(QAbstractSocket::SocketState stat);
+						void				connected();
+						void				disconnected();
+						void				socketError(QAbstractSocket::SocketError error);
 
 		public slots:
 						void				sendCommand();
 						void				sendResource();
 						void				receiveCommand();
 						void				receiveResource();
-			virtual		void				parse()				= 0;
-			virtual		void				login()				= 0;
-			virtual		void				logout()			= 0;
-			virtual		void				resourceUp()		= 0;
-			virtual		void				resourceMod()		= 0;
-			virtual		void				resourceDel()		= 0;
-			virtual		void				resourceTree()		= 0;
-			virtual		void				resourceDown()		= 0;
-			virtual		void				userRegister()		= 0;
-			virtual		void				resourcePerm()		= 0;
-			virtual		void				resourceShare()		= 0;
-			virtual		void				passwordChange()	= 0;
+			virtual		void				parse();
+			virtual		void				login();
+			virtual		void				logout();
+			virtual		void				resourceUp();
+			virtual		void				resourceMod();
+			virtual		void				resourceDel();
+			virtual		void				resourceTree();
+			virtual		void				resourceDown();
+			virtual		void				userRegister();
+			virtual		void				resourcePerm();
+			virtual		void				resourceShare();
+			virtual		void				passwordChange();
 
 		protected:
 						QTcpSocket *		m_socket;
@@ -54,7 +56,9 @@ namespace KCloud{
 						CommandPacket *		m_packet;
 						User *				m_user;
 		private slots:
-						void				notifySocketState(QAbstractSocket::SocketState stat);
+						void				notifyConnect();
+						void				notifyDisconnect();
+						void				notifySocketError(QAbstractSocket::SocketError error);
 	};
 }
 

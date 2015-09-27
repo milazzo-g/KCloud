@@ -7,8 +7,10 @@ KCloud::Engine::Engine(QObject *parent) : QThread(parent){
 	m_resource	= new Resource(this);
     m_packet	= new CommandPacket(this);
 	m_user		= NULL;
-	connect(m_socket,	SIGNAL(stateChanged(QAbstractSocket::SocketState)),
-			this,		SLOT(notifySocketState(QAbstractSocket::SocketState)));
+	connect(m_socket,	SIGNAL(connected()), this, SLOT(notifyConnect()));
+	connect(m_socket,	SIGNAL(disconnected()), this, SLOT(notifyDisconnect()));
+	connect(m_socket,	SIGNAL(error(QAbstractSocket::SocketError)),
+			this,		SLOT(notifySocketError(QAbstractSocket::SocketError)));
 }
 
 KCloud::Engine::~Engine(){
@@ -41,7 +43,65 @@ void KCloud::Engine::receiveResource(){
 	m_resource->receiveFrom(m_socket);
 }
 
-void KCloud::Engine::notifySocketState(QAbstractSocket::SocketState stat){
+void KCloud::Engine::parse(){
 
-	emit socketStateChanged(stat);
+}
+
+void KCloud::Engine::login(){
+
+}
+
+void KCloud::Engine::logout(){
+
+}
+
+void KCloud::Engine::resourceUp(){
+
+}
+
+void KCloud::Engine::resourceMod(){
+
+}
+
+void KCloud::Engine::resourceDel(){
+
+}
+
+void KCloud::Engine::resourceTree(){
+
+}
+
+void KCloud::Engine::resourceDown(){
+
+}
+
+void KCloud::Engine::userRegister(){
+
+}
+
+void KCloud::Engine::resourcePerm(){
+
+}
+
+void KCloud::Engine::resourceShare(){
+
+}
+
+void KCloud::Engine::passwordChange(){
+
+}
+
+void KCloud::Engine::notifyConnect(){
+
+	emit connected();
+}
+
+void KCloud::Engine::notifyDisconnect(){
+
+	emit disconnected();
+}
+
+void KCloud::Engine::notifySocketError(QAbstractSocket::SocketError error){
+
+	emit socketError(error);
 }

@@ -4,12 +4,13 @@
 #include <QMainWindow>
 #include <QSettings>
 
+#include "../Client/Client.h"
+
 namespace Ui {
 	class GuiClient;
 }
 
-class GuiClient : public QMainWindow
-{
+class GuiClient : public QMainWindow{
 		Q_OBJECT
 
 	public:
@@ -17,8 +18,8 @@ class GuiClient : public QMainWindow
 		~GuiClient();
 
 	private:
-		Ui::GuiClient *ui;
-
+		Ui::GuiClient	*ui;
+		KCloud::Client	*client;
 };
 
 #endif // GUICLIENT_H

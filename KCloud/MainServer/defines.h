@@ -16,11 +16,11 @@
 #define _DOWNLOAD		"Download"
 #define _TEMPFILE		"Temp"
 
-//ui client
-#define TMPF_PATH_GUI	"TMPF_PATH_GUI"
-#define TMPF_DOWM_GUI	"DOWN_PATH_GUI"
-#define _DOWNLOAD_GUI	"Downoload"
-#define _TEMPFILE_GUI	"Temp"
+#define HOST_ADDR		"HOST_ADDR"
+#define HOST_PORT		"HOST_PORT"
+#define HOME_USER		"HOME_USER"
+#define HOME_PASS		"HOME_PASS"
+
 
 #endif // DEFINES
 

@@ -4,7 +4,7 @@
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	a.setApplicationName("KCloudClientGUI");
+	a.setApplicationName("KCloudClient");
 	a.setApplicationVersion("1.0");
 	a.setOrganizationName("Unikore");
 	a.setOrganizationDomain("www.unikore.it");
@@ -13,3 +13,4 @@ int main(int argc, char *argv[])
 
 	return a.exec();
 }
+
