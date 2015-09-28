@@ -86,6 +86,7 @@ void KCloud::Resource::prepareForSend() throw(Exception){
 		m_zipFile->open(QIODevice::ReadOnly);
 
 		NetObject::prepareForSend();
+		m_total = calculateNetworkSize() + (qint64)sizeof(calculateNetworkSize());
 	}
 }
 
@@ -185,8 +186,11 @@ void KCloud::Resource::recv() throw(Exception){
 		QDataStream stream(m_channel);
 		stream >> m_bytesCounter;
 		m_currentBlock++;
+		m_total = m_bytesCounter;
 		qDebug() << "Dimensione ricevuta: " << m_bytesCounter << " bytes";
 	}else{
+		emit transmissionRate(m_total, m_total - m_channel->bytesAvailable(), Download);
+
 		qDebug() << "<< RICEVUTI : " << m_channel->bytesAvailable() << " bytes";
 		m_bytesCounter -= m_zipFile->write(m_channel->readAll());
 		qDebug() << ">> RIMANENTI: " << m_bytesCounter << " bytes";
@@ -205,6 +209,8 @@ void KCloud::Resource::recv() throw(Exception){
 
 void KCloud::Resource::behaviorOnSend(const qint64 dim) throw(Exception){
 
+	m_transmitted += dim;
+	emit transmissionRate(m_total, m_transmitted, Upload);
 	m_bytesCounter -= dim;
 	if(m_bytesCounter == 0){
 
