@@ -2,7 +2,12 @@
     <qresource prefix="/animations">
         <file>loader.gif</file>
     </qresource>
-    <qresource prefix="/icons"/>
+    <qresource prefix="/icons">
+        <file>home.png</file>
+        <file>public.png</file>
+        <file>share.png</file>
+        <file>user.png</file>
+    </qresource>
     <qresource prefix="/kcloudIcons">
         <file>kcloud_16x16.png</file>
         <file>kcloud_32x32.png</file>
@@ -77,5 +82,7 @@
         <file>xml.png</file>
         <file>yml.png</file>
         <file>zip.png</file>
+        <file>dir.png</file>
+        <file>unknown.png</file>
     </qresource>
 </RCC>

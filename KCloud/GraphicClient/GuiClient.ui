@@ -7,8 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>574</width>
-    <height>358</height>
+    <height>448</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>9</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>KCloud::Client</string>
@@ -18,29 +23,114 @@
     <normaloff>:/kcloudIcons/kcloud_64x64.png</normaloff>:/kcloudIcons/kcloud_64x64.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QTreeWidget" name="mainTreeWidget">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>20</y>
-      <width>531</width>
-      <height>261</height>
-     </rect>
-    </property>
-    <property name="columnCount">
-     <number>2</number>
-    </property>
-    <column>
-     <property name="text">
-      <string>Nome</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Dimensione</string>
-     </property>
-    </column>
-   </widget>
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <widget class="QTreeWidget" name="mainTreeWidget">
+      <property name="columnCount">
+       <number>2</number>
+      </property>
+      <attribute name="headerDefaultSectionSize">
+       <number>300</number>
+      </attribute>
+      <column>
+       <property name="text">
+        <string>Nome</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Dimensione</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QGraphicsView" name="graphicsView"/>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QPushButton" name="uploadButton">
+          <property name="text">
+           <string>Carica</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="downloadButton">
+          <property name="text">
+           <string>Scarica</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="modifyButton">
+          <property name="text">
+           <string>Modifica</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="permissionButton">
+          <property name="text">
+           <string>Permessi</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="deleteButton">
+          <property name="text">
+           <string>Elimina</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+   <zorder>mainTreeWidget</zorder>
+   <zorder>graphicsView</zorder>
+   <zorder>uploadButton</zorder>
+   <zorder>downloadButton</zorder>
+   <zorder>permissionButton</zorder>
+   <zorder>modifyButton</zorder>
+   <zorder>deleteButton</zorder>
+   <zorder>verticalSpacer</zorder>
+   <zorder>graphicsView</zorder>
+   <zorder>horizontalSpacer</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -48,7 +138,7 @@
      <x>0</x>
      <y>0</y>
      <width>574</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>

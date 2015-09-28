@@ -53,6 +53,7 @@ namespace KCloud{
 																	const QMap<QString, ResourceHeader::ResourcePerm> &permissionTable = QMap<QString, ResourceHeader::ResourcePerm>(),
 																	ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception); //setta i parametri per l'upload
 						void							newDownload(const quint64 &resourceId, const QString &savePath = "");		//setta i parametri per il download
+						QList<ResourceHeader>			getResourceList() const;
 						User *							getSessionUser() const;
 						void							setSessionUser();								//setta l'utente di sessione dopo la risposta di login ok dal server
 						void							saveResourcesTree();							//salva l'albero delle risorse

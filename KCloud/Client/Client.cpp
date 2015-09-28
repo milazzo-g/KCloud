@@ -430,6 +430,11 @@ void KCloud::Client::newDownload(const quint64 &resourceId, const QString &saveP
 	}
 }
 
+QList<KCloud::ResourceHeader> KCloud::Client::getResourceList() const{
+
+	return m_resourcesTree;
+}
+
 KCloud::User *KCloud::Client::getSessionUser() const{
 
 	return m_user;

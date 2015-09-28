@@ -85,6 +85,11 @@ void KCloud::ResourceHeader::setOwner(const QString &sessionUser){
 	m_owner = sessionUser;
 }
 
+void KCloud::ResourceHeader::setType(const KCloud::ResourceHeader::ResourceType type){
+
+	m_type = type;
+}
+
 void KCloud::ResourceHeader::setPermissionTable(const QMap<QString, KCloud::ResourceHeader::ResourcePerm> &permissioTable){
 
 	m_permissionTable = permissioTable;
@@ -221,6 +226,18 @@ KCloud::ResourceHeader &KCloud::ResourceHeader::operator=(const KCloud::Resource
 	m_permissionTable	= cpy.m_permissionTable;
 
 	return *this;
+}
+
+bool KCloud::ResourceHeader::operator==(const KCloud::ResourceHeader &cpy) const{
+
+	return (	m_size				== cpy.m_size				&&
+				m_name				== cpy.m_name				&&
+				m_id				== cpy.m_id					&&
+				m_parentId			== cpy.m_parentId			&&
+				m_owner				== cpy.m_owner				&&
+				m_publicPerm		== cpy.m_publicPerm			&&
+				m_type				== cpy.m_type				&&
+				m_permissionTable	== cpy.m_permissionTable);
 }
 
 qint64 KCloud::ResourceHeader::calculateDirSize(const QString &path){
