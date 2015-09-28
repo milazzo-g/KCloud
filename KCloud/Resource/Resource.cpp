@@ -66,6 +66,8 @@ void KCloud::Resource::clear(){
 
 	NetObject::clear();
 	setNotCompressed();
+	m_total = 0;
+	m_transmitted = 0;
 	m_resourcePath.clear();
 	m_zipDir.clear();
 	m_zipName.clear();
@@ -189,8 +191,8 @@ void KCloud::Resource::recv() throw(Exception){
 		m_total = m_bytesCounter;
 		qDebug() << "Dimensione ricevuta: " << m_bytesCounter << " bytes";
 	}else{
-		emit transmissionRate(m_total, m_total - m_channel->bytesAvailable(), Download);
-
+		m_transmitted += m_channel->bytesAvailable();
+		emit transmissionRate(m_total, m_transmitted, Download);
 		qDebug() << "<< RICEVUTI : " << m_channel->bytesAvailable() << " bytes";
 		m_bytesCounter -= m_zipFile->write(m_channel->readAll());
 		qDebug() << ">> RIMANENTI: " << m_bytesCounter << " bytes";
@@ -210,8 +212,8 @@ void KCloud::Resource::recv() throw(Exception){
 void KCloud::Resource::behaviorOnSend(const qint64 dim) throw(Exception){
 
 	m_transmitted += dim;
-	emit transmissionRate(m_total, m_transmitted, Upload);
 	m_bytesCounter -= dim;
+	emit transmissionRate(m_total, m_transmitted, Upload);
 	if(m_bytesCounter == 0){
 
 		m_currentBlock++;

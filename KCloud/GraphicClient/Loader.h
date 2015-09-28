@@ -3,10 +3,10 @@
 
 #include <QTimer>
 #include <QLabel>
+#include <QThread>
 #include <QDialog>
 #include <QCloseEvent>
 #include <QProgressBar>
-
 #include "../Client/Client.h"
 
 namespace Ui {
@@ -15,34 +15,30 @@ namespace Ui {
 
 using namespace KCloud;
 
-class Loader : public QDialog
-{
+class Loader : public QDialog{
 		Q_OBJECT
 
 	public:
-		enum Mode{
-			Download,
-			Upload
-		};
 
-		explicit Loader(Client * client, const Mode = Download, QWidget *parent = 0);
+		explicit Loader(QWidget *parent = 0);
 		~Loader();
 	protected:
 
 		void	closeEvent(QCloseEvent *event);
+	signals:
+		void	trasmissionEnd();
 
-	private slots:
-		void	setMessage();
+	public slots:
+		void	updateStatus(const qint64 &total, const qint64 &transmitted, const Resource::Mode mode);
+		void	restoreClose();
 
 	private:
 		Ui::Loader *	ui;
-		QLabel *		m_toLeftBytes;
-		QLabel *		m_transferredBytes;
+		bool			m_close;
+		QLabel *		m_transferred;
+		QLabel *		m_remaining;
 		QLabel *		m_message;
 		QProgressBar *	m_progressBar;
-		Client *		m_client;
-		Mode			m_mode;
-		int				m_spacchio;
 };
 
 #endif // LOADER_H

@@ -46,7 +46,7 @@ namespace KCloud{
 						bool		removeZipFile() throw(Exception);
 
 		signals:
-						void		transmissionRate(const qint64 total, const qint64 transmitted, Mode mod);
+						void		transmissionRate(const qint64 total, const qint64 transmitted, Resource::Mode mod);
 
 		protected slots:
 			virtual		void		send(const qint64 block = 0);

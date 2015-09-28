@@ -40,6 +40,8 @@ KCloud::Client::~Client(){
 
 void KCloud::Client::parse() throw (KCloud::Exception){
 
+	emit newCommand();
+
 	try{
 		CommandPacket::ServerAnswer r = m_packet->getServerAnswer();
 
@@ -423,6 +425,7 @@ void KCloud::Client::newDownload(const quint64 &resourceId, const QString &saveP
 			}
 		}
 		m_packet->setForResourceDown(resourceId);
+		qDebug() << "CLIENT::::::::::::::::::::::::::::::::::::::: " << path;
 		m_resource->setZipDir(path);
 		m_lastCommand = m_packet->getClientCommand();
 		sendCommand();

@@ -24,27 +24,27 @@ namespace KCloud{
 		friend			QDataStream &		operator>>(QDataStream &inp, CommandPacket &tmp);
 		public:
 					enum ServerAnswer{
-						UnsetAnswer,
-						NotLoggedUser,
-						LoginOk,
-                        WrongEmail,
-                        WrongPassword,
-						AlreadyLogged,
-						LogoutOk,
-						LogoutFail,
-						ResourceTreeOk,
-						ResourceTreeError,
-						ResourceUpOk,
+						UnsetAnswer,				//0
+						NotLoggedUser,				//1
+						LoginOk,					//2
+						WrongEmail,					//3
+						WrongPassword,				//4
+						AlreadyLogged,				//5
+						LogoutOk,					//6
+						LogoutFail,					//7
+						ResourceTreeOk,				//8
+						ResourceTreeError,			//9
+						ResourceUpOk,				//10
                         ResourceUpFail,
                         ResourceUpInvalidPerm,
 						ResourceUpSpaceExhausted,
 						ResourceUpParentIsNotDir,
-						ResourceUpAlreadyExists,
+						ResourceUpAlreadyExists,	//15
 						ResourceUpFinalizeOk,
 						ResourceUpFinalizeFail,
 						ResourceDownOk,
                         ResourceDownFail,
-                        ResourceDownInvalidId,
+						ResourceDownInvalidId,		//20
 						ResourceDownInvalidPerm,
                         ResourceDelOk,
                         ResourceDelFail,

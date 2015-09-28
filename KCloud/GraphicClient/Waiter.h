@@ -22,20 +22,12 @@ class Waiter : public QDialog{
 	public:
 		explicit Waiter(Client * client, const QString &message, QWidget *parent = 0);
 
-		Exception::Type				getError() const;
-		CommandPacket::ServerAnswer	getAnswer() const;
-		QStringList					getErrorStrings() const;
-
 		~Waiter();
 	protected:
 		void	closeEvent(QCloseEvent * event);
 
 	private slots:
-		void	onServerAnswer(const CommandPacket::ServerAnswer res);
-		void	onClientError(const Exception::Type type);
 		void	restoreClose();
-
-		void	stopLoader();
 		void	startLoader();
 
 	private:
@@ -44,9 +36,6 @@ class Waiter : public QDialog{
 		QLabel *					m_loader;
 		QLabel *					m_message;
 		QMovie *					m_movie;
-		CommandPacket::ServerAnswer	m_answer;
-		Exception::Type				m_error;
-		QStringList					m_errorsList;
 		bool						m_close;
 };
 

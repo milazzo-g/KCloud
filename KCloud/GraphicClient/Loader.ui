@@ -57,7 +57,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QLabel" name="transferredLanel">
+          <widget class="QLabel" name="transferredLabel">
            <property name="text">
             <string>TextLabel</string>
            </property>
@@ -67,7 +67,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="bytesToLeftLabel">
+          <widget class="QLabel" name="remainingLabel">
            <property name="text">
             <string>TextLabel</string>
            </property>
@@ -81,14 +81,14 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QLabel" name="ioUnitLabel">
+          <widget class="QLabel" name="transferredUnitLabel">
            <property name="text">
             <string>bytes</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="toLeftUnitLabel">
+          <widget class="QLabel" name="remainingUnitLabel">
            <property name="text">
             <string>bytes</string>
            </property>

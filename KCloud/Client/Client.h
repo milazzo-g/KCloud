@@ -26,6 +26,7 @@ namespace KCloud{
 														Client(const WorkMode mode, QObject *parent = 0);
 														~Client();
 		signals:
+						void							newCommand();
 						void							serverAnswer(CommandPacket::ServerAnswer answer);
 						void							clientError(Exception::Type type);
 						void							resourceReceived();

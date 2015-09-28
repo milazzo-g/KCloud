@@ -1,12 +1,18 @@
 #include "Loader.h"
 #include "ui_Loader.h"
+#include "../MainServer/defines.h"
 
-Loader::Loader(Client *client, const Loader::Mode mode, QWidget *parent) : QDialog(parent), ui(new Ui::Loader){
+Loader::Loader(QWidget *parent) : QDialog(parent), ui(new Ui::Loader){
 
 	ui->setupUi(this);
-	m_mode		= mode;
-	m_client	= client;
+	m_close			= true;
+	m_transferred	= ui->transferredLabel;
+	m_remaining		= ui->remainingLabel;
+	m_progressBar	= ui->progressBar;
+	m_message		= ui->messageLabel;
 
+
+	m_progressBar->setValue(0);
 }
 
 Loader::~Loader()
@@ -16,30 +22,31 @@ Loader::~Loader()
 
 void Loader::closeEvent(QCloseEvent *event){
 
-	event->ignore();
-	if(m_mode == Download){
-		if(m_spacchio == 0){
-			m_message->setText("Attendi che il download termini...");
-			m_spacchio++;
-		}else{
-			m_message->setText("Professore, non si può fare...");
-		}
+	if(m_close){
+		event->ignore();
 	}else{
-		if(m_spacchio == 0){
-			m_message->setText("Attendi che l'upload termini...");
-			m_spacchio++;
-		}else{
-			m_message->setText("Professore, non si può fare...");
-		}
+		event->accept();
 	}
-	QTimer::singleShot(5000, this, SLOT(setMessage()));
+
 }
 
-void Loader::setMessage(){
-	m_message->clear();
-	if(m_mode == Download){
-		m_message->setText("Sto scariando...");
-	}else{
-		m_message->setText("Sto caricando...");
+void Loader::updateStatus(const qint64 &total, const qint64 &transmitted, const Resource::Mode mode){
+
+	m_transferred->setText(QString::number(transmitted));
+	m_remaining->setText(QString::number(total - transmitted < 0 ? 0 : total - transmitted));
+	double ratio = (static_cast<double>(transmitted) / total) * 100;
+	m_progressBar->setValue(ratio);
+	m_message->setText(QString((mode == Resource::Download ? "Sto scaricando..." : "Sto caricando...")));
+
+	if(m_progressBar->value() == 100){
+		restoreClose();
 	}
+
 }
+
+void Loader::restoreClose(){
+
+	m_close = false;
+	close();
+}
+

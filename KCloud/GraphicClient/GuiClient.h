@@ -1,17 +1,19 @@
 #ifndef GUICLIENT_H
 #define GUICLIENT_H
 
-#include <QMainWindow>
+#include <QMap>
 #include <QTimer>
+#include <QThread>
 #include <QSettings>
 #include <QCloseEvent>
-#include <QMap>
+#include <QMainWindow>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
 #include "../Client/Client.h"
 
 #include "Waiter.h"
+#include "Loader.h"
 #include "GraphicResourceHeader.h"
 
 namespace Ui {
@@ -34,12 +36,16 @@ class GuiClient : public QMainWindow{
 
 		void	refreshTree();
 		void	requestTree();
+		void	finalize();
 
+		void	stampacomeipazzi(const qint64 &total, const qint64 &transmitted);
 		void	onServerAnswer(const CommandPacket::ServerAnswer serv);
 
 		void	on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
 		void	on_mainTreeWidget_itemSelectionChanged();
+
+		void	on_downloadButton_clicked();
 
 	private:
 		Ui::GuiClient							*ui;
@@ -49,7 +55,7 @@ class GuiClient : public QMainWindow{
 		QTreeWidget								*m_tree;
 		QMap<quint64, GraphicResourceHeader *>	m_resourceMap;
 		QGraphicsScene							*m_scene;
-
+		Loader *								m_loader;
 };
 
 #endif // GUICLIENT_H

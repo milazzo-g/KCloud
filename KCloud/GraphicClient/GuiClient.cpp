@@ -9,16 +9,25 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	QSettings appSettings;
 	ui->setupUi(this);
 
-	m_client	= new KCloud::Client(KCloud::Client::AsGuiThread, this);
+	m_client	= new Client(Client::AsGuiThread, this);
 	m_tree		= ui->mainTreeWidget;
 	m_scene		= new QGraphicsScene(this);
+	m_loader	= new Loader(this);
 
 
 	ui->graphicsView->setScene(m_scene);
 	m_client->start();
 
-	connect(m_client, SIGNAL(serverAnswer(CommandPacket::ServerAnswer)		),
-			this	, SLOT	(onServerAnswer(CommandPacket::ServerAnswer)	));
+
+	connect(m_client	, SIGNAL(serverAnswer(CommandPacket::ServerAnswer)		),
+			this		, SLOT	(onServerAnswer(CommandPacket::ServerAnswer)	));
+
+	connect(m_client	, SIGNAL(transmissionRate(qint64,qint64,Resource::Mode)	),
+			m_loader	, SLOT	(updateStatus(qint64,qint64,Resource::Mode)		));
+
+	connect(m_loader	, SIGNAL(trasmissionEnd()								),
+			this		, SLOT	(finalize()										));
+
 
 
 	if(!appSettings.contains(T_STARTED)){
@@ -71,6 +80,8 @@ void GuiClient::refreshTree(){
 
 	foreach (ResourceHeader head, m_client->getResourceList()) {
 
+		qDebug() << "head.getId() = " << head.getId();
+
 		if(m_resourceMap.contains(head.getParentId())){
 			m_resourceMap.insert(head.getId(), new GraphicResourceHeader(head, m_resourceMap[head.getParentId()]));
 		}else{
@@ -106,16 +117,27 @@ void GuiClient::requestTree(){
 	waiter.exec();
 }
 
+void GuiClient::finalize(){
+	trace;
+	Waiter(m_client, "Finalizzo", this).exec();
+	this->setEnabled(true);
+}
+
+void GuiClient::stampacomeipazzi(const qint64 &total, const qint64 &transmitted){
+	trace << " Total: " << total << " Transmitted: " << transmitted;
+}
+
 void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 
-	switch (serv) {
-		case CommandPacket::ResourceTreeOk:
-			refreshTree();
-			break;
-		default:
-			break;
-	}
+	trace << " serv =  " << (qint32)serv;
 
+	if(serv == CommandPacket::ResourceTreeOk){
+		refreshTree();
+	}else if(serv == CommandPacket::ResourceDownOk){
+		m_loader->show();
+		this->setEnabled(false);
+		m_loader->setEnabled(true);
+	}
 }
 
 void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column){
@@ -125,9 +147,22 @@ void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column)
 	m_scene->clear();
 	m_scene->addPixmap(tmp->getImage());
 
+
 }
 
 
 void GuiClient::on_mainTreeWidget_itemSelectionChanged(){
 	on_mainTreeWidget_itemClicked(m_tree->currentItem(), 0);
+}
+
+void GuiClient::on_downloadButton_clicked(){
+
+	if(m_tree->currentItem() == NULL){
+		qDebug() << "ma che minchia ti hai messo in testa??";
+		return;
+	}
+	quint64 id = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem())->getId();
+	m_client->newDownload(id);
+	Waiter waiter(m_client, "Verifico se posso scaricare...", this);
+	waiter.exec();
 }

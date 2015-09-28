@@ -1,5 +1,6 @@
 #include "NetObject.h"
 #include <QDebug>
+#include "../MainServer/defines.h"
 
 KCloud::NetObject::NetObject(QObject *parent) : QObject(parent){
 
@@ -47,12 +48,12 @@ void KCloud::NetObject::sendThrough(QTcpSocket *sock) throw(Exception){
 
 void KCloud::NetObject::receiveFrom(QTcpSocket *sock) throw(Exception){
 
-	qDebug() << __FILE__ << __LINE__ <<__FUNCTION__;
+	trace;
 	clear();
 	if(sock && sock->isOpen()){
 
 		m_channel = sock;
-		connect(m_channel, SIGNAL(readyRead()),	this, SLOT(recv()),	Qt::UniqueConnection);
+	trace << connect(m_channel, SIGNAL(readyRead()),	this, SLOT(recv()),	Qt::UniqueConnection);
 	}else{
 		throw InvalidSocket();
 	}
