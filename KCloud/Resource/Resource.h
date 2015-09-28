@@ -21,6 +21,11 @@ namespace KCloud{
 			Q_OBJECT
 
 		public:
+				enum Mode{
+					Download,
+					Upload
+				};
+
 			explicit				Resource(QObject *parent = 0);
 
 						QString		getResourcePath() const;
@@ -39,6 +44,9 @@ namespace KCloud{
 						void		compress() throw(Exception);
 						void		decompress(const ResourceHeader &head, const bool &autoRemove = true) throw(Exception);
 						bool		removeZipFile() throw(Exception);
+
+		signals:
+						void		transmissionRate(const qint64 total, const qint64 transmitted, Mode mod);
 
 		protected slots:
 			virtual		void		send(const qint64 block = 0);
@@ -61,6 +69,8 @@ namespace KCloud{
 			QString		m_zipDir;
 			QString		m_zipName;
 			QFile *		m_zipFile;
+			qint64		m_total;
+			qint64		m_transmitted;
 	};
 
 }

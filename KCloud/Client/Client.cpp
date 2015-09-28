@@ -29,6 +29,8 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 	connect(m_resource, SIGNAL(objectSended()),			this,			SLOT(receiveCommand()),			Qt::UniqueConnection);
 	connect(m_resource, SIGNAL(objectReceived()),		this,			SLOT(notifyReceived()),			Qt::UniqueConnection);
 	connect(m_resource, SIGNAL(objectSended()),			this,			SLOT(notifySended()),			Qt::UniqueConnection);
+	connect(m_resource, SIGNAL(transmissionRate(qint64, qint64, Resource::Mode)),
+			this,		SLOT(notifyTransmissionRate(qint64,qint64,Resource::Mode)));
 }
 
 KCloud::Client::~Client(){
@@ -692,4 +694,9 @@ void KCloud::Client::notifyReceived(){
 void KCloud::Client::notifySended(){
 
 	emit resourceSended();
+}
+
+void KCloud::Client::notifyTransmissionRate(const qint64 total, const qint64 transmitted, KCloud::Resource::Mode mod){
+
+	emit transmissionRate(total, transmitted, mod);
 }
