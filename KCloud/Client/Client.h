@@ -30,6 +30,7 @@ namespace KCloud{
 						void							clientError(Exception::Type type);
 						void							resourceReceived();
 						void							resourceSended();
+						void							finalizeOK();
 		public slots:
 			virtual		void							parse() throw (Exception);
 						void							login(const QString &mail, const QString &pass, const User::PwdMode mode);

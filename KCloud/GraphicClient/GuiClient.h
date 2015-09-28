@@ -10,6 +10,8 @@
 #include <QGraphicsScene>
 
 #include "../Client/Client.h"
+
+#include "Waiter.h"
 #include "GraphicResourceHeader.h"
 
 namespace Ui {
@@ -30,16 +32,14 @@ class GuiClient : public QMainWindow{
 
 	private slots:
 
-		void	copyResourceList();
 		void	refreshTree();
+		void	requestTree();
 
 		void	onServerAnswer(const CommandPacket::ServerAnswer serv);
 
+		void	on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
-		void	on_pushButton_clicked();
-
-
-		void on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column);
+		void	on_mainTreeWidget_itemSelectionChanged();
 
 	private:
 		Ui::GuiClient							*ui;
@@ -49,6 +49,7 @@ class GuiClient : public QMainWindow{
 		QTreeWidget								*m_tree;
 		QMap<quint64, GraphicResourceHeader *>	m_resourceMap;
 		QGraphicsScene							*m_scene;
+
 };
 
 #endif // GUICLIENT_H

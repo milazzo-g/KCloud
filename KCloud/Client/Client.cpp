@@ -478,6 +478,7 @@ void KCloud::Client::finalizeResource() throw (Exception){
 
 	try{
 		m_resource->decompress(m_head);
+		emit finalizeOK();
 	}catch(Exception &e){
 		clog("Exception occurred");
 		clog(e.what());

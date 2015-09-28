@@ -41,7 +41,7 @@ KCloud::GraphicResourceHeader::~GraphicResourceHeader(){
 
 QPixmap KCloud::GraphicResourceHeader::getImage(){
 
-	return icon(0).pixmap(128, 128);
+	return icon(0).pixmap(64, 64);
 }
 
 QIcon KCloud::GraphicResourceHeader::getIcon() const{

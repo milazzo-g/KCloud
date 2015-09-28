@@ -3,6 +3,7 @@
 #include "ui_GuiClient.h"
 #include "FirstConfigForm.h"
 
+
 GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClient){
 
 	QSettings appSettings;
@@ -11,6 +12,7 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	m_client	= new KCloud::Client(KCloud::Client::AsGuiThread, this);
 	m_tree		= ui->mainTreeWidget;
 	m_scene		= new QGraphicsScene(this);
+
 
 	ui->graphicsView->setScene(m_scene);
 	m_client->start();
@@ -35,16 +37,9 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	if(!login.getResult()){
 		QTimer::singleShot(0, this, SLOT(close()));
 	}else{
-
 		m_user = m_client->getSessionUser();
-		m_client->resourceTree();
-
+		QTimer::singleShot(0, this, SLOT(requestTree()));
 	}
-
-
-
-
-
 }
 
 GuiClient::~GuiClient(){
@@ -57,10 +52,6 @@ void GuiClient::closeEvent(QCloseEvent *event){
 		m_client->disconnectFromHost();
 	}
 	QMainWindow::closeEvent(event);
-}
-
-void GuiClient::copyResourceList(){
-
 }
 
 void GuiClient::refreshTree(){
@@ -108,27 +99,35 @@ void GuiClient::refreshTree(){
 	}
 }
 
+void GuiClient::requestTree(){
+
+	Waiter waiter(m_client, "Attendo l'albero delle risorse...", this);
+	m_client->resourceTree();
+	waiter.exec();
+}
+
 void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 
-switch (serv) {
-	case CommandPacket::ResourceTreeOk:
-
-		refreshTree();
-		break;
-	default:
-		break;
-}
-
-}
-
-void GuiClient::on_pushButton_clicked(){
+	switch (serv) {
+		case CommandPacket::ResourceTreeOk:
+			refreshTree();
+			break;
+		default:
+			break;
+	}
 
 }
 
 void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column){
 
+	Q_UNUSED(column);
 	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(item);
 	m_scene->clear();
 	m_scene->addPixmap(tmp->getImage());
 
+}
+
+
+void GuiClient::on_mainTreeWidget_itemSelectionChanged(){
+	on_mainTreeWidget_itemClicked(m_tree->currentItem(), 0);
 }

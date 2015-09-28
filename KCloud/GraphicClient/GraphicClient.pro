@@ -17,16 +17,22 @@ SOURCES += main.cpp\
         GuiClient.cpp \
     LoginForm.cpp \
     FirstConfigForm.cpp \
-    GraphicResourceHeader.cpp
+    GraphicResourceHeader.cpp \
+    Loader.cpp \
+    Waiter.cpp
 
 HEADERS  += GuiClient.h \
     LoginForm.h \
     FirstConfigForm.h \
-    GraphicResourceHeader.h
+    GraphicResourceHeader.h \
+    Loader.h \
+    Waiter.h
 
 FORMS    += GuiClient.ui \
     LoginForm.ui \
-    FirstConfigForm.ui
+    FirstConfigForm.ui \
+    Loader.ui \
+    Waiter.ui
 
 RESOURCES += \
     icons.qrc
