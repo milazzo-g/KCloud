@@ -8,7 +8,6 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	QSettings appSettings;
 	client = new KCloud::Client(KCloud::Client::AsGuiThread, this);
 
-
 	ui->setupUi(this);
 	client->start();
 
