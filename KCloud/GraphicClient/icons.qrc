@@ -85,4 +85,7 @@
         <file>dir.png</file>
         <file>unknown.png</file>
     </qresource>
+    <qresource prefix="/text">
+        <file>lgpl.txt</file>
+    </qresource>
 </RCC>
