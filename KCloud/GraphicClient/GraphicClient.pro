@@ -35,7 +35,7 @@ FORMS    += GuiClient.ui \
     Waiter.ui
 
 RESOURCES += \
-    icons.qrc
+    projectResources.qrc
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Client/release/ -lClient
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Client/debug/ -lClient
