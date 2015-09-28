@@ -430,6 +430,11 @@ void KCloud::Client::newDownload(const quint64 &resourceId, const QString &saveP
 	}
 }
 
+KCloud::User *KCloud::Client::getSessionUser() const{
+
+	return m_user;
+}
+
 
 
 void KCloud::Client::setSessionUser(){

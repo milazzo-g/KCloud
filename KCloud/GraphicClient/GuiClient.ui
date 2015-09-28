@@ -6,26 +6,40 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>574</width>
+    <height>358</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>KCloud::Client</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="icons.qrc">
+    <normaloff>:/kcloudIcons/kcloud_64x64.png</normaloff>:/kcloudIcons/kcloud_64x64.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QTreeWidget" name="mainTreeWidget">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>110</y>
-      <width>99</width>
-      <height>27</height>
+      <x>20</x>
+      <y>20</y>
+      <width>531</width>
+      <height>261</height>
      </rect>
     </property>
-    <property name="text">
-     <string>PushButton</string>
+    <property name="columnCount">
+     <number>2</number>
     </property>
+    <column>
+     <property name="text">
+      <string>Nome</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Dimensione</string>
+     </property>
+    </column>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -33,7 +47,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>574</width>
      <height>25</height>
     </rect>
    </property>
@@ -49,6 +63,8 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

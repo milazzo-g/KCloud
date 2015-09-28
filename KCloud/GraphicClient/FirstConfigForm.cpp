@@ -168,7 +168,7 @@ void FirstConfigForm::onClientError(const Exception::Type extType){
 
 	switch (extType) {
 		case Exception::UserBadMail:
-			m_registerMessage->setText("L'email inserita non è valida, riprova");
+			m_registerMessage->setText("L'email inserita non è valida, riprova...");
 			m_goToPathConfig->setEnabled(true);
 			break;
 		default:

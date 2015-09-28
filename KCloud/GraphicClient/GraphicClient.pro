@@ -16,11 +16,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         GuiClient.cpp \
     LoginForm.cpp \
-    FirstConfigForm.cpp
+    FirstConfigForm.cpp \
+    GraphicResourceHeader.cpp
 
 HEADERS  += GuiClient.h \
     LoginForm.h \
-    FirstConfigForm.h
+    FirstConfigForm.h \
+    GraphicResourceHeader.h
 
 FORMS    += GuiClient.ui \
     LoginForm.ui \

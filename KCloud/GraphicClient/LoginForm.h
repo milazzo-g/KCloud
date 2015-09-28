@@ -34,9 +34,10 @@ class LoginForm : public QDialog{
 		Q_OBJECT
 
 	public:
-		explicit LoginForm(QWidget *parent = 0);
-		~LoginForm();
+		explicit			LoginForm(Client * client, QWidget *parent = 0);
+							~LoginForm();
 
+					bool	getResult() const;
 
 	private slots:
 
@@ -46,19 +47,19 @@ class LoginForm : public QDialog{
 
 		void onClientConnected();
 
-		void onClientDisconnected();
-
 		void onClientSocketError(const QAbstractSocket::SocketError err);
 
 		void on_cancelBtn_clicked();
 
 		void on_loginBtn_clicked();
 
-	protected:
-		void closeEvent(QCloseEvent *event);
+		void on_emailEdit_textChanged(const QString &arg1);
+
+		void on_passwordEdit_textChanged(const QString &arg1);
 
 	private:
 		Ui::LoginForm	*ui;
+		bool			m_result;
 		QMovie			*m_movie;
 		QLabel			*m_message;
 		QLabel			*m_loader;
