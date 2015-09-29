@@ -328,6 +328,16 @@ KCloud::Exception::Type KCloud::NotLogged::type() const{
 	return ClientNotLogged;
 }
 
+const char *KCloud::OldPasswordNotCorresponding::what() const{
+
+	return "ClientException : Old password inserted not corresponding with saved password";
+}
+
+KCloud::Exception::Type KCloud::OldPasswordNotCorresponding::type() const{
+
+	return ClientOldPasswordNotCorresponding;
+}
+
 /*
  *		Eccezioni Database
  *

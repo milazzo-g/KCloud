@@ -45,7 +45,7 @@ void KCloud::WorkerServer::parse(){
 
 	clog(QString("Command received from ") + m_socket->peerAddress().toString());
 
-	switch (m_packet->getClientCommand()) {
+	switch (m_packet->getClientCommand()){
 		case CommandPacket::Login:
 			login();
 			break;
@@ -66,6 +66,16 @@ void KCloud::WorkerServer::parse(){
 			break;
 		case CommandPacket::UserRegister:
 			userRegister();
+			break;
+		case CommandPacket::PasswordChange:
+			passwordChange();
+			break;
+		case CommandPacket::ResourceMod:
+			resourceMod();
+			break;
+		case CommandPacket::ResourceSharing:
+			resourceShare();
+			break;
 		default:
 			break;
 	}
@@ -209,8 +219,43 @@ void KCloud::WorkerServer::resourceUp(){				////Riguardare per forza!
 	sendCommand();
 }
 
-void KCloud::WorkerServer::resourceMod(){
+void KCloud::WorkerServer::resourceMod(){			//nuovo arrivo
 
+	clog(QString("Resource modification request from ") + m_socket->peerAddress().toString());
+
+	if(userIsLogged()){
+		try{
+			ResourcesManager::ResourcesManagerAnswer r = m_resourcesManager->modResource(*m_user, m_packet->getFirstResourceHeader());
+
+			switch (r){
+				case ResourcesManager::ResourceNotExist:
+					clog("Resource modify, resource not exist");
+					m_packet->answerToResourceMod(CommandPacket::ResourceModInvalidId);
+					break;
+				case ResourcesManager::PermError:
+					clog("Resource modify, not having permission");
+					m_packet->answerToResourceMod(CommandPacket::ResourceModInvalidPerm);
+					break;
+				case ResourcesManager::ResourceModOk:
+					clog("Resource modified");
+					m_packet->answerToResourceMod(CommandPacket::ResourceModOk);
+					break;
+				default:
+					clog("Generalmente non dovremmo essere qui!");
+					clog(QString("m_resourcesManager->modResource(*m_user, m_packet->getFirstResourceHeader()) = ") + QString::number((qint32)r));
+					break;
+			}
+		}catch(Exception &e){
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
+			m_packet->answerToResourceMod(CommandPacket::ResourceModFail, errors);
+		}
+	}else{
+		m_packet->answerToResourceMod(CommandPacket::NotLoggedUser);
+	}
+	sendCommand();
 }
 
 void KCloud::WorkerServer::resourceDel(){
@@ -366,10 +411,78 @@ void KCloud::WorkerServer::resourcePerm(){
 
 void KCloud::WorkerServer::resourceShare(){
 
+	clog(QString("Resource sharing request from ") + m_socket->peerAddress().toString());
+	if(userIsLogged()){
+		try{
+			QStringList failsSharing;
+			ResourcesManager::ResourcesManagerAnswer r = m_resourcesManager->shareResource(*m_user, m_packet->getFirstResourceHeader(), failsSharing);
+
+			switch (r) {
+				case ResourcesManager::ResourceNotExist:
+					clog("Resource sharing, invalid id");
+					m_packet->answerToResourceSharing(CommandPacket::ResourceSharingInvalidId);
+					break;
+				case ResourcesManager::PermError:
+					clog("Resource sharing, invalid perm");
+					m_packet->answerToResourceSharing(CommandPacket::ResourceSharingInvalidPerm);
+					break;
+				case ResourcesManager::SharingOk:
+					if(failsSharing.isEmpty()){
+						clog("Resource sharing ok");
+						m_packet->answerToResourceSharing(CommandPacket::ResourceSharingOk);
+					}else{
+						clog("Resource sharing, Errors.....");
+						m_packet->answerToResourceSharing(CommandPacket::ResourceSharingErrors, failsSharing);
+					}
+					break;
+				default:
+					clog("Generalmente non dovremmo essere qui!");
+					clog(QString("m_resourcesManager->shareResource(*m_user, m_packet->getFirstResourceHeader(), failsSharing));") + QString::number((qint32)r));
+					m_packet->answerToResourceSharing(CommandPacket::ResourceSharingFail);
+					break;
+			}
+		}catch(Exception &e){
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
+			m_packet->answerToResourceSharing(CommandPacket::ServerInternalError, errors);
+		}
+	}else{
+		m_packet->answerToResourceSharing(CommandPacket::NotLoggedUser);
+	}
+	sendCommand();
 }
 
-void KCloud::WorkerServer::passwordChange(){
+void KCloud::WorkerServer::passwordChange(){			// nuovo arrivo
 
+	clog(QString("Password change request from ") + m_socket->peerAddress().toString());
+
+	if(userIsLogged() && (m_packet->getUser().getEmail() == m_user->getEmail())){
+		try{
+			UsersManager::UsersManagerAnswer r = m_usersManager->checkPasswordChange(m_packet->getUser());
+
+			switch (r){
+				case UsersManager::UserPasswordChangeOk:
+					clog("Password change Ok!");
+					m_packet->answerToPasswordChange(CommandPacket::PasswordChangeOk);
+					break;
+				default:
+					clog("Generalmente non dovremmo essere qui!");
+					clog(QString("m_usersManager->checkPasswordChange(m_packet->getUser())") + QString::number((qint32)r));
+					break;
+			}
+		}catch(Exception &e){
+			clog("Exception Occurred!");
+			clog(e.what());
+			QStringList errors;
+			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
+			m_packet->answerToPasswordChange(CommandPacket::PasswordChangeFail, errors);
+		}
+	}else{
+		m_packet->answerToPasswordChange(CommandPacket::NotLoggedUser);
+	}
+	sendCommand();
 }
 
 void KCloud::WorkerServer::forcedLogout(){			////Completata <Sistemare Stringhe errori>

@@ -23,8 +23,10 @@ const QString KCloud::ResourcesManager::queryResources_18(" DELETE FROM resource
 const QString KCloud::ResourcesManager::queryResources_19(" SELECT * FROM resources WHERE owner = :email ");
 const QString KCloud::ResourcesManager::queryResources_20(" SELECT id, parent, owner, name, type, size FROM sharing JOIN resources ON sharing.resource = resources.id  WHERE sharing.user = :email ");
 const QString KCloud::ResourcesManager::queryResources_21(" SELECT id, parent, owner, name, type, size FROM publicResources JOIN resources ON publicResources.resource = resources.id ");
-
-
+const QString KCloud::ResourcesManager::queryResources_22(" UPDATE resources SET name = :name WHERE id = :id ");
+const QString KCloud::ResourcesManager::queryResources_23(" UPDATE publicResources SET permission = :permission WHERE resource = :id ");
+const QString KCloud::ResourcesManager::queryResources_24(" DELETE FROM sharing WHERE resource = :id AND user = :email");
+const QString KCloud::ResourcesManager::queryResources_25(" UPDATE sharing SET permission = :permission WHERE resource = :id AND user = :email ");
 
 KCloud::ResourcesManager::ResourcesManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
 
@@ -167,6 +169,83 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::delRe
 	}
 }
 
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::modResource(const KCloud::User &usr, const KCloud::ResourceHeader &head) throw (Exception){
+
+	if(open()){
+		ResourceHeader toMod = getHeader(head.getId());
+		if(!resourceExists(head.getId())){
+			close();
+			return ResourceNotExist;
+		}
+		if(!isOwner(usr, toMod.getId()) || toMod.getName() == usr.getEmail()){
+			close();
+			return PermError;
+		}else{
+			updateResourceName(head.getId(), head.getName());
+			close();
+			return ResourceModOk;
+		}
+	}else{
+		throw OpenFailure();
+	}
+}
+
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::shareResource(const KCloud::User &usr, const KCloud::ResourceHeader &head, QStringList &errorUsersShare) throw (Exception){
+
+	if(open()){
+
+		if(!resourceExists(head.getId())){
+			close();
+			return ResourceNotExist;
+		}
+		if(!isOwner(usr, head.getId()) || head.getName() == usr.getEmail()){
+			close();
+			return PermError;
+		}else{
+
+			if(head.getPublicPermission() != ResourceHeader::PermUndef){
+				//devo aggiungere i permessi pubblici
+				if(getPublicPermission(head.getId()) == ResourceHeader::PermUndef){
+					//li creo nuovi
+					setPublicPermission(head);
+				}else{
+					//li aggiorno
+					updatePublicPermission(head);
+				}
+			}
+			//permessi di condivisione
+			QMap<QString, ResourceHeader::ResourcePerm> newPerm = head.getPermissionTable();
+			QMap<QString, ResourceHeader::ResourcePerm> oldPerm = getSharedPermission(head.getId());
+
+			foreach (QString s, oldPerm.keys()){
+				if(!newPerm.contains(s)){
+					//elimino il permesso vecchio contenuto in oldPerm
+					deleteSharing(head.getId(), s);
+				}
+			}
+
+			foreach (QString s, newPerm.keys()){
+				if(!userExists(s)){
+					errorUsersShare << s;
+				}else{
+					if(oldPerm.contains(s) && oldPerm[s] != newPerm[s]){
+						//aggiorno i permessi per l'utente
+						updareSharing(head.getId(), s, newPerm[s]);
+
+					}else if(!oldPerm.contains(s)){
+						//aggiungo il singolo utente, permesso
+						addSharing(head.getId(), s, newPerm[s]);
+					}
+				}
+			}
+			close();
+			return SharingOk;
+		}
+	}else{
+		throw OpenFailure();
+	}
+}
+
 QList<KCloud::ResourceHeader> KCloud::ResourcesManager::resourceTree(const KCloud::User &usr){
 
 	if(open()){
@@ -177,7 +256,6 @@ QList<KCloud::ResourceHeader> KCloud::ResourcesManager::resourceTree(const KClou
 		throw OpenFailure();
 	}
 }
-
 
 /*
  * OK!!!!!!! -> Definitiva
@@ -283,6 +361,74 @@ bool KCloud::ResourcesManager::userExists(const QString &usr) throw (Exception){
 		throw OpenFailure();
 	}
 }
+
+void KCloud::ResourcesManager::updateResourceName(const quint64 &id, const QString &name) throw (Exception){
+
+	if(isOpen()){
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_22);
+		query.bindValue(placeHolder_id, id);
+		query.bindValue(placeHolder_name, name);
+		tryExec(query);
+	}else{
+		throw OpenFailure();
+	}
+}
+
+void KCloud::ResourcesManager::updatePublicPermission(const KCloud::ResourceHeader &head) throw (Exception){
+
+	if(isOpen()){
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_23);
+		query.bindValue(placeHolder_id, head.getId());
+		query.bindValue(placeHolder_permission,	head.getPublicPermission() == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
+		tryExec(query);
+	}else{
+		throw OpenFailure();
+	}
+}
+
+void KCloud::ResourcesManager::deleteSharing(const quint64 &id, const QString &user) throw (Exception){
+
+	if(isOpen()){
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_24);
+		query.bindValue(placeHolder_id, id);
+		query.bindValue(placeHolder_mail, user);
+		tryExec(query);
+	}else{
+		throw OpenFailure();
+	}
+}
+
+void KCloud::ResourcesManager::updareSharing(const quint64 &id, const QString &user, KCloud::ResourceHeader::ResourcePerm perm) throw (Exception){
+
+	if(isOpen()){
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_25);
+		query.bindValue(placeHolder_id, id);
+		query.bindValue(placeHolder_mail, user);
+		query.bindValue(placeHolder_permission, perm == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
+		tryExec(query);
+	}else{
+		throw OpenFailure();
+	}
+}
+
+void KCloud::ResourcesManager::addSharing(const quint64 &id, const QString &user, KCloud::ResourceHeader::ResourcePerm perm) throw (Exception){
+
+	if(isOpen()){
+	QSqlQuery query(m_db);
+	query.prepare(queryResources_9);
+	query.bindValue(placeHolder_id, id);
+	query.bindValue(placeHolder_mail, user);
+	query.bindValue(placeHolder_permission, perm == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
+	tryExec(query);
+	}else{
+	throw OpenFailure();
+	}
+
+}
 /*
  * OK!!!!!!! -> Definitiva
  */
@@ -305,6 +451,7 @@ qint64 KCloud::ResourcesManager::userSpace(const QString &usr) throw (Exception)
 		throw OpenFailure();
 	}
 }
+
 /*
  * OK!!!!!!! -> Definitiva
  */
@@ -330,6 +477,7 @@ qint64 KCloud::ResourcesManager::resourceSize(const quint64 &id) throw (Exceptio
 /*
  * OK!!!!!!! -> Definitiva
  */
+
 KCloud::ResourceHeader::ResourceType KCloud::ResourcesManager::resourceType(const quint64 &id) throw (Exception){
 
 	if(isOpen()){
@@ -349,9 +497,11 @@ KCloud::ResourceHeader::ResourceType KCloud::ResourcesManager::resourceType(cons
 		throw OpenFailure();
 	}
 }
+
 /*
  * OK!!!!!!! -> Definitiva
  */
+
 KCloud::ResourceHeader::ResourcePerm KCloud::ResourcesManager::publicPerm(const quint64 &id) throw (Exception){
 
 	if(isOpen()){
@@ -371,9 +521,11 @@ KCloud::ResourceHeader::ResourcePerm KCloud::ResourcesManager::publicPerm(const 
 		throw OpenFailure();
 	}
 }
+
 /*
  * OK!!!!!!! -> Definitiva
  */
+
 KCloud::ResourceHeader::ResourcePerm KCloud::ResourcesManager::sharedPerm(const KCloud::User &usr, const quint64 &id) throw (Exception){
 
 	if(isOpen()){
@@ -499,6 +651,7 @@ void KCloud::ResourcesManager::recursiveDel(const KCloud::ResourceHeader &head) 
 /*
  * OK!!!!!!! -> Definitiva
  */
+
 void KCloud::ResourcesManager::updateSpace(const QString &usr, const quint64 &id, const KCloud::ResourcesManager::SpaceUpdateMode mode) throw (Exception){
 
 	if(isOpen()){
@@ -515,6 +668,7 @@ void KCloud::ResourcesManager::updateSpace(const QString &usr, const quint64 &id
 /*
  * OK!!!!!!! -> Definitiva
  */
+
 void KCloud::ResourcesManager::setPublicPermission(const KCloud::ResourceHeader &header) throw (Exception){
 
 	if(isOpen()){
@@ -557,6 +711,7 @@ KCloud::ResourceHeader::ResourcePerm KCloud::ResourcesManager::getPublicPermissi
 /*
  * OK!!!!!!! -> Definitiva
  */
+
 QStringList KCloud::ResourcesManager::setSharedPermission(const KCloud::ResourceHeader &header) throw (Exception){
 
 	if(isOpen()){
