@@ -21,12 +21,14 @@ KCloud::Engine::~Engine(){
 void KCloud::Engine::sendCommand(){
 
 	qDebug() << __FUNCTION__;
+	QThread::msleep(500);
 	m_packet->prepareForSend();
 	m_packet->sendThrough(m_socket);
 }
 
 void KCloud::Engine::sendResource(){
 	qDebug() << __FUNCTION__;
+	QThread::msleep(500);
 	m_resource->prepareForSend();
 	m_resource->sendThrough(m_socket);
 }
