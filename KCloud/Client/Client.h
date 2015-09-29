@@ -39,14 +39,14 @@ namespace KCloud{
 						void							login(const QString &mail, const QString &pass, const User::PwdMode mode);
 			virtual		void							logout();											//fatto		ok
 			virtual		void							resourceUp();										//fatto		ok
-			virtual		void							resourceMod();
-			virtual		void							resourceDel(const quint64 &resourceId);										//non utilizzata
+			virtual		void							resourceMod(const ResourceHeader &modifiedHead);
+			virtual		void							resourceDel(const quint64 &resourceId);				//fatto
 			virtual		void							resourceTree();										//fatto
 			virtual		void							resourceDown();										//fatto
 			virtual		void							userRegister(const QString &email, const QString &password, const User::PwdMode mode);
 			virtual		void							resourcePerm();
-			virtual		void							resourceShare();
-			virtual		void							passwordChange();
+			virtual		void							resourceShare(const ResourceHeader &head);
+			virtual		void							passwordChange(const QString &oldHash, const QString &newHash); // da provare
 						void							disconnectFromHost();
 						QStringList						lastErrors();
 

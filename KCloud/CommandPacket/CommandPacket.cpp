@@ -77,6 +77,20 @@ void KCloud::CommandPacket::setForResourceUp(const QString &localPath,
 	setClientCommand(ResourceUp);
 }
 
+void KCloud::CommandPacket::setForResourceMod(const KCloud::ResourceHeader &mod){
+
+	clear();
+	setFirstResourceHeader(mod);
+	setClientCommand(ResourceMod);
+}
+
+void KCloud::CommandPacket::setForResourceSharing(const KCloud::ResourceHeader &head){
+
+	clear();
+	setFirstResourceHeader(head);
+	setClientCommand(ResourceSharing);
+}
+
 void KCloud::CommandPacket::setForResourceDown(const quint64 &resourceId){
 
 	clear();
@@ -202,6 +216,20 @@ void KCloud::CommandPacket::answerToResourceDown(KCloud::CommandPacket::ServerAn
 	clear();
 	setServerAnswer(answer);
 	setFirstResourceHeader(head);
+	setErrorStringList(errorList);
+}
+
+void KCloud::CommandPacket::answerToResourceMod(KCloud::CommandPacket::ServerAnswer answer, const QStringList &errorList){
+
+	clear();
+	setServerAnswer(answer);
+	setErrorStringList(errorList);
+}
+
+void KCloud::CommandPacket::answerToResourceSharing(KCloud::CommandPacket::ServerAnswer answer, const QStringList &errorList){
+
+	clear();
+	setServerAnswer(answer);
 	setErrorStringList(errorList);
 }
 

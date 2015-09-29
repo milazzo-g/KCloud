@@ -85,11 +85,11 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 						break;
 
 					}
-					break;
+				break;
 
 			case CommandPacket::Logout:
 
-					switch (r){
+				switch (r){
 						case CommandPacket::LogoutOk:
 							clog("Logout ok");
 							emit serverAnswer(r);
@@ -104,11 +104,11 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 							throw CorruptPacketException();
 							break;
 					}
-					break;
+				break;
 
 			case CommandPacket::ResourceUp:
 
-					switch (r){
+				switch (r){
 						case CommandPacket::ResourceUpOk:
 							clog(QString("Caricamento consentito"));
 							emit serverAnswer(r);
@@ -159,11 +159,11 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 							throw CorruptPacketException();
 							break;
 					}
-					break;
+				break;
 
 			case CommandPacket::ResourceDown:
 
-					switch (r){
+				switch (r){
 						case CommandPacket::ResourceDownOk:
 							clog("Scaricamento consentito");
 							emit serverAnswer(r);
@@ -189,11 +189,11 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 							throw CorruptPacketException();
 							break;
 					}
-					break;
+				break;
 
 			case CommandPacket::ResourceTree:
 
-					switch (r){
+				switch (r){
 
 						case CommandPacket::ResourceTreeOk:
 							clog("Ricevuto albero delle risorse");
@@ -210,11 +210,11 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 							throw CorruptPacketException();
 							break;
 					}
-					break;
+				break;
 
 			case CommandPacket::ResourceDel:
 
-					switch (r) {
+				switch (r){
 						case CommandPacket::ResourceDelOk:
 							clog("Cancellazione avvenuta con successo");
 							emit serverAnswer(r);
@@ -234,11 +234,11 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 							throw CorruptPacketException();
 							break;
 					}
-					break;
+				break;
 
 			case CommandPacket::UserRegister:
 
-					switch (r){
+				switch (r){
 						case CommandPacket::UserRegisterOk:
 							clog("Registrazione avvenuta con successo");
 							emit serverAnswer(r);
@@ -258,8 +258,90 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 							throw CorruptPacketException();
 							break;
 					}
-					break;
+				break;
+			case CommandPacket::PasswordChange:
 
+				switch (r){
+					case CommandPacket::PasswordChangeOk:
+						clog("Cambio password avvenuto con successo");
+						emit serverAnswer(r);
+						break;
+
+					case CommandPacket::PasswordChangeFail:
+						clog("Cambio password non riucito!");
+						emit serverAnswer(r);
+						break;
+
+					default:
+						throw CorruptPacketException();
+						break;
+				}
+				break;
+
+			case CommandPacket::ResourceMod:
+
+				switch (r){
+					case CommandPacket::ResourceModOk:
+						clog("Modifica della risorsa evvenuta con successo");
+						emit serverAnswer(r);
+						break;
+
+					case CommandPacket::ResourceModInvalidId:
+						clog("Modifica della risorsa, id non valido!");
+						emit serverAnswer(r);
+						break;
+					case CommandPacket::ResourceModInvalidPerm:
+						clog("Modifica della risorsa, permessi insufficienti per la modifica richiesta");
+						emit serverAnswer(r);
+						break;
+
+					case CommandPacket::ResourceModFail:
+						clog("Modifica della risorsa, fallita!");
+						emit serverAnswer(r);
+						break;
+
+					default:
+						throw CorruptPacketException();
+						break;
+				}
+				break;
+
+			case CommandPacket::ResourceSharing:
+
+				switch (r){
+					case CommandPacket::ResourceSharingOk:
+						clog("Condivisione della risorsa evvenuta con successo");
+						emit serverAnswer(r);
+						break;
+
+					case CommandPacket::ResourceSharingInvalidPerm:
+						clog("Condivisione della risorsa, permessi insufficienti!");
+						emit serverAnswer(r);
+						break;
+
+					case CommandPacket::ResourceSharingInvalidId:
+						clog("Condivisione della risorsa, id non valido!");
+						emit serverAnswer(r);
+						break;
+
+					case CommandPacket::ResourceSharingErrors:
+						clog("Condivisione della risorsa, Errore nella condivisione");
+						foreach (QString err, m_packet->getLastError()){
+							m_errors << clog(err);
+						}
+						emit serverAnswer(r);
+						break;
+
+					case CommandPacket::ResourceSharingFail:
+						clog("Condivisione della risorsa, Errore nella condivisione");
+						emit serverAnswer(r);
+						break;
+
+					default:
+						throw CorruptPacketException();
+						break;
+				}
+				break;
 			default:
 				trace << " Non ancora implementate!";
 				break;
@@ -295,8 +377,21 @@ void KCloud::Client::resourceUp(){	///ok
 	sendResource();
 }
 
-void KCloud::Client::resourceMod(){
+void KCloud::Client::resourceMod(const KCloud::ResourceHeader &modifiedHead){		//nuovo arrivo
 
+	try{
+		if(isLogged()){
+			m_packet->setForResourceMod(modifiedHead);
+			m_lastCommand = m_packet->getClientCommand();
+			sendCommand();
+
+		}else{
+			throw NotLogged();
+		}
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
+	}
 }
 
 void KCloud::Client::resourceDel(const quint64 &resourceId){	///ok
@@ -355,12 +450,43 @@ void KCloud::Client::resourcePerm(){
 
 }
 
-void KCloud::Client::resourceShare(){
+void KCloud::Client::resourceShare(const KCloud::ResourceHeader &head){
 
+	try{
+		if(isLogged()){
+			m_packet->setForResourceSharing(head);
+			m_lastCommand = m_packet->getClientCommand();
+			sendCommand();
+		}else{
+			throw NotLogged();
+		}
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
+	}
 }
 
-void KCloud::Client::passwordChange(){
+void KCloud::Client::passwordChange(const QString &oldHash, const QString &newHash){			//nuovo arrivo
 
+	try{
+		if(isLogged()){
+			if(oldHash == m_user->getHash()){
+				User tmp = *m_user;
+				tmp.setHash(newHash, User::NotEncrypt);
+				m_packet->setForPasswordChange(tmp);
+				m_lastCommand = m_packet->getClientCommand();
+				sendCommand();
+			}else{
+				throw OldPasswordNotCorresponding();
+			}
+		}else{
+			throw NotLogged();
+		}
+
+	}catch(Exception &e){
+		m_errors << clog(e.what());
+		emit clientError(e.type());
+	}
 }
 
 void KCloud::Client::disconnectFromHost(){
@@ -443,8 +569,6 @@ KCloud::User *KCloud::Client::getSessionUser() const{
 
 	return m_user;
 }
-
-
 
 void KCloud::Client::setSessionUser(){
 

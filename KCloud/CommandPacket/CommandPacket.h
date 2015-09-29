@@ -54,6 +54,15 @@ namespace KCloud{
 						UserRegisterFail,
 						PasswordChangeOk,
 						PasswordChangeFail,
+						ResourceModOk,
+						ResourceModFail,
+						ResourceModInvalidId,
+						ResourceModInvalidPerm,
+						ResourceSharingOk,
+						ResourceSharingInvalidPerm,
+						ResourceSharingInvalidId,
+						ResourceSharingErrors,
+						ResourceSharingFail,
 						ServerInternalError
 					};
 
@@ -66,8 +75,9 @@ namespace KCloud{
                         ResourceDown,
 						ResourceTree,
 						UserRegister,
-						PasswordChange
-
+						PasswordChange,
+						ResourceMod,
+						ResourceSharing
 					};
 
 		explicit							CommandPacket(QObject *parent = 0);
@@ -77,7 +87,7 @@ namespace KCloud{
 		virtual		void					prepareForRecv();
 		virtual		void					prepareForSend() throw(Exception);
 
-                    //mancano modifica risorse, cambio permessi, condivisione, cambio password e altro....
+					//mancano modifica risorse, cambio permessi, condivisione
 					void					setForLogout();
 					void					setForResourceTree();
 					void					setForLogin(const User &usr);
@@ -90,6 +100,8 @@ namespace KCloud{
 															 const quint64 &parentId,
 															 const QMap<QString, ResourceHeader::ResourcePerm> &permissionTable = QMap<QString, ResourceHeader::ResourcePerm>(),
 															 ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception);
+					void					setForResourceMod(const ResourceHeader &mod);
+					void					setForResourceSharing(const ResourceHeader &head);
 
 					User					getUser() const;
 					QStringList				getLastError() const;
@@ -106,6 +118,8 @@ namespace KCloud{
 					void					answerToLogin(ServerAnswer answer, const User &usr = User(), const QStringList &errorStringList = QStringList());
                     void					answerToResourceTree(ServerAnswer answer, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
 					void					answerToResourceDown(ServerAnswer answer, const ResourceHeader &head = ResourceHeader(), const QStringList &errorList = QStringList());
+					void					answerToResourceMod(ServerAnswer answer, const QStringList &errorList = QStringList());
+					void					answerToResourceSharing(ServerAnswer answer, const QStringList &errorList = QStringList());
 		protected slots:
 
 		virtual		void					send(const qint64 block = 0);
