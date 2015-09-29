@@ -7,8 +7,11 @@
 #include <QTimer>
 #include <QThread>
 #include <QSettings>
+#include <QListView>
 #include <QCloseEvent>
+#include <QFileDialog>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QHeaderView>
 #include <QTableWidget>
 #include <QMediaPlayer>
@@ -20,6 +23,7 @@
 
 #include "Waiter.h"
 #include "Loader.h"
+#include "PermSettings.h"
 #include "GraphicResourceHeader.h"
 
 namespace Ui {
@@ -48,6 +52,8 @@ class GuiClient : public QMainWindow{
 		void	restoreMain();
 		void	restoreMainWithSound();
 
+
+
 		void	onServerAnswer(const CommandPacket::ServerAnswer serv);
 
 		void	on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column);
@@ -55,6 +61,8 @@ class GuiClient : public QMainWindow{
 		void	on_mainTreeWidget_itemSelectionChanged();
 
 		void	on_downloadButton_clicked();
+
+		void on_uploadButton_clicked();
 
 	private:
 		Ui::GuiClient *							ui;

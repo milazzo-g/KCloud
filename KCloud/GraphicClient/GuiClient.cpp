@@ -12,6 +12,7 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	m_client			= new Client(Client::AsGuiThread, this);
 	m_tree				= ui->mainTreeWidget;
 	m_resourceInfoTable = ui->resourceInfoTable;
+	m_permissionTable	= ui->permissionTable;
 	m_scene				= new QGraphicsScene(this);
 	m_loader			= new Loader(this);
 	m_waiter			= new Waiter(this);
@@ -23,9 +24,8 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	m_resourceInfoTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
 	m_resourceInfoTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
 	m_resourceInfoTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-
-
+	m_permissionTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+	m_permissionTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
 	connect(m_client	, SIGNAL(finished()										),
 			m_client	, SLOT	(deleteLater()									));
@@ -180,13 +180,32 @@ void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column){
 
 	Q_UNUSED(column);
+	int currentRow = 0;
 	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(item);
 	m_scene->clear();
 	m_scene->addPixmap(tmp->getImage());
 	m_resourceInfoTable->item(0, 1)->setText(tmp->getName());
 	m_resourceInfoTable->item(1, 1)->setText(QString::number(tmp->getSize()));
 	m_resourceInfoTable->item(2, 1)->setText(tmp->getType() == ResourceHeader::Dir ? "Cartella" : "File");
+	m_permissionTable->setRowCount(0);
+	foreach (QString user, tmp->getPermissionTable().keys()){
+		QTableWidgetItem * userItem = new QTableWidgetItem();
+		QTableWidgetItem * permItem = new QTableWidgetItem();
+		userItem->setText(user);
+		if(tmp->getType() == GraphicResourceHeader::Dir){
+			permItem->setIcon(tmp->getPermission(user) == GraphicResourceHeader::Read ? QIcon(":/icons/icons/read_dir.png") : QIcon(":/icons/icons/write_dir.png"));
+		}else{
+			permItem->setIcon(tmp->getPermission(user) == GraphicResourceHeader::Read ? QIcon(":/icons/icons/read_file.png") : QIcon(":/icons/icons/write_file.png"));
+		}
+		permItem->setText(tmp->getPermission(user) == GraphicResourceHeader::Read ? QString("Lettura") : QString("Scrittura"));
 
+		userItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+		permItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+		m_permissionTable->insertRow(currentRow);
+		m_permissionTable->setItem(currentRow, 0, userItem);
+		m_permissionTable->setItem(currentRow, 1, permItem);
+		currentRow++;
+	}
 }
 
 void GuiClient::on_mainTreeWidget_itemSelectionChanged(){
@@ -201,4 +220,45 @@ void GuiClient::on_downloadButton_clicked(){
 	quint64 id = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem())->getId();
 	waitResponse("Controllo i permessi...");
 	m_client->newDownload(id);
+}
+
+void GuiClient::on_uploadButton_clicked(){
+
+	if(m_tree->currentItem() == NULL){
+		return;
+	}
+
+	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem());
+
+	if(tmp->getType() == GraphicResourceHeader::File){
+		QMessageBox::information(this, "KCloud::Info", tmp->getName() + QString(" è un file, non posso inserire oggetti all'interno..."));
+		return;
+	}
+	QString path;
+	QMessageBox info;
+	QPushButton *fileBtn = info.addButton("File", QMessageBox::AcceptRole);
+	QPushButton *dirBtn = info.addButton("Cartella", QMessageBox::AcceptRole);
+	QPushButton *cancelBtn = info.addButton("Annulla", QMessageBox::RejectRole);
+	info.setText("KCloud::Upload");
+	info.setIcon(QMessageBox::Information);
+	info.setText("Vuoi caricare un file o una cartella?");
+	info.exec();
+
+	Q_UNUSED(cancelBtn);
+
+	if(info.clickedButton() == fileBtn){
+		path = QFileDialog::getOpenFileName(this, "KCloud::Upload", QDir::home().path());
+	}else if(info.clickedButton() == dirBtn){
+		path = QFileDialog::getExistingDirectory(this, "KCloud::Upload", QDir::home().path());
+	}else{
+		return;
+	}
+
+	PermSettings(m_user, GraphicResourceHeader::File, this).exec();
+
+	return;
+
+	waitResponse("Aspetto la risposta del server...");
+	m_client->newUpload(path, m_user, tmp->getId());
+
 }

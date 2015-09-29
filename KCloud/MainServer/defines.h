@@ -1,6 +1,8 @@
 #ifndef DEFINES
 #define DEFINES
 
+#include <QDebug>
+
 //server
 
 #define	T_STARTED		"T_STARTED"

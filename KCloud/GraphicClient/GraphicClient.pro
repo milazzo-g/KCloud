@@ -21,20 +21,23 @@ SOURCES += main.cpp\
     FirstConfigForm.cpp \
     GraphicResourceHeader.cpp \
     Loader.cpp \
-    Waiter.cpp
+    Waiter.cpp \
+    PermSettings.cpp
 
 HEADERS  += GuiClient.h \
     LoginForm.h \
     FirstConfigForm.h \
     GraphicResourceHeader.h \
     Loader.h \
-    Waiter.h
+    Waiter.h \
+    PermSettings.h
 
 FORMS    += GuiClient.ui \
     LoginForm.ui \
     FirstConfigForm.ui \
     Loader.ui \
-    Waiter.ui
+    Waiter.ui \
+    PermSettings.ui
 
 RESOURCES += \
     projectResources.qrc

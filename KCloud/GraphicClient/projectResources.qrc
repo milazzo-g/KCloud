@@ -87,6 +87,12 @@
         <file>icons/share.png</file>
         <file>icons/unknown.png</file>
         <file>icons/user.png</file>
+        <file>icons/read_dir.png</file>
+        <file>icons/read_file.png</file>
+        <file>icons/write_dir.png</file>
+        <file>icons/write_file.png</file>
+        <file>icons/user_add.png</file>
+        <file>icons/user_del.png</file>
     </qresource>
     <qresource prefix="/sounds">
         <file>sounds/bell.mp3</file>

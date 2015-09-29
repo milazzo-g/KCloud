@@ -213,8 +213,16 @@
         <item>
          <widget class="QTableWidget" name="permissionTable">
           <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>80</number>
+           <number>100</number>
           </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <row>
+           <property name="text">
+            <string>New Row</string>
+           </property>
+          </row>
           <column>
            <property name="text">
             <string>Utente</string>
