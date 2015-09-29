@@ -1,0 +1,94 @@
+<RCC>
+    <qresource prefix="/applicationIcons">
+        <file>applicationIcons/kcloud_128x128.png</file>
+        <file>applicationIcons/kcloud_16x16.png</file>
+        <file>applicationIcons/kcloud_256x256.png</file>
+        <file>applicationIcons/kcloud_32x32.png</file>
+        <file>applicationIcons/kcloud_512x512.png</file>
+        <file>applicationIcons/kcloud_64x64.png</file>
+    </qresource>
+    <qresource prefix="/fileExtensionIcon">
+        <file>fileExtensionIcon/3gp.png</file>
+        <file>fileExtensionIcon/aac.png</file>
+        <file>fileExtensionIcon/ai.png</file>
+        <file>fileExtensionIcon/aiff.png</file>
+        <file>fileExtensionIcon/app.png</file>
+        <file>fileExtensionIcon/asp.png</file>
+        <file>fileExtensionIcon/avi.png</file>
+        <file>fileExtensionIcon/bmp.png</file>
+        <file>fileExtensionIcon/c.png</file>
+        <file>fileExtensionIcon/cpp.png</file>
+        <file>fileExtensionIcon/css.png</file>
+        <file>fileExtensionIcon/dat.png</file>
+        <file>fileExtensionIcon/dir.png</file>
+        <file>fileExtensionIcon/dmg.png</file>
+        <file>fileExtensionIcon/doc.png</file>
+        <file>fileExtensionIcon/docx.png</file>
+        <file>fileExtensionIcon/dot.png</file>
+        <file>fileExtensionIcon/dotx.png</file>
+        <file>fileExtensionIcon/dwg.png</file>
+        <file>fileExtensionIcon/dxf.png</file>
+        <file>fileExtensionIcon/eps.png</file>
+        <file>fileExtensionIcon/exe.png</file>
+        <file>fileExtensionIcon/flv.png</file>
+        <file>fileExtensionIcon/gif.png</file>
+        <file>fileExtensionIcon/h.png</file>
+        <file>fileExtensionIcon/html.png</file>
+        <file>fileExtensionIcon/ics.png</file>
+        <file>fileExtensionIcon/iso.png</file>
+        <file>fileExtensionIcon/java.png</file>
+        <file>fileExtensionIcon/jpg.png</file>
+        <file>fileExtensionIcon/key.png</file>
+        <file>fileExtensionIcon/m4v.png</file>
+        <file>fileExtensionIcon/mid.png</file>
+        <file>fileExtensionIcon/mov.png</file>
+        <file>fileExtensionIcon/mp3.png</file>
+        <file>fileExtensionIcon/mp4.png</file>
+        <file>fileExtensionIcon/mpg.png</file>
+        <file>fileExtensionIcon/num.png</file>
+        <file>fileExtensionIcon/odp.png</file>
+        <file>fileExtensionIcon/ods.png</file>
+        <file>fileExtensionIcon/odt.png</file>
+        <file>fileExtensionIcon/ots.png</file>
+        <file>fileExtensionIcon/ott.png</file>
+        <file>fileExtensionIcon/pdf.png</file>
+        <file>fileExtensionIcon/pgs.png</file>
+        <file>fileExtensionIcon/php.png</file>
+        <file>fileExtensionIcon/png.png</file>
+        <file>fileExtensionIcon/pps.png</file>
+        <file>fileExtensionIcon/ppt.png</file>
+        <file>fileExtensionIcon/pro.png</file>
+        <file>fileExtensionIcon/psd.png</file>
+        <file>fileExtensionIcon/py.png</file>
+        <file>fileExtensionIcon/rar.png</file>
+        <file>fileExtensionIcon/rb.png</file>
+        <file>fileExtensionIcon/rtf.png</file>
+        <file>fileExtensionIcon/sql.png</file>
+        <file>fileExtensionIcon/tar.gz.png</file>
+        <file>fileExtensionIcon/tga.png</file>
+        <file>fileExtensionIcon/tiff.png</file>
+        <file>fileExtensionIcon/txt.png</file>
+        <file>fileExtensionIcon/wav.png</file>
+        <file>fileExtensionIcon/xls.png</file>
+        <file>fileExtensionIcon/xlsx.png</file>
+        <file>fileExtensionIcon/xml.png</file>
+        <file>fileExtensionIcon/yml.png</file>
+        <file>fileExtensionIcon/zip.png</file>
+    </qresource>
+    <qresource prefix="/text">
+        <file>text/lgpl.txt</file>
+    </qresource>
+    <qresource prefix="/animations">
+        <file>animations/loader.gif</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>icons/home.png</file>
+        <file>icons/public.png</file>
+        <file>icons/share.png</file>
+        <file>icons/unknown.png</file>
+        <file>icons/user.png</file>
+    </qresource>
+    <qresource prefix="/sounds">
+        <file>sounds/bell.mp3</file>
+    </qresource>
+</RCC>

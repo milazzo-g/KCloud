@@ -49,9 +49,7 @@ macx{
 INCLUDEPATH += $$PWD/../LIBS/quazip-0.7.1_build/include
 DEPENDPATH += $$PWD/../LIBS/quazip-0.7.1_build/include
 
-DISTFILES += \
-    moc_Resource.o \
-    Resource.o
+DISTFILES +=
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ResourceHeader/release/ -lResourceHeader

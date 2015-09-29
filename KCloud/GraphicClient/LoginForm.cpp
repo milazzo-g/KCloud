@@ -20,10 +20,10 @@ LoginForm::LoginForm(Client *client, QWidget *parent) :	QDialog(parent), ui(new 
 	m_client	= client;
 
 	m_movie		= new QMovie(this);
-	m_pixmap	= new QPixmap(":/kcloudIcons/kcloud_128x128.png");
+	m_pixmap	= new QPixmap(":/applicationIcons/applicationIcons/kcloud_128x128.png");
 	m_scene		= new QGraphicsScene(this);
 
-	m_movie->setFileName(":/animations/loader.gif");
+	m_movie->setFileName(":/animations/animations/loader.gif");
 	m_scene->addPixmap(*m_pixmap);
 	m_graphics->setScene(m_scene);
 	m_graphics->setStyleSheet("background: transparent; border-style: none;");
@@ -72,7 +72,6 @@ void LoginForm::onServerAnswer(const CommandPacket::ServerAnswer res){
 		case CommandPacket::LoginOk:
 			m_message->setText("Login effettuato con successo!");
 			m_result = true;
-			QThread::msleep(1000);
 			if(m_remember->isChecked()){
 				appSettings.setValue(HOME_USER, m_resultMail);
 				appSettings.setValue(HOME_PASS, m_resultHash);

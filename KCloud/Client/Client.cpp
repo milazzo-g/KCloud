@@ -35,7 +35,7 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 
 KCloud::Client::~Client(){
 
-	qDebug() << "Client Stopped!";
+	trace;
 }
 
 void KCloud::Client::parse() throw (KCloud::Exception){
@@ -261,7 +261,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 					break;
 
 			default:
-				qDebug() << "Non ancora implementate!";
+				trace << " Non ancora implementate!";
 				break;
 		}
 	}catch(Exception &e){
@@ -425,7 +425,6 @@ void KCloud::Client::newDownload(const quint64 &resourceId, const QString &saveP
 			}
 		}
 		m_packet->setForResourceDown(resourceId);
-		qDebug() << "CLIENT::::::::::::::::::::::::::::::::::::::: " << path;
 		m_resource->setZipDir(path);
 		m_lastCommand = m_packet->getClientCommand();
 		sendCommand();

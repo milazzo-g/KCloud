@@ -9,26 +9,39 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	QSettings appSettings;
 	ui->setupUi(this);
 
-	m_client	= new Client(Client::AsGuiThread, this);
-	m_tree		= ui->mainTreeWidget;
-	m_scene		= new QGraphicsScene(this);
-	m_loader	= new Loader(this);
+	m_client			= new Client(Client::AsGuiThread, this);
+	m_tree				= ui->mainTreeWidget;
+	m_resourceInfoTable = ui->resourceInfoTable;
+	m_scene				= new QGraphicsScene(this);
+	m_loader			= new Loader(this);
+	m_waiter			= new Waiter(this);
+	m_player			= new QMediaPlayer(this);
 
+	QFile::copy(":/sounds/sounds/bell.mp3", m_dir.path() + QString("/bell.mp3"));
+	m_player->setMedia(QUrl::fromLocalFile(m_dir.path() + QString("/bell.mp3")));
+
+	m_resourceInfoTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+	m_resourceInfoTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+	m_resourceInfoTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+
+
+
+	connect(m_client	, SIGNAL(finished()										),
+			m_client	, SLOT	(deleteLater()									));
+	connect(m_client	, SIGNAL(serverAnswer(CommandPacket::ServerAnswer)		),
+			this		, SLOT	(onServerAnswer(CommandPacket::ServerAnswer)	));
+	connect(m_client	, SIGNAL(newCommand()									),
+			m_waiter	, SLOT	(waitForServer()								));
+	connect(m_waiter	, SIGNAL(waitComplete()									),
+			this		, SLOT	(restoreMain()									));
+	connect(m_client	, SIGNAL(transmissionRate(qint64,qint64,Resource::Mode)	),
+			m_loader	, SLOT	(updateStatus(qint64,qint64,Resource::Mode)		));
+	connect(m_loader	, SIGNAL(trasmissionEnd()								),
+			this		, SLOT	(restoreMainWithSound()							));
 
 	ui->graphicsView->setScene(m_scene);
 	m_client->start();
-
-
-	connect(m_client	, SIGNAL(serverAnswer(CommandPacket::ServerAnswer)		),
-			this		, SLOT	(onServerAnswer(CommandPacket::ServerAnswer)	));
-
-	connect(m_client	, SIGNAL(transmissionRate(qint64,qint64,Resource::Mode)	),
-			m_loader	, SLOT	(updateStatus(qint64,qint64,Resource::Mode)		));
-
-	connect(m_loader	, SIGNAL(trasmissionEnd()								),
-			this		, SLOT	(finalize()										));
-
-
 
 	if(!appSettings.contains(T_STARTED)){
 		FirstConfigForm f(m_client, this);
@@ -47,11 +60,12 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 		QTimer::singleShot(0, this, SLOT(close()));
 	}else{
 		m_user = m_client->getSessionUser();
-		QTimer::singleShot(0, this, SLOT(requestTree()));
+		QTimer::singleShot(100, this, SLOT(requestTree()));
 	}
 }
 
 GuiClient::~GuiClient(){
+	m_client->quit();
 	delete ui;
 }
 
@@ -63,7 +77,23 @@ void GuiClient::closeEvent(QCloseEvent *event){
 	QMainWindow::closeEvent(event);
 }
 
+void GuiClient::waitResponse(const QString &message){
+	disableMain();
+	m_waiter->setMessage(message);
+	m_waiter->show();
+	QThread::msleep(150);
+}
+
+void GuiClient::waitTransmission(){
+	disableMain();
+	m_loader->show();
+}
+
+
 void GuiClient::refreshTree(){
+
+	quint64 publicId;
+	bool	flag		= true;
 
 	if(m_client->getResourceList().isEmpty()){
 		return;
@@ -74,14 +104,7 @@ void GuiClient::refreshTree(){
 	}
 
 	m_resourceMap.clear();
-
-	bool flag = true;
-	quint64 publicId;
-
 	foreach (ResourceHeader head, m_client->getResourceList()) {
-
-		qDebug() << "head.getId() = " << head.getId();
-
 		if(m_resourceMap.contains(head.getParentId())){
 			m_resourceMap.insert(head.getId(), new GraphicResourceHeader(head, m_resourceMap[head.getParentId()]));
 		}else{
@@ -112,32 +135,46 @@ void GuiClient::refreshTree(){
 
 void GuiClient::requestTree(){
 
-	Waiter waiter(m_client, "Attendo l'albero delle risorse...", this);
+	waitResponse("Attendo l'albero delle risorse...");
 	m_client->resourceTree();
-	waiter.exec();
+
 }
 
-void GuiClient::finalize(){
+void GuiClient::disableMain(){
+
+	this->setEnabled(false);
+	m_waiter->setEnabled(true);
+	m_loader->setEnabled(true);
+}
+
+void GuiClient::restoreMain(){
 	trace;
-	Waiter(m_client, "Finalizzo", this).exec();
 	this->setEnabled(true);
+	m_waiter->hide();
+	m_loader->hide();
 }
 
-void GuiClient::stampacomeipazzi(const qint64 &total, const qint64 &transmitted){
-	trace << " Total: " << total << " Transmitted: " << transmitted;
+void GuiClient::restoreMainWithSound(){
+	trace;
+	m_player->setVolume(100);
+	m_player->play();
+	restoreMain();
 }
 
 void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 
-	trace << " serv =  " << (qint32)serv;
+	switch (serv) {
+		case CommandPacket::ResourceTreeOk:
+			refreshTree();
+			break;
+		case CommandPacket::ResourceDownOk:
+			waitTransmission();
 
-	if(serv == CommandPacket::ResourceTreeOk){
-		refreshTree();
-	}else if(serv == CommandPacket::ResourceDownOk){
-		m_loader->show();
-		this->setEnabled(false);
-		m_loader->setEnabled(true);
+			break;
+		default:
+			break;
 	}
+
 }
 
 void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column){
@@ -146,10 +183,11 @@ void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column)
 	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(item);
 	m_scene->clear();
 	m_scene->addPixmap(tmp->getImage());
-
+	m_resourceInfoTable->item(0, 1)->setText(tmp->getName());
+	m_resourceInfoTable->item(1, 1)->setText(QString::number(tmp->getSize()));
+	m_resourceInfoTable->item(2, 1)->setText(tmp->getType() == ResourceHeader::Dir ? "Cartella" : "File");
 
 }
-
 
 void GuiClient::on_mainTreeWidget_itemSelectionChanged(){
 	on_mainTreeWidget_itemClicked(m_tree->currentItem(), 0);
@@ -158,11 +196,9 @@ void GuiClient::on_mainTreeWidget_itemSelectionChanged(){
 void GuiClient::on_downloadButton_clicked(){
 
 	if(m_tree->currentItem() == NULL){
-		qDebug() << "ma che minchia ti hai messo in testa??";
 		return;
 	}
 	quint64 id = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem())->getId();
+	waitResponse("Controllo i permessi...");
 	m_client->newDownload(id);
-	Waiter waiter(m_client, "Verifico se posso scaricare...", this);
-	waiter.exec();
 }

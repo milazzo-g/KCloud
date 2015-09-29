@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include <QDebug>
+#include "../MainServer/defines.h"
 
 KCloud::Engine::Engine(QObject *parent) : QThread(parent){
 
@@ -20,27 +21,27 @@ KCloud::Engine::~Engine(){
 
 void KCloud::Engine::sendCommand(){
 
-	qDebug() << __FUNCTION__;
+	trace;
 	QThread::msleep(500);
 	m_packet->prepareForSend();
 	m_packet->sendThrough(m_socket);
 }
 
 void KCloud::Engine::sendResource(){
-	qDebug() << __FUNCTION__;
+	trace;
 	QThread::msleep(500);
 	m_resource->prepareForSend();
 	m_resource->sendThrough(m_socket);
 }
 
 void KCloud::Engine::receiveCommand(){
-	qDebug() << __FUNCTION__;
+	trace;
 	m_packet->prepareForRecv();
 	m_packet->receiveFrom(m_socket);
 }
 
 void KCloud::Engine::receiveResource(){
-	qDebug() << __FUNCTION__;
+	trace;
 	m_resource->prepareForRecv();
 	m_resource->receiveFrom(m_socket);
 }

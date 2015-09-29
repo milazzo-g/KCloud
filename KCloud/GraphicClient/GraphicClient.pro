@@ -6,6 +6,8 @@
 
 QT       += core gui
 QT       += network
+QT       += multimedia
+QT       += widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -35,7 +37,7 @@ FORMS    += GuiClient.ui \
     Waiter.ui
 
 RESOURCES += \
-    icons.qrc
+    projectResources.qrc
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Client/release/ -lClient
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Client/debug/ -lClient
