@@ -33,20 +33,22 @@ void Loader::closeEvent(QCloseEvent *event){
 void Loader::updateStatus(const qint64 &total, const qint64 &transmitted, const Resource::Mode mode){
 
 	m_transferred->setText(QString::number(transmitted));
-	m_remaining->setText(QString::number(total - transmitted < 0 ? 0 : total - transmitted));
+	m_remaining->setText(QString::number(total - transmitted));
 	double ratio = (static_cast<double>(transmitted) / total) * 100;
 	m_progressBar->setValue(ratio);
 	m_message->setText(QString((mode == Resource::Download ? "Sto scaricando..." : "Sto caricando...")));
 
-	if(m_progressBar->value() == 100){
-		restoreClose();
+	if((total - transmitted) == 0){
+		m_message->clear();
+		m_remaining->clear();
+		m_transferred->clear();
+		emit trasmissionEnd();
 	}
-
 }
 
-void Loader::restoreClose(){
-
-	m_close = false;
+void Loader::quit(){
+	m_close	= false;
 	close();
 }
+
 

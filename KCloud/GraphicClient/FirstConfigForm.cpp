@@ -41,7 +41,7 @@ FirstConfigForm::FirstConfigForm(Client * client, QWidget *parent) : QDialog(par
 		m_tabWidget->setTabEnabled(i, false);
 	}
 
-	m_movie->setFileName(":/animations/loader.gif");
+	m_movie->setFileName(":/animations/animations/loader.gif");
 
 	m_address.clear();
 	m_port = 0;
@@ -63,10 +63,12 @@ FirstConfigForm::FirstConfigForm(Client * client, QWidget *parent) : QDialog(par
 			this	,	SLOT(	onClientSocketError(QAbstractSocket::SocketError)));
 
 	QFile lgpl(this);
-	lgpl.setFileName("./LGPL");
+	lgpl.setFileName(":/text/text/lgpl.txt");
 	lgpl.open(QIODevice::ReadOnly);
 	QTextStream lgplStream(&lgpl);
+	ui->infoEdit->setAlignment(Qt::AlignJustify);
 	ui->infoEdit->setText(lgplStream.readAll());
+
 }
 
 FirstConfigForm::~FirstConfigForm()

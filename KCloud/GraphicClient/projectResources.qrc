@@ -88,4 +88,7 @@
         <file>icons/unknown.png</file>
         <file>icons/user.png</file>
     </qresource>
+    <qresource prefix="/sounds">
+        <file>sounds/bell.mp3</file>
+    </qresource>
 </RCC>

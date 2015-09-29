@@ -113,7 +113,7 @@ qint64 KCloud::NetObject::getBytesPerPacket() const{
 
 void KCloud::NetObject::leaveSocket(){
 
-	qDebug() << __FILE__ << __LINE__ <<__FUNCTION__;
+	trace;
 	disconnect(m_channel,	SIGNAL(bytesWritten(qint64)),	this, SLOT(behaviorOnSend(qint64))	);
 	disconnect(m_channel,	SIGNAL(readyRead()),			this, SLOT(recv())					);
 	disconnect(this,		SIGNAL(changeBlock(qint64)),	this, SLOT(send(qint64))			);

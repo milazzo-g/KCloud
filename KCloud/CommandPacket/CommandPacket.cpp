@@ -1,12 +1,12 @@
 #include "CommandPacket.h"
-#include <QDebug>
+#include "../MainServer/defines.h"
 KCloud::CommandPacket::CommandPacket(QObject *parent) : NetObject(parent){
 
 	clear();
 }
 
 KCloud::CommandPacket::~CommandPacket(){
-	qDebug() << __FUNCTION__;
+	trace;
 }
 
 void KCloud::CommandPacket::clear(){
@@ -23,7 +23,7 @@ void KCloud::CommandPacket::prepareForSend() throw(Exception){
 	NetObject::clear();
 	m_bytesCounter = (qint64)sizeof(getNetworkSize());
 	setReady();
-	qDebug() << __FUNCTION__ << "::m_bytesCounter = " << m_bytesCounter;
+	trace;
 }
 
 void KCloud::CommandPacket::prepareForRecv(){
@@ -201,15 +201,16 @@ void KCloud::CommandPacket::answerToResourceDown(KCloud::CommandPacket::ServerAn
 void KCloud::CommandPacket::send(const qint64 block){
 
     if(block == 0){
-		qDebug() << __FUNCTION__ << "[invio dimensione] m_bytesCounter = " << m_bytesCounter;
+		trace;
+		qDebug() << "    [invio  dimensione] = " << m_bytesCounter;
         QDataStream stream(m_channel);
         stream << getNetworkSize();
         return;
     }
 
     m_bytesCounter = getNetworkSize();
-	qDebug() << __FUNCTION__ << "[inizio ad inviare] m_bytesCounter = " << m_bytesCounter;
-
+	trace;
+	qDebug() << "    [inizio ad inviare] = " << m_bytesCounter;
 	QDataStream stream(m_channel);
 	stream << *this;
 
@@ -245,9 +246,11 @@ void KCloud::CommandPacket::recv() throw(Exception){
 
 void KCloud::CommandPacket::behaviorOnSend(const qint64 dim) throw(Exception){
 
-	qDebug() << __FUNCTION__ << "[prima di decrementare] m_bytesCounter = " << m_bytesCounter;
+
     m_bytesCounter -= dim;
-	qDebug() << __FUNCTION__ << "[dopo  il decremento  ] m_bytesCounter = " << m_bytesCounter;
+	trace;
+	qDebug() << " [byte    rimanenti] = " << m_bytesCounter;
+
 	if(m_bytesCounter == 0){
 
         m_currentBlock ++;
@@ -270,7 +273,8 @@ qint64 KCloud::CommandPacket::calculateNetworkSize() throw(Exception){
 	QByteArray tmp;
 	QDataStream stream(&tmp, QIODevice::ReadWrite);
 	stream << *this;
-	qDebug() << __FUNCTION__ << "=" << tmp.size();
+	trace;
+	qDebug() << "    [dimensione   rete] = " << tmp.size();
 	return tmp.size();
 }
 

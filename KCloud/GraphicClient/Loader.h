@@ -30,7 +30,7 @@ class Loader : public QDialog{
 
 	public slots:
 		void	updateStatus(const qint64 &total, const qint64 &transmitted, const Resource::Mode mode);
-		void	restoreClose();
+		void	quit();
 
 	private:
 		Ui::Loader *	ui;

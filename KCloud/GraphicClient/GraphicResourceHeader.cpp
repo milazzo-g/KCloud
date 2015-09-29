@@ -11,13 +11,13 @@ QTreeWidgetItem(view), ResourceHeader(header){
 
 	switch (type) {
 		case SessionUser:
-			setIcon(0, QIcon(":/icons/home.png"));
+			setIcon(0, QIcon(":/icons/icons/home.png"));
 			break;
 		case OtherUser:
-			setIcon(0, QIcon(":/icons/user.png"));
+			setIcon(0, QIcon(":/icons/icons/user.png"));
 			break;
 		case Public:
-			setIcon(0, QIcon(":/icons/public.png"));
+			setIcon(0, QIcon(":/icons/icons/public.png"));
 			break;
 		default:
 
@@ -36,7 +36,6 @@ QTreeWidgetItem(reinterpret_cast<QTreeWidgetItem *>(parent)), ResourceHeader(hea
 
 KCloud::GraphicResourceHeader::~GraphicResourceHeader(){
 
-	qDebug() << "DISTRUTTO";
 }
 
 QPixmap KCloud::GraphicResourceHeader::getImage(){
@@ -46,11 +45,11 @@ QPixmap KCloud::GraphicResourceHeader::getImage(){
 
 QIcon KCloud::GraphicResourceHeader::getIcon() const{
 
-	QDir dir(":/fileExtension");
+	QDir dir(":/fileExtensionIcon/fileExtensionIcon/");
 	QString	ext = QFileInfo(getName()).completeSuffix();
 
-	if(ext.isEmpty()){
-		return QIcon(":/fileExtension/dir.png");
+	if(getType() == ResourceHeader::Dir){
+		return QIcon(":/fileExtensionIcon/fileExtensionIcon/dir.png");
 	}
 
 	foreach (QFileInfo f, dir.entryInfoList()) {
@@ -58,5 +57,5 @@ QIcon KCloud::GraphicResourceHeader::getIcon() const{
 			return QIcon(f.filePath());
 		}
 	}
-	return QIcon(":/fileExtension/unknown.png");
+	return QIcon(":/icons/icons/unknown.png");
 }

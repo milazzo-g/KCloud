@@ -19,8 +19,8 @@
    <string>KCloud::Client</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icons.qrc">
-    <normaloff>:/kcloudIcons/kcloud_64x64.png</normaloff>:/kcloudIcons/kcloud_64x64.png</iconset>
+   <iconset resource="projectResources.qrc">
+    <normaloff>:/applicationIcons/applicationIcons/kcloud_64x64.png</normaloff>:/applicationIcons/applicationIcons/kcloud_64x64.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -159,7 +159,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="icons.qrc"/>
+  <include location="projectResources.qrc"/>
  </resources>
  <connections/>
 </ui>

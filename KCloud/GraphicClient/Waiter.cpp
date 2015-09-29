@@ -1,21 +1,15 @@
 #include "Waiter.h"
 #include "ui_Waiter.h"
 
-Waiter::Waiter(Client * client, const QString &message, QWidget *parent) : QDialog(parent), ui(new Ui::Waiter){
+Waiter::Waiter(QWidget *parent) : QDialog(parent), ui(new Ui::Waiter){
 
 	ui->setupUi(this);
-	m_client	= client;
 	m_movie		= new QMovie(this);
 	m_message	= ui->m_message;
 	m_loader	= ui->m_loader;
 	m_close		= true;
 
-	m_movie->setFileName(":/animations/loader.gif");
-	m_message->setText(message);
-
-	connect(m_client, SIGNAL(newCommand()), this, SLOT(restoreClose()));
-	connect(m_client, SIGNAL(finalizeOK()), this, SLOT(restoreClose()));
-
+	m_movie->setFileName(":/animations/animations/loader.gif");
 	QTimer::singleShot(0, this, SLOT(startLoader()));
 }
 
@@ -24,20 +18,23 @@ Waiter::~Waiter()
 	delete ui;
 }
 
-void Waiter::closeEvent(QCloseEvent *event){
+void Waiter::waitForServer() const{
 
-	if(m_close){
-		event->ignore();
-	}else{
-		event->accept();
-	}
+	emit waitComplete();
 }
 
-void Waiter::restoreClose(){
-	m_close			= false;
-	disconnect(m_client, SIGNAL(newCommand()), this, SLOT(restoreClose()));
-	disconnect(m_client, SIGNAL(finalizeOK()), this, SLOT(restoreClose()));
+void Waiter::quit(){
+	m_close	= false;
 	close();
+}
+
+void Waiter::setMessage(const QString &message){
+	m_message->setText(message);
+}
+
+void Waiter::closeEvent(QCloseEvent *event){
+
+	event->ignore();
 }
 
 void Waiter::startLoader(){
