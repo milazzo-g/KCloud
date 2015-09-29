@@ -9,6 +9,8 @@
 #include <QSettings>
 #include <QCloseEvent>
 #include <QMainWindow>
+#include <QHeaderView>
+#include <QTableWidget>
 #include <QMediaPlayer>
 #include <QTemporaryDir>
 #include <QGraphicsView>
@@ -66,6 +68,8 @@ class GuiClient : public QMainWindow{
 		Waiter *								m_waiter;
 		QMediaPlayer *							m_player;
 		QTemporaryDir							m_dir;
+		QTableWidget *							m_resourceInfoTable;
+		QTableWidget *							m_permissionTable;
 };
 
 #endif // GUICLIENT_H

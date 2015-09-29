@@ -9,14 +9,22 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	QSettings appSettings;
 	ui->setupUi(this);
 
-	m_client	= new Client(Client::AsGuiThread, this);
-	m_tree		= ui->mainTreeWidget;
-	m_scene		= new QGraphicsScene(this);
-	m_loader	= new Loader(this);
-	m_waiter	= new Waiter(this);
-	m_player	= new QMediaPlayer(this);
+	m_client			= new Client(Client::AsGuiThread, this);
+	m_tree				= ui->mainTreeWidget;
+	m_resourceInfoTable = ui->resourceInfoTable;
+	m_scene				= new QGraphicsScene(this);
+	m_loader			= new Loader(this);
+	m_waiter			= new Waiter(this);
+	m_player			= new QMediaPlayer(this);
+
 	QFile::copy(":/sounds/sounds/bell.mp3", m_dir.path() + QString("/bell.mp3"));
 	m_player->setMedia(QUrl::fromLocalFile(m_dir.path() + QString("/bell.mp3")));
+
+	m_resourceInfoTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+	m_resourceInfoTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+	m_resourceInfoTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+
 
 
 	connect(m_client	, SIGNAL(finished()										),
@@ -175,6 +183,9 @@ void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column)
 	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(item);
 	m_scene->clear();
 	m_scene->addPixmap(tmp->getImage());
+	m_resourceInfoTable->item(0, 1)->setText(tmp->getName());
+	m_resourceInfoTable->item(1, 1)->setText(QString::number(tmp->getSize()));
+	m_resourceInfoTable->item(2, 1)->setText(tmp->getType() == ResourceHeader::Dir ? "Cartella" : "File");
 
 }
 
