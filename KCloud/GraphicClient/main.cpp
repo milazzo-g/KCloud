@@ -1,5 +1,6 @@
 #include "GuiClient.h"
 #include <QApplication>
+#include "../Client/Client.h"
 
 int main(int argc, char *argv[])
 {

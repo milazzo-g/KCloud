@@ -29,14 +29,18 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 	connect(m_resource, SIGNAL(objectSended()),			this,			SLOT(receiveCommand()),			Qt::UniqueConnection);
 	connect(m_resource, SIGNAL(objectReceived()),		this,			SLOT(notifyReceived()),			Qt::UniqueConnection);
 	connect(m_resource, SIGNAL(objectSended()),			this,			SLOT(notifySended()),			Qt::UniqueConnection);
+	connect(m_resource, SIGNAL(transmissionRate(qint64, qint64, Resource::Mode)),
+			this,		SLOT(notifyTransmissionRate(qint64,qint64,Resource::Mode)));
 }
 
 KCloud::Client::~Client(){
 
-	qDebug() << "Client Stopped!";
+	trace;
 }
 
 void KCloud::Client::parse() throw (KCloud::Exception){
+
+	emit newCommand();
 
 	try{
 		CommandPacket::ServerAnswer r = m_packet->getServerAnswer();
@@ -257,7 +261,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 					break;
 
 			default:
-				qDebug() << "Non ancora implementate!";
+				trace << " Non ancora implementate!";
 				break;
 		}
 	}catch(Exception &e){
@@ -430,6 +434,16 @@ void KCloud::Client::newDownload(const quint64 &resourceId, const QString &saveP
 	}
 }
 
+QList<KCloud::ResourceHeader> KCloud::Client::getResourceList() const{
+
+	return m_resourcesTree;
+}
+
+KCloud::User *KCloud::Client::getSessionUser() const{
+
+	return m_user;
+}
+
 
 
 void KCloud::Client::setSessionUser(){
@@ -468,6 +482,7 @@ void KCloud::Client::finalizeResource() throw (Exception){
 
 	try{
 		m_resource->decompress(m_head);
+		emit finalizeOK();
 	}catch(Exception &e){
 		clog("Exception occurred");
 		clog(e.what());
@@ -681,4 +696,9 @@ void KCloud::Client::notifyReceived(){
 void KCloud::Client::notifySended(){
 
 	emit resourceSended();
+}
+
+void KCloud::Client::notifyTransmissionRate(const qint64 total, const qint64 transmitted, KCloud::Resource::Mode mod){
+
+	emit transmissionRate(total, transmitted, mod);
 }

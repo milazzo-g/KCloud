@@ -57,6 +57,7 @@ namespace KCloud{
 						void						setParentId(const quint64 &id);
 						void						setOwner(const User &sessionUser);
 						void						setOwner(const QString &sessionUser);
+						void						setType(const ResourceType type);
 						void						setPermissionTable(const QMap<QString, ResourcePerm> &permissioTable = QMap<QString, ResourcePerm>());
 						bool						addPermission(const QString &mail, ResourcePerm perm) throw(Exception);
 						bool						modPermission(const QString &mail, ResourcePerm perm) throw(Exception);
@@ -75,6 +76,7 @@ namespace KCloud{
 						QMap<QString, ResourcePerm>	getPermissionTable() const;
 
 						ResourceHeader &			operator=(const ResourceHeader &cpy);
+						bool						operator==(const ResourceHeader &cpy) const;
 
 		signals:
 

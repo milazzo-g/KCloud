@@ -26,10 +26,14 @@ namespace KCloud{
 														Client(const WorkMode mode, QObject *parent = 0);
 														~Client();
 		signals:
+						void							newCommand();
 						void							serverAnswer(CommandPacket::ServerAnswer answer);
 						void							clientError(Exception::Type type);
 						void							resourceReceived();
 						void							resourceSended();
+						void							finalizeOK();
+						void							transmissionRate(const qint64 total, const qint64 transmitted, Resource::Mode mod);
+
 		public slots:
 			virtual		void							parse() throw (Exception);
 						void							login(const QString &mail, const QString &pass, const User::PwdMode mode);
@@ -53,6 +57,8 @@ namespace KCloud{
 																	const QMap<QString, ResourceHeader::ResourcePerm> &permissionTable = QMap<QString, ResourceHeader::ResourcePerm>(),
 																	ResourceHeader::ResourcePerm publicPerm = ResourceHeader::PermUndef) throw (Exception); //setta i parametri per l'upload
 						void							newDownload(const quint64 &resourceId, const QString &savePath = "");		//setta i parametri per il download
+						QList<ResourceHeader>			getResourceList() const;
+						User *							getSessionUser() const;
 						void							setSessionUser();								//setta l'utente di sessione dopo la risposta di login ok dal server
 						void							saveResourcesTree();							//salva l'albero delle risorse
 						void							removeTempFile() throw (Exception);															//rimuove il file temporaneo, chiamata dopo invio ok
@@ -66,6 +72,7 @@ namespace KCloud{
 						bool							isLogged() throw(Exception);
 						void							notifyReceived();
 						void							notifySended();
+						void							notifyTransmissionRate(const qint64 total, const qint64 transmitted, Resource::Mode mod);
 
 		private:
 						QCoreApplication *				m_coreApplication;

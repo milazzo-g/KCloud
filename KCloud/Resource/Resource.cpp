@@ -1,10 +1,11 @@
 #include "Resource.h"
-
+#include "../MainServer/defines.h"
 #define ZIP	".zip"
 
 KCloud::Resource::Resource(QObject *parent) : NetObject(parent){
 
 	m_zipFile = NULL;
+	clear();
 }
 
 QString KCloud::Resource::getResourcePath() const{
@@ -66,6 +67,8 @@ void KCloud::Resource::clear(){
 
 	NetObject::clear();
 	setNotCompressed();
+	m_total = 0;
+	m_transmitted = 0;
 	m_resourcePath.clear();
 	m_zipDir.clear();
 	m_zipName.clear();
@@ -86,6 +89,8 @@ void KCloud::Resource::prepareForSend() throw(Exception){
 		m_zipFile->open(QIODevice::ReadOnly);
 
 		NetObject::prepareForSend();
+		m_transmitted	= 0;
+		m_total			= calculateNetworkSize() + (qint64)sizeof(calculateNetworkSize());
 	}
 }
 
@@ -94,7 +99,7 @@ void KCloud::Resource::prepareForRecv(){
 	m_zipFile = new QTemporaryFile(this);
 	m_zipFile->open(QIODevice::WriteOnly);
 	setReady();
-	qDebug() << "void KCloud::Resource::prepareForRecv() -> OK!";
+	trace;
 }
 
 void KCloud::Resource::compress() throw(Exception){
@@ -156,11 +161,13 @@ bool KCloud::Resource::removeZipFile() throw(Exception){
 
 void KCloud::Resource::send(const qint64 block){
 
-	qDebug() << "Numero Packet rimanenti = " << m_packets - block + 1;
+	trace;
+	qDebug() << "    [pack.   rimanenti] = " << m_packets - block + 1;
 	if(block == 0){
 		QDataStream stream(m_channel);
 		stream << getNetworkSize();
-		qDebug() << "Dimensione da inviare = " << getNetworkSize();
+		trace;
+		qDebug() << "    [dim.   da inviare] =  " << getNetworkSize();
 		return;
 	}
 	if(block <= m_packets){
@@ -178,18 +185,25 @@ void KCloud::Resource::send(const qint64 block){
 void KCloud::Resource::recv() throw(Exception){
 
 	if(m_currentBlock == 0){
-
 		if(m_channel->bytesAvailable() < (qint64)sizeof(m_bytesCounter)){
 			return;
 		}
 		QDataStream stream(m_channel);
 		stream >> m_bytesCounter;
 		m_currentBlock++;
-		qDebug() << "Dimensione ricevuta: " << m_bytesCounter << " bytes";
+
+		m_transmitted	= 0;
+		m_total			= m_bytesCounter;
+		trace;
+		qDebug() << "    [dim.     ricevuta] = " << m_bytesCounter;
 	}else{
-		qDebug() << "<< RICEVUTI : " << m_channel->bytesAvailable() << " bytes";
+		m_transmitted += m_channel->bytesAvailable();
+		emit transmissionRate(m_total, m_transmitted, Download);
+
+		trace;
+		qDebug() << "    [bytes    ricevuti] = " << m_channel->bytesAvailable();
 		m_bytesCounter -= m_zipFile->write(m_channel->readAll());
-		qDebug() << ">> RIMANENTI: " << m_bytesCounter << " bytes";
+		qDebug() << "    [bytes   rimanenti]" << m_bytesCounter;
 
 		if(m_bytesCounter == 0){
 			m_zipFile->close();
@@ -205,7 +219,11 @@ void KCloud::Resource::recv() throw(Exception){
 
 void KCloud::Resource::behaviorOnSend(const qint64 dim) throw(Exception){
 
-	m_bytesCounter -= dim;
+	m_transmitted	+= dim;
+	m_bytesCounter	-= dim;
+
+	emit transmissionRate(m_total, m_transmitted, Upload);
+
 	if(m_bytesCounter == 0){
 
 		m_currentBlock++;

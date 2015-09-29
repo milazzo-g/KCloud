@@ -6,6 +6,8 @@
 
 QT       += core gui
 QT       += network
+QT       += multimedia
+QT       += widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,18 +18,26 @@ TEMPLATE = app
 SOURCES += main.cpp\
         GuiClient.cpp \
     LoginForm.cpp \
-    FirstConfigForm.cpp
+    FirstConfigForm.cpp \
+    GraphicResourceHeader.cpp \
+    Loader.cpp \
+    Waiter.cpp
 
 HEADERS  += GuiClient.h \
     LoginForm.h \
-    FirstConfigForm.h
+    FirstConfigForm.h \
+    GraphicResourceHeader.h \
+    Loader.h \
+    Waiter.h
 
 FORMS    += GuiClient.ui \
     LoginForm.ui \
-    FirstConfigForm.ui
+    FirstConfigForm.ui \
+    Loader.ui \
+    Waiter.ui
 
 RESOURCES += \
-    icons.qrc
+    projectResources.qrc
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Client/release/ -lClient
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Client/debug/ -lClient

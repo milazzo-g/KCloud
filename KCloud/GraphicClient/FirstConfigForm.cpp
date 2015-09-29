@@ -41,7 +41,7 @@ FirstConfigForm::FirstConfigForm(Client * client, QWidget *parent) : QDialog(par
 		m_tabWidget->setTabEnabled(i, false);
 	}
 
-	m_movie->setFileName(":/animations/loader.gif");
+	m_movie->setFileName(":/animations/animations/loader.gif");
 
 	m_address.clear();
 	m_port = 0;
@@ -63,10 +63,12 @@ FirstConfigForm::FirstConfigForm(Client * client, QWidget *parent) : QDialog(par
 			this	,	SLOT(	onClientSocketError(QAbstractSocket::SocketError)));
 
 	QFile lgpl(this);
-	lgpl.setFileName("./LGPL");
+	lgpl.setFileName(":/text/text/lgpl.txt");
 	lgpl.open(QIODevice::ReadOnly);
 	QTextStream lgplStream(&lgpl);
+	ui->infoEdit->setAlignment(Qt::AlignJustify);
 	ui->infoEdit->setText(lgplStream.readAll());
+
 }
 
 FirstConfigForm::~FirstConfigForm()
@@ -168,7 +170,7 @@ void FirstConfigForm::onClientError(const Exception::Type extType){
 
 	switch (extType) {
 		case Exception::UserBadMail:
-			m_registerMessage->setText("L'email inserita non è valida, riprova");
+			m_registerMessage->setText("L'email inserita non è valida, riprova...");
 			m_goToPathConfig->setEnabled(true);
 			break;
 		default:
@@ -336,7 +338,7 @@ void FirstConfigForm::on_endButton_clicked(){
 		appSettings.setValue(HOME_USER, m_email);
 		appSettings.setValue(HOME_PASS, m_hash1);
 	}
-	appSettings.setValue(T_STARTED, 0);
+	appSettings.setValue(T_STARTED, 1);
 	m_result = true;
 	this->close();
 }
