@@ -29,12 +29,18 @@ void Waiter::quit(){
 }
 
 void Waiter::setMessage(const QString &message){
+	trace << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+	m_close = true;
 	m_message->setText(message);
 }
 
 void Waiter::closeEvent(QCloseEvent *event){
 
-	event->ignore();
+	if(m_close){
+		event->ignore();
+	}else{
+		event->accept();
+	}
 }
 
 void Waiter::startLoader(){

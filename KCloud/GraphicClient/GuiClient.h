@@ -44,13 +44,14 @@ class GuiClient : public QMainWindow{
 
 	private slots:
 
-		void	waitResponse(const QString &message);
-		void	waitTransmission();
+		void	waitForServer();
+
 		void	refreshTree();
 		void	requestTree();
 		void	disableMain();
 		void	restoreMain();
 		void	restoreMainWithSound();
+		void	showLoader();
 
 
 
@@ -63,6 +64,8 @@ class GuiClient : public QMainWindow{
 		void	on_downloadButton_clicked();
 
 		void on_uploadButton_clicked();
+
+		void on_deleteButton_clicked();
 
 	private:
 		Ui::GuiClient *							ui;

@@ -26,11 +26,14 @@ namespace KCloud{
 			explicit						Engine(QObject *parent = 0);
 			virtual							~Engine() = 0;
 		signals:
+						void				commandSended();
 						void				userLogin();
 						void				userLogout();
 						void				connected();
 						void				disconnected();
 						void				socketError(QAbstractSocket::SocketError error);
+						void				compressionStart();
+						void				compressionEnd();
 
 		public slots:
 						void				sendCommand();

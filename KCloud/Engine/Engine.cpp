@@ -28,14 +28,17 @@ void KCloud::Engine::sendCommand(){
 }
 
 void KCloud::Engine::sendResource(){
+
 	trace;
 	QThread::msleep(500);
 	m_resource->prepareForSend();
+	emit compressionEnd();
 	m_resource->sendThrough(m_socket);
 }
 
 void KCloud::Engine::receiveCommand(){
 	trace;
+	emit commandSended();
 	m_packet->prepareForRecv();
 	m_packet->receiveFrom(m_socket);
 }

@@ -40,7 +40,7 @@ KCloud::Client::~Client(){
 
 void KCloud::Client::parse() throw (KCloud::Exception){
 
-	emit newCommand();
+	emit commandReceived();
 
 	try{
 		CommandPacket::ServerAnswer r = m_packet->getServerAnswer();
@@ -112,7 +112,9 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 						case CommandPacket::ResourceUpOk:
 							clog(QString("Caricamento consentito"));
 							emit serverAnswer(r);
-							resourceUp();
+							if(m_workMode == AsConsoleThread){
+								resourceUp();
+							}
 							break;
 
 						case CommandPacket::ResourceUpFail:
@@ -292,6 +294,7 @@ void KCloud::Client::logout(){	///ok
 
 void KCloud::Client::resourceUp(){	///ok
 
+	emit compressionStart();
 	sendResource();
 }
 
@@ -461,11 +464,6 @@ void KCloud::Client::saveResourcesTree(){
 
 	m_resourcesTree.clear();
 	m_resourcesTree = m_packet->getResourceTree();
-
-	foreach (ResourceHeader gesu, m_resourcesTree){
-
-		clog(gesu.toString());
-	}
 	clog(QString::number(m_resourcesTree.size()));
 }
 
@@ -481,8 +479,9 @@ void KCloud::Client::removeTempFile() throw (Exception){
 void KCloud::Client::finalizeResource() throw (Exception){
 
 	try{
+		emit decompressionStart();
 		m_resource->decompress(m_head);
-		emit finalizeOK();
+		emit decompressionEnd();
 	}catch(Exception &e){
 		clog("Exception occurred");
 		clog(e.what());
@@ -668,12 +667,13 @@ void KCloud::Client::execCommand(const QString &cmd){
 
 QString KCloud::Client::clog(const QString &log){
 
-	if(m_workMode == AsConsoleThread){
 		QString str(Console::Green + this->metaObject()->className() + Console::Reset);
 		str += " ";
 		str += log;
+	if(m_workMode == AsConsoleThread){
 		m_console->output(str);
 	}
+	qDebug() << log;
 	return log;
 }
 

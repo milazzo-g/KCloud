@@ -31,6 +31,11 @@ class PermSettings : public QDialog{
 		explicit PermSettings(const User * const user, const GraphicResourceHeader::ResourceType type, QWidget *parent = 0);
 		~PermSettings();
 
+		bool												wasAccepted() const;
+		QMap<QString, GraphicResourceHeader::ResourcePerm>	getPermMap() const;
+		GraphicResourceHeader::ResourcePerm					getPublicPerm() const;
+
+
 	private slots:
 		void on_tableWidget_itemClicked(QTableWidgetItem *item);
 
@@ -44,6 +49,10 @@ class PermSettings : public QDialog{
 
 		void on_confirmBtn_clicked();
 
+		void on_readRadio_clicked();
+
+		void on_writeRadio_clicked();
+
 	private:
 		Ui::PermSettings *									ui;
 		QTableWidget *										m_table;
@@ -51,6 +60,7 @@ class PermSettings : public QDialog{
 		QCheckBox *											m_public;
 		QRadioButton *										m_publicRead;
 		QRadioButton *										m_publicWrite;
+		GraphicResourceHeader::ResourcePerm					m_publicPerm;
 		bool												m_accepted;
 		GraphicResourceHeader::ResourceType					m_opMode;
 		QString												m_user;

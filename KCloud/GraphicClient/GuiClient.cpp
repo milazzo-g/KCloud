@@ -27,19 +27,6 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	m_permissionTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
 	m_permissionTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
-	connect(m_client	, SIGNAL(finished()										),
-			m_client	, SLOT	(deleteLater()									));
-	connect(m_client	, SIGNAL(serverAnswer(CommandPacket::ServerAnswer)		),
-			this		, SLOT	(onServerAnswer(CommandPacket::ServerAnswer)	));
-	connect(m_client	, SIGNAL(newCommand()									),
-			m_waiter	, SLOT	(waitForServer()								));
-	connect(m_waiter	, SIGNAL(waitComplete()									),
-			this		, SLOT	(restoreMain()									));
-	connect(m_client	, SIGNAL(transmissionRate(qint64,qint64,Resource::Mode)	),
-			m_loader	, SLOT	(updateStatus(qint64,qint64,Resource::Mode)		));
-	connect(m_loader	, SIGNAL(trasmissionEnd()								),
-			this		, SLOT	(restoreMainWithSound()							));
-
 	ui->graphicsView->setScene(m_scene);
 	m_client->start();
 
@@ -62,6 +49,20 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 		m_user = m_client->getSessionUser();
 		QTimer::singleShot(100, this, SLOT(requestTree()));
 	}
+
+	connect(m_client	, SIGNAL(finished()										),
+			m_client	, SLOT	(deleteLater()									));
+	connect(m_client	, SIGNAL(serverAnswer(CommandPacket::ServerAnswer)		),
+			this		, SLOT	(onServerAnswer(CommandPacket::ServerAnswer)	));
+	connect(m_client	, SIGNAL(commandSended()								),
+			this		, SLOT	(waitForServer()								));
+	connect(m_client	, SIGNAL(transmissionRate(qint64,qint64,Resource::Mode)	),
+			m_loader	, SLOT	(updateStatus(qint64,qint64,Resource::Mode)		));
+	connect(m_client	, SIGNAL(compressionEnd()								),
+			this		, SLOT	(showLoader()									));
+	connect(m_loader	, SIGNAL(trasmissionEnd()								),
+			this		, SLOT	(restoreMainWithSound()							));
+
 }
 
 GuiClient::~GuiClient(){
@@ -77,16 +78,10 @@ void GuiClient::closeEvent(QCloseEvent *event){
 	QMainWindow::closeEvent(event);
 }
 
-void GuiClient::waitResponse(const QString &message){
+void GuiClient::waitForServer(){
 	disableMain();
-	m_waiter->setMessage(message);
+	m_waiter->setMessage("Attendo la risposta del server...");
 	m_waiter->show();
-	QThread::msleep(150);
-}
-
-void GuiClient::waitTransmission(){
-	disableMain();
-	m_loader->show();
 }
 
 
@@ -99,14 +94,14 @@ void GuiClient::refreshTree(){
 		return;
 	}
 
-	foreach (quint64 id, m_resourceMap.keys()) {
-		delete m_resourceMap[id];
-	}
-
+	m_tree->clear();
 	m_resourceMap.clear();
+
 	foreach (ResourceHeader head, m_client->getResourceList()) {
 		if(m_resourceMap.contains(head.getParentId())){
-			m_resourceMap.insert(head.getId(), new GraphicResourceHeader(head, m_resourceMap[head.getParentId()]));
+			if(!m_resourceMap.contains(head.getId())){
+				m_resourceMap.insert(head.getId(), new GraphicResourceHeader(head, m_resourceMap[head.getParentId()]));
+			}
 		}else{
 			if(head.getName() == m_user->getEmail()){
 				m_resourceMap.insert(head.getId(), new GraphicResourceHeader(head, m_tree));
@@ -135,8 +130,9 @@ void GuiClient::refreshTree(){
 
 void GuiClient::requestTree(){
 
-	waitResponse("Attendo l'albero delle risorse...");
-	m_client->resourceTree();
+	m_waiter->setMessage("Richiedo l'albero delle risorse");
+
+	QTimer::singleShot(500, m_client, SLOT(resourceTree()));
 
 }
 
@@ -150,8 +146,8 @@ void GuiClient::disableMain(){
 void GuiClient::restoreMain(){
 	trace;
 	this->setEnabled(true);
-	m_waiter->hide();
-	m_loader->hide();
+	m_waiter->quit();
+	m_loader->quit();
 }
 
 void GuiClient::restoreMainWithSound(){
@@ -161,17 +157,89 @@ void GuiClient::restoreMainWithSound(){
 	restoreMain();
 }
 
+void GuiClient::showLoader(){
+
+	m_waiter->quit();
+	m_loader->show();
+}
+
 void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 
-	switch (serv) {
-		case CommandPacket::ResourceTreeOk:
-			refreshTree();
+	switch (serv){
+		case CommandPacket::ResourceUpOk:
+			m_waiter->setMessage("Comprimo i file...");
+			QTimer::singleShot(1000, m_client, SLOT(resourceUp()));
+			break;
+		case CommandPacket::ResourceUpFail:
+			restoreMain();
+			QMessageBox::critical(this, "KCloudParser", "Il caricamento non può essere effettuato per motivi interni al server...");
+			break;
+		case CommandPacket::ResourceUpInvalidPerm:
+			restoreMain();
+			QMessageBox::information(this, "KCloudParser", "I tuoi permessi non sono sufficienti per caricare in questa cartella...");
+			break;
+		case CommandPacket::ResourceUpParentIsNotDir:
+			restoreMain();
+			QMessageBox::critical(this, "KCloudParser", "La risorsa selezionata è in realtà un file, non posso caricare...");
+			break;
+		case CommandPacket::ResourceUpAlreadyExists:
+			restoreMain();
+			QMessageBox::information(this, "KCloudParser", "Non puoi caricare due risorse con lo stesso nome nello stesso percorso...");
+			break;
+		case CommandPacket::ResourceUpSpaceExhausted:
+			restoreMain();
+			QMessageBox::information(this, "KCloudParser", "Non hai abbastanza spazio per caricare la risorsa, elimina qualche file...");
+			break;
+		case CommandPacket::ResourceUpFinalizeOk:
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", "Risorsa caricata correttamente!");
+			requestTree();
+			break;
+		case CommandPacket::ResourceUpFinalizeFail:
+			restoreMain();
+			QMessageBox::critical(this, "KCloud::Parser", "Il server ha riscontrato un errore interno, il caricamento non è andato a buon fine!");
 			break;
 		case CommandPacket::ResourceDownOk:
-			waitTransmission();
+			m_loader->show();
+			break;
+		case CommandPacket::ResourceDownInvalidId:
+
+			break;
+		case CommandPacket::ResourceDownInvalidPerm:
+
+			break;
+		case CommandPacket::ResourceDownFail:
+
+			break;
+		case CommandPacket::ResourceTreeOk:
+			restoreMain();
+			refreshTree();
+			break;
+		case CommandPacket::ResourceTreeError:
+
+			break;
+		case CommandPacket::ResourceDelOk:
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", "Risorsa eliminata correttamente!");
+			requestTree();
+			break;
+		case CommandPacket::ResourceDelInvalidPerm:
+
+			break;
+		case CommandPacket::ResourceDelFail:
+
+			break;
+		case CommandPacket::UserRegisterOk:
+
+			break;
+		case CommandPacket::UsernameAlreadyInUse:
+
+			break;
+		case CommandPacket::UserRegisterFail:
 
 			break;
 		default:
+
 			break;
 	}
 
@@ -218,7 +286,6 @@ void GuiClient::on_downloadButton_clicked(){
 		return;
 	}
 	quint64 id = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem())->getId();
-	waitResponse("Controllo i permessi...");
 	m_client->newDownload(id);
 }
 
@@ -229,6 +296,7 @@ void GuiClient::on_uploadButton_clicked(){
 	}
 
 	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem());
+	GraphicResourceHeader::ResourceType resourceType;
 
 	if(tmp->getType() == GraphicResourceHeader::File){
 		QMessageBox::information(this, "KCloud::Info", tmp->getName() + QString(" è un file, non posso inserire oggetti all'interno..."));
@@ -247,18 +315,45 @@ void GuiClient::on_uploadButton_clicked(){
 	Q_UNUSED(cancelBtn);
 
 	if(info.clickedButton() == fileBtn){
-		path = QFileDialog::getOpenFileName(this, "KCloud::Upload", QDir::home().path());
+		resourceType	= GraphicResourceHeader::File;
+		path			= QFileDialog::getOpenFileName(this, "KCloud::Upload", QDir::home().path());
 	}else if(info.clickedButton() == dirBtn){
-		path = QFileDialog::getExistingDirectory(this, "KCloud::Upload", QDir::home().path());
+		resourceType = GraphicResourceHeader::Dir;
+		path			= QFileDialog::getExistingDirectory(this, "KCloud::Upload", QDir::home().path());
 	}else{
 		return;
 	}
 
-	PermSettings(m_user, GraphicResourceHeader::File, this).exec();
+	if(path.isEmpty()){
+		return;
+	}
 
-	return;
+	PermSettings settings(m_user, resourceType, this);
 
-	waitResponse("Aspetto la risposta del server...");
-	m_client->newUpload(path, m_user, tmp->getId());
+	settings.exec();
 
+	if(settings.wasAccepted()){
+		m_client->newUpload(path, m_user, tmp->getId(), settings.getPermMap(), settings.getPublicPerm());
+	}
+}
+
+void GuiClient::on_deleteButton_clicked(){
+
+	if(m_tree->currentItem() == NULL){
+		return;
+	}
+
+	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *> (m_tree->currentItem());
+
+	QMessageBox msg(this);
+	QPushButton *btnYes = msg.addButton("Si", QMessageBox::AcceptRole);
+	QPushButton *btnNo	= msg.addButton("No", QMessageBox::RejectRole);
+	msg.setText(QString("Eliminare veramente ") + tmp->getName());
+	msg.setWindowTitle("KCloud::Eliminazione");
+	msg.setIcon(QMessageBox::Information);
+	msg.exec();
+	Q_UNUSED(btnNo);
+	if(msg.clickedButton() == btnYes){
+		m_client->resourceDel(tmp->getId());
+	}
 }

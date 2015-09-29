@@ -26,12 +26,17 @@ namespace KCloud{
 														Client(const WorkMode mode, QObject *parent = 0);
 														~Client();
 		signals:
-						void							newCommand();
 						void							serverAnswer(CommandPacket::ServerAnswer answer);
 						void							clientError(Exception::Type type);
+
+
+						void							commandReceived();
 						void							resourceReceived();
 						void							resourceSended();
-						void							finalizeOK();
+						void							decompressionStart();
+						void							decompressionEnd();
+						void							serverFinalized();
+
 						void							transmissionRate(const qint64 total, const qint64 transmitted, Resource::Mode mod);
 
 		public slots:
