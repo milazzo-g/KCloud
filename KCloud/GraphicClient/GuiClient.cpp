@@ -166,14 +166,14 @@ void GuiClient::disableMain(){
 }
 
 void GuiClient::restoreMain(){
-	trace;
+//	trace;
 	this->setEnabled(true);
 	m_waiter->quit();
 	m_loader->quit();
 }
 
 void GuiClient::restoreMainWithSound(){
-	trace;
+//	trace;
 	m_player->setVolume(100);
 	m_player->play();
 	restoreMain();

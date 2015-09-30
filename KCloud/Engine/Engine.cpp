@@ -16,12 +16,12 @@ KCloud::Engine::Engine(QObject *parent) : QThread(parent){
 
 KCloud::Engine::~Engine(){
 
-	qDebug() << "Engine: stopped!";
+//	qDebug() << "Engine: stopped!";
 }
 
 void KCloud::Engine::sendCommand(){
 
-	trace;
+//	trace;
 	QThread::msleep(500);
 	m_packet->prepareForSend();
 	m_packet->sendThrough(m_socket);
@@ -29,7 +29,7 @@ void KCloud::Engine::sendCommand(){
 
 void KCloud::Engine::sendResource(){
 
-	trace;
+//	trace;
 	QThread::msleep(500);
 	m_resource->prepareForSend();
 	QThread::msleep(500);
@@ -38,14 +38,14 @@ void KCloud::Engine::sendResource(){
 }
 
 void KCloud::Engine::receiveCommand(){
-	trace;
+//	trace;
 	emit commandSended();
 	m_packet->prepareForRecv();
 	m_packet->receiveFrom(m_socket);
 }
 
 void KCloud::Engine::receiveResource(){
-	trace;
+//	trace;
 	m_resource->prepareForRecv();
 	m_resource->receiveFrom(m_socket);
 }

@@ -14,7 +14,7 @@ KCloud::UsersManager::UsersManager(const QString &name, QObject *parent) : Datab
 }
 
 KCloud::UsersManager::~UsersManager(){
-	qDebug() << __FUNCTION__;
+//	qDebug() << __FUNCTION__;
 }
 
 void KCloud::UsersManager::forceLogout(const KCloud::User &usr) throw (Exception){

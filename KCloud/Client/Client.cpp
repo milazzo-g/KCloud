@@ -77,7 +77,7 @@ KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : E
 
 KCloud::Client::~Client(){
 
-	trace;
+//	trace;
 }
 
 void KCloud::Client::parse() throw (KCloud::Exception){
@@ -387,7 +387,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 				}
 				break;
 			default:
-				trace << MSG_40;
+			//	trace << MSG_40;
 				break;
 		}
 	}catch(Exception &e){
@@ -842,7 +842,7 @@ QString KCloud::Client::clog(const QString &log){
 	if(m_workMode == AsConsoleThread){
 		m_console->output(str);
 	}
-	qDebug() << log;
+//	qDebug() << log;
 	return log;
 }
 
