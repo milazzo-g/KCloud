@@ -181,11 +181,12 @@ void GuiClient::showLoader(){
 
 void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 
-	QString errors;
+	QString		errors;
+	QStringList	errorsList = m_client->lastErrors();
 
-	for(int i = 0; i < m_client->lastErrors().size(); i++){
-		errors += m_client->lastErrors()[i];
-		if(i == m_client->lastErrors().size() - 1){
+	for(int i = 0; i < errorsList.size(); i++){
+		errors += errorsList[i];
+		if(i == errorsList.size() - 1){
 			errors += QString("."	);
 		}else{
 			errors += QString(", "	);

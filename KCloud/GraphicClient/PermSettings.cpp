@@ -199,3 +199,9 @@ void PermSettings::on_writeRadio_clicked(){
 
 	m_publicPerm	= GraphicResourceHeader::Write;
 }
+
+void PermSettings::on_cancelBtn_clicked(){
+
+	m_accepted		= false;
+	close();
+}
