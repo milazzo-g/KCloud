@@ -44,7 +44,7 @@ namespace KCloud{
 							ResourcesManagerAnswer			getResources(const User &usr, const QString &path, const ResourceHeader &resource, QStringList &filesMoved) throw (Exception);
 							ResourcesManagerAnswer			delResources(const User &usr, const ResourceHeader &head) throw (Exception);
 							ResourcesManagerAnswer			modResource(const User &usr, const ResourceHeader &head) throw (Exception);
-							ResourcesManagerAnswer			shareResource(const User &usr, const ResourceHeader &head, QStringList &errorUsersShare, int i = 0) throw (Exception);
+							ResourcesManagerAnswer			shareResource(const User &usr, const ResourceHeader &head, QStringList &errorUsersShare) throw (Exception);
 							QList<ResourceHeader>			resourceTree(const User &usr);
 		private:
 			enum SpaceUpdateMode{

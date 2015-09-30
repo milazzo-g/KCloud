@@ -192,12 +192,12 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::modRe
 	}
 }
 
-KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::shareResource(const KCloud::User &usr, const KCloud::ResourceHeader &head, QStringList &errorUsersShare, int i) throw (Exception){
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::shareResource(const KCloud::User &usr, const KCloud::ResourceHeader &head, QStringList &errorUsersShare) throw (Exception){
 
 	if(open()){
 		if(!userExists(usr)){
 			close();
-			return UserNotExists;
+			return UserNotFound;
 		}
 		ResourceHeader header(head);
 		foreach (QString user, header.getPermissionTable().keys()) {
@@ -415,7 +415,7 @@ void KCloud::ResourcesManager::deletePublic(const KCloud::ResourceHeader &head) 
 	return deletePublic(head.getId());
 }
 
-void KCloud::ResourcesManager::deleteAllSharing(const KCloud::ResourceHeader &head){
+void KCloud::ResourcesManager::deleteAllSharing(const KCloud::ResourceHeader &head) throw (Exception){
 
 	if(isOpen()){
 		QSqlQuery query(m_db);
@@ -969,7 +969,7 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 				head.setPermissionTable(filtered);
 			}
 			setPublicPermission(head);
-			foreach (QString user, head.getPermissionTable()) {
+			foreach (QString user, head.getPermissionTable().keys()) {
 				addSharing(head.getId(), user, ResourceHeader::Write);
 			}
 			foreach (ResourceHeader child, childrens) {
