@@ -22,7 +22,9 @@ namespace KCloud{
 				UserAlreadyLogged,
 				UserAlreadyUnLogged,
 				UsernameAlreadyInUse,
-				UserRegisterOk
+				UserRegisterOk,
+				UserPasswordChangeOk
+
 			};
 			explicit							UsersManager(const QString &name, QObject *parent = 0);
 												~UsersManager();
@@ -30,6 +32,7 @@ namespace KCloud{
 							UsersManagerAnswer	checkLogin(const User &usr) throw (Exception);
 							UsersManagerAnswer	checkLogout(const User &usr) throw (Exception);
 							UsersManagerAnswer	checkUserRegister(const User &usr) throw(Exception);
+							UsersManagerAnswer	checkPasswordChange(const User &usr) throw(Exception);
 							User				getUser() const;
 		private:
 							User				m_user;
@@ -43,6 +46,7 @@ namespace KCloud{
 			const static	QString				queryUser_3;
 			const static	QString				queryUser_4;
 			const static	QString				queryUser_5;
+			const static	QString				queryUser_6;
 	};
 }
 

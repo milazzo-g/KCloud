@@ -7,6 +7,7 @@ const QString KCloud::UsersManager::queryUser_2(" UPDATE users SET status = :sta
 const QString KCloud::UsersManager::queryUser_3(" SELECT * FROM users WHERE email = :email ");
 const QString KCloud::UsersManager::queryUser_4(" INSERT INTO users VALUES ( :email, :hash, 0, 'UnLogged') ");
 const QString KCloud::UsersManager::queryUser_5(" INSERT INTO resources (parent, owner, name, type, size) VALUES (1, :owner, :name, 'Dir', 0) ");
+const QString KCloud::UsersManager::queryUser_6(" UPDATE users SET hash = :hash WHERE email = :email ");
 
 KCloud::UsersManager::UsersManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
 
@@ -124,6 +125,23 @@ KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkUserRegister
 			return UsernameAlreadyInUse;
 		}
 
+	}else{
+
+		throw OpenFailure();
+	}
+}
+
+KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkPasswordChange(const KCloud::User &usr) throw (Exception){
+
+	if(open()){
+
+		QSqlQuery query(m_db);
+		query.prepare(queryUser_6);
+		query.bindValue(placeHolder_hash, usr.getHash());
+		query.bindValue(placeHolder_mail, usr.getEmail());
+		tryExec(query);
+		close();
+		return UserPasswordChangeOk;
 	}else{
 
 		throw OpenFailure();

@@ -53,6 +53,7 @@ namespace KCloud{
 				ClientNullUserPointer,
 				ClientUnreachableServer,
 				ClientNotLogged,
+				ClientOldPasswordNotCorresponding,
 
 				//MainServer
 
@@ -292,6 +293,14 @@ namespace KCloud{
 			virtual const char *		what()		const throw ();
 			virtual	Type				type()		const;
 	};
+
+	class EXCEPTIONSSHARED_EXPORT OldPasswordNotCorresponding : public ClientException{
+
+		public:
+			virtual const char *		what()		const throw ();
+			virtual	Type				type()		const;
+	};
+
 	/*
 	 *		Eccezioni WorkerServer
 	 *
