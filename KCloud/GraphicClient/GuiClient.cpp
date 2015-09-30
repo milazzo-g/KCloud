@@ -33,6 +33,12 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 
 	ui->graphicsView->setScene(m_scene);
 	ui->graphicsView_2->setScene(m_permScene);
+	ui->downloadButton->setIcon(QIcon(":/icons/icons/down.png"));
+	ui->uploadButton->setIcon(QIcon(":/icons/icons/up.png"));
+	ui->modifyButton->setIcon(QIcon(":/icons/icons/mod.png"));
+	ui->deleteButton->setIcon(QIcon(":/icons/icons/del.png"));
+	ui->refreshBtn->setIcon(QIcon(":/icons/icons/refresh.png"));
+
 	m_client->start();
 
 	if(!appSettings.contains(T_STARTED)){

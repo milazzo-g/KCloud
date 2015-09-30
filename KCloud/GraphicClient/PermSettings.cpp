@@ -5,6 +5,8 @@ PermSettings::PermSettings(const User * const user, const GraphicResourceHeader 
 
 	ui->setupUi(this);
 
+	this->setFixedSize(this->size());
+
 	m_table				= ui->tableWidget;
 	m_publicRead		= ui->readRadio;
 	m_publicWrite		= ui->writeRadio;

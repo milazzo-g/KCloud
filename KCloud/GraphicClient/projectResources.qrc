@@ -93,6 +93,11 @@
         <file>icons/write_file.png</file>
         <file>icons/user_add.png</file>
         <file>icons/user_del.png</file>
+        <file>icons/del.png</file>
+        <file>icons/down.png</file>
+        <file>icons/mod.png</file>
+        <file>icons/up.png</file>
+        <file>icons/refresh.png</file>
     </qresource>
     <qresource prefix="/sounds">
         <file>sounds/bell.mp3</file>

@@ -17,7 +17,7 @@
 #define DOWN_PATH		"DOWN_PATH"
 #define _DOWNLOAD		"KCloudDownloads"
 #define _TEMPFILE		".Temp"
-
+#define TIME__OUT		"TIME__OUT"
 #define HOST_ADDR		"HOST_ADDR"
 #define HOST_PORT		"HOST_PORT"
 #define HOME_USER		"HOME_USER"

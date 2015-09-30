@@ -5,6 +5,7 @@
 Loader::Loader(QWidget *parent) : QDialog(parent), ui(new Ui::Loader){
 
 	ui->setupUi(this);
+	this->setFixedSize(this->size());
 	m_close			= true;
 	m_transferred	= ui->transferredLabel;
 	m_remaining		= ui->remainingLabel;

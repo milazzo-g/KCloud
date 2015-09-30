@@ -15,15 +15,15 @@
 #include <QHeaderView>
 #include <QTableWidget>
 #include <QMediaPlayer>
+#include <QProgressBar>
 #include <QTemporaryDir>
 #include <QGraphicsView>
 #include <QGraphicsScene>
-#include <QProgressBar>
-
 #include "../Client/Client.h"
 
 #include "Waiter.h"
 #include "Loader.h"
+#include "Settings.h"
 #include "LoginForm.h"
 #include "RenameForm.h"
 #include "PermSettings.h"

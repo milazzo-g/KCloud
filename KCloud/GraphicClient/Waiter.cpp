@@ -4,11 +4,15 @@
 Waiter::Waiter(QWidget *parent) : QDialog(parent), ui(new Ui::Waiter){
 
 	ui->setupUi(this);
+
+	this->setFixedSize(this->size());
+
 	m_movie		= new QMovie(this);
 	m_message	= ui->m_message;
 	m_loader	= ui->m_loader;
 	m_close		= true;
 	m_timer		= new QTimer(this);
+
 
 	m_movie->setFileName(":/animations/animations/loader.gif");
 	QTimer::singleShot(0, this, SLOT(startLoader()));
