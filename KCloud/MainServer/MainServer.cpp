@@ -64,32 +64,32 @@ void KCloud::MainServer::start(){
 void KCloud::MainServer::execCommand(const QString &cmd){
 
 	if(cmd == "quit"){
-		foreach (WorkerServer * item, m_clientsHandlers.values()) {
-			item->quit();
-		}
+//		foreach (WorkerServer * item, m_clientsHandlers.values()) {
+//			item->quit();
+//		}
 		m_console->quit();
 		m_coreApplication->quit();
 	}else if(cmd == "start"){
 		clog("Start listening...");
 		listen(QHostAddress::AnyIPv4, 8000);
 	}else if(cmd == "threads"){
-		if(m_clientsHandlers.size() == 0){
-			clog("No active threads!");
-		}else{
-			clog(QString("Active threads: ") + QString::number(m_clientsHandlers.size()));
-			foreach (QString add, m_clientsHandlers.keys()) {
-				clog(add);
-			}
-		}
+//		if(m_clientsHandlers.size() == 0){
+//			clog("No active threads!");
+//		}else{
+//			clog(QString("Active threads: ") + QString::number(m_clientsHandlers.size()));
+//			foreach (QString add, m_clientsHandlers.keys()) {
+//				clog(add);
+//			}
+//		}
 	}else{
 		clog("Unknown Command!");
 	}
 }
 
-void KCloud::MainServer::removeHandler(const QString &add){
+//void KCloud::MainServer::removeHandler(const QString &add){
 
-	m_clientsHandlers.remove(add);
-}
+//	m_clientsHandlers.remove(add);
+//}
 
 void KCloud::MainServer::clog(const QString &log){
 	QString str(Console::Blue + this->metaObject()->className() + Console::Reset);
@@ -103,10 +103,11 @@ void KCloud::MainServer::incomingConnection(qintptr handle){
 	clog("New Connection Accepted!");
 	clog("Creating New Worker Server...");
 	WorkerServer * tmp = new WorkerServer(handle, this);
+	qDebug() << "Socket Descriptor : " << handle;
 	clog("Worker Server Created!");
-	connect(tmp, SIGNAL(consoleOutRequest(QString)			) , m_console	, SLOT(output(QString)			));
-	connect(tmp, SIGNAL(removeFromActiveHandlers(QString)	) ,	this		, SLOT(removeHandler(QString)	));
+//	connect(tmp, SIGNAL(consoleOutRequest(QString)			) , m_console	, SLOT(output(QString)			));
+//	connect(tmp, SIGNAL(removeFromActiveHandlers(QString)	) ,	this		, SLOT(removeHandler(QString)	));
 	connect(tmp, SIGNAL(finished()							) , tmp			, SLOT(deleteLater()			));
-	m_clientsHandlers.insert(tmp->address(), tmp);
+//	m_clientsHandlers.insert(tmp->address(), tmp);
 	tmp->start();
 }
