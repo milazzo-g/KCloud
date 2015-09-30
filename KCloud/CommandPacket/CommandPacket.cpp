@@ -196,9 +196,10 @@ void KCloud::CommandPacket::answerToPasswordChange(KCloud::CommandPacket::Server
 	setErrorStringList(errorList);
 }
 
-void KCloud::CommandPacket::answerToResourceTree(KCloud::CommandPacket::ServerAnswer answer, const QList<KCloud::ResourceHeader> res, const QStringList &errorList){
+void KCloud::CommandPacket::answerToResourceTree(KCloud::CommandPacket::ServerAnswer answer, const User &usr, const QList<KCloud::ResourceHeader> res, const QStringList &errorList){
 
 	clear();
+	setUser(usr);
 	setServerAnswer(answer);
 	setErrorStringList(errorList);
 	m_headersList = res;

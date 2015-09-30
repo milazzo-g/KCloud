@@ -116,7 +116,7 @@ namespace KCloud{
                     void					answerToLogout(ServerAnswer answer, const QStringList &errorStringList = QStringList());
 					void					answerToPasswordChange(ServerAnswer answer, const QStringList &errorList = QStringList());
 					void					answerToLogin(ServerAnswer answer, const User &usr = User(), const QStringList &errorStringList = QStringList());
-                    void					answerToResourceTree(ServerAnswer answer, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
+					void					answerToResourceTree(ServerAnswer answer, const User &usr, const QList<ResourceHeader> res, const QStringList &errorList = QStringList());
 					void					answerToResourceDown(ServerAnswer answer, const ResourceHeader &head = ResourceHeader(), const QStringList &errorList = QStringList());
 					void					answerToResourceMod(ServerAnswer answer, const QStringList &errorList = QStringList());
 					void					answerToResourceSharing(ServerAnswer answer, const QStringList &errorList = QStringList());

@@ -33,6 +33,7 @@ namespace KCloud{
 							UsersManagerAnswer	checkLogout(const User &usr) throw (Exception);
 							UsersManagerAnswer	checkUserRegister(const User &usr) throw(Exception);
 							UsersManagerAnswer	checkPasswordChange(const User &usr) throw(Exception);
+							User				getUser(const QString &mail);
 							User				getUser() const;
 		private:
 							User				m_user;

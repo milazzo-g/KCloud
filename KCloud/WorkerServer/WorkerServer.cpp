@@ -30,7 +30,7 @@ KCloud::WorkerServer::~WorkerServer(){
 	}
 	recursiveRemove(m_dir.path());
 	qDebug() << address() << ": Job ended!";
-	emit removeFromActiveHandlers(address());
+//	emit removeFromActiveHandlers(address());
 }
 
 void KCloud::WorkerServer::run(){
@@ -243,6 +243,7 @@ void KCloud::WorkerServer::resourceMod(){			//nuovo arrivo
 				default:
 					clog("Generalmente non dovremmo essere qui!");
 					clog(QString("m_resourcesManager->modResource(*m_user, m_packet->getFirstResourceHeader()) = ") + QString::number((qint32)r));
+					m_packet->answerToResourceMod(CommandPacket::ResourceModFail);
 					break;
 			}
 		}catch(Exception &e){
@@ -302,13 +303,16 @@ void KCloud::WorkerServer::resourceTree(){
 	if(userIsLogged()){
 		try{
 			QList<ResourceHeader> list = m_resourcesManager->resourceTree(*m_user);
+			QString usr = m_user->getEmail();
+			delete m_user;
+			m_user = new User(m_usersManager->getUser(usr));
 
 			if(list.isEmpty()){
 				clog(QString("Resource Tree failed for ") + m_socket->peerAddress().toString());
-				m_packet->answerToResourceTree(CommandPacket::ResourceTreeError, list);
+				m_packet->answerToResourceTree(CommandPacket::ResourceTreeError, *m_user, list);
 			}else{
 				clog(QString("Resource Tree OK for ") + m_socket->peerAddress().toString());
-				m_packet->answerToResourceTree(CommandPacket::ResourceTreeOk, list);
+				m_packet->answerToResourceTree(CommandPacket::ResourceTreeOk, *m_user, list);
 			}
 
 		}catch(Exception &e){
@@ -316,10 +320,10 @@ void KCloud::WorkerServer::resourceTree(){
 			clog(e.what());
 			QStringList errors;
 			errors << QString(e.what()) << m_resourcesManager->lastSqlError() << m_resourcesManager->lastDriverError();
-			m_packet->answerToResourceTree(CommandPacket::ServerInternalError, QList<ResourceHeader>(), errors);
+			m_packet->answerToResourceTree(CommandPacket::ServerInternalError, User(), QList<ResourceHeader>(), errors);
 		}
 	}else{
-		m_packet->answerToResourceTree(CommandPacket::NotLoggedUser, QList<ResourceHeader>());
+		m_packet->answerToResourceTree(CommandPacket::NotLoggedUser, User(), QList<ResourceHeader>());
 	}
 	sendCommand();
 }
@@ -470,6 +474,7 @@ void KCloud::WorkerServer::passwordChange(){			// nuovo arrivo
 				default:
 					clog("Generalmente non dovremmo essere qui!");
 					clog(QString("m_usersManager->checkPasswordChange(m_packet->getUser())") + QString::number((qint32)r));
+					m_packet->answerToPasswordChange(CommandPacket::PasswordChangeFail);
 					break;
 			}
 		}catch(Exception &e){
@@ -569,7 +574,7 @@ void KCloud::WorkerServer::clog(const QString &log){
 	QString str(Console::Green + this->metaObject()->className() + Console::Reset + QString(" [") + address() + QString("] :"));
 	str += " ";
 	str += log;
-	emit consoleOutRequest(str);
+//	emit consoleOutRequest(str);
 }
 
 bool KCloud::WorkerServer::recursiveRemove(const QString &path){

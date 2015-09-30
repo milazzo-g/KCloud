@@ -33,11 +33,11 @@ namespace KCloud{
 
 		private slots:
 						void							execCommand(const QString &cmd);
-						void							removeHandler(const QString &add);
+//						void							removeHandler(const QString &add);
 		private:
 						void							clog(const QString &log);
 
-						QMap<QString, WorkerServer *>	m_clientsHandlers;
+//						QMap<QString, WorkerServer *>	m_clientsHandlers;
 						QCoreApplication *				m_coreApplication;
 						Console	*						m_console;
 	};

@@ -148,6 +148,22 @@ KCloud::UsersManager::UsersManagerAnswer KCloud::UsersManager::checkPasswordChan
 	}
 }
 
+KCloud::User KCloud::UsersManager::getUser(const QString &mail){
+
+	if(open()){
+		QSqlQuery query(m_db);
+		query.prepare(queryUser_1);
+		query.bindValue(placeHolder_mail, mail);
+		tryExec(query);
+		usrCopy(query);
+		close();
+		return m_user;
+	}else{
+
+		throw OpenFailure();
+	}
+}
+
 KCloud::User KCloud::UsersManager::getUser() const{
 
 	return m_user;

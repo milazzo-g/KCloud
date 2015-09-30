@@ -628,6 +628,8 @@ void KCloud::Client::setSessionUser(){
 
 void KCloud::Client::saveResourcesTree(){
 
+	delete m_user;
+	m_user = new User(m_packet->getUser());
 	m_resourcesTree.clear();
 	m_resourcesTree = m_packet->getResourceTree();
 	clog(QString::number(m_resourcesTree.size()));
