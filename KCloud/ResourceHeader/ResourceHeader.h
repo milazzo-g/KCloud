@@ -80,6 +80,9 @@ namespace KCloud{
 
 		signals:
 
+		protected:
+						ResourceHeader				getThis() const;
+
 		public slots:
 
 		private:

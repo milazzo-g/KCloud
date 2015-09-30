@@ -46,6 +46,8 @@ class RenameForm : public QDialog
 		const	GraphicResourceHeader *		m_header;
 				QString						m_newName;
 				bool						m_accepted;
+				QGraphicsView *				m_view;
+				QTableWidget *				m_table;
 };
 
 #endif // RENAMEFORM_H

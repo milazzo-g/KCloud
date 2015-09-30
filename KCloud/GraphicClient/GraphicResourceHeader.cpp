@@ -38,7 +38,12 @@ KCloud::GraphicResourceHeader::~GraphicResourceHeader(){
 
 }
 
-QPixmap KCloud::GraphicResourceHeader::getImage(){
+KCloud::ResourceHeader KCloud::GraphicResourceHeader::getHeader() const{
+
+	return ResourceHeader::getThis();
+}
+
+QPixmap KCloud::GraphicResourceHeader::getImage() const{
 
 	return icon(0).pixmap(64, 64);
 }

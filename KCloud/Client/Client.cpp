@@ -6,6 +6,48 @@
 #define TEST_HOST		"192.168.1.12"
 #define TEST_PORT		8000
 
+const QString	KCloud::Client::MSG_00("Risposta non settata."																						);
+const QString	KCloud::Client::MSG_01("Non sei loggato."																														);
+const QString	KCloud::Client::MSG_02("Login effettuato con successo"																											);
+const QString	KCloud::Client::MSG_03("L'email che hai inserito non esiste."																									);
+const QString	KCloud::Client::MSG_04("La password è errata"																													);
+const QString	KCloud::Client::MSG_05("Risulti già essere loggato"																												);
+const QString	KCloud::Client::MSG_06("Logout effettuato con successo"																											);
+const QString	KCloud::Client::MSG_07("Logout fallito, verrai disconnesso automaticamente."																					);
+const QString	KCloud::Client::MSG_08("Albero delle risorse ricevuto."																											);
+const QString	KCloud::Client::MSG_09("L'albero delle risorse è vuoto."																										);
+const QString	KCloud::Client::MSG_10("Upload consentito, inizio la compressione."																								);
+const QString	KCloud::Client::MSG_11("La cartella è stata eliminata, non posso caricare."																						);
+const QString	KCloud::Client::MSG_12("Non hai i permessi per scrivere in questa cartella."																					);
+const QString	KCloud::Client::MSG_13("Caricando questa risorsa il tuo spazio occupato sarebbe maggiore di 4GB, rimuovi risorse per liberarlo."								);
+const QString	KCloud::Client::MSG_14("Non puoi caricare su un file, seleziona una cartella."																					);
+const QString	KCloud::Client::MSG_15("Esiste già una risorsa con lo stesso nome nella stessa cartella, rinominala e riprova a caricare."										);
+const QString	KCloud::Client::MSG_16("Risorsa finalizzata con successo."																										);
+const QString	KCloud::Client::MSG_17("Risorsa finalizzata con successo, tuttavia i seguenti utenti non sono stati trovati: "													);
+const QString	KCloud::Client::MSG_18("Download consentito."																													);
+const QString	KCloud::Client::MSG_19("Download fallito a causa di un errore interno al server, riprova più tardi."															);
+const QString	KCloud::Client::MSG_20("La risorsa richiesta non è più disponibile."																							);
+const QString	KCloud::Client::MSG_21("I tuoi permessi non sono sufficienti per scaricare questa risorsa, probabilmente sono stati modificati mentre effettuavo la richiesta."	);
+const QString	KCloud::Client::MSG_22("Eliminazione effettuata con successo."																									);
+const QString	KCloud::Client::MSG_23("Eliminazione fallita a causa di un errore interno al server, riprova più tardi."														);
+const QString	KCloud::Client::MSG_24("I tuoi permessi non sono sufficienti per eliminare questa risorsa."																		);
+const QString	KCloud::Client::MSG_25("Registrazione effettuata con successo."																									);
+const QString	KCloud::Client::MSG_26("La registrazione è fallita poichè la tua email risulta già registrata."																	);
+const QString	KCloud::Client::MSG_27("Risposta non settata."																													);
+const QString	KCloud::Client::MSG_28("Password modificata."																													);
+const QString	KCloud::Client::MSG_29("La password non può essere cambiata per un errore interno al server, riprova più tardi."												);
+const QString	KCloud::Client::MSG_30("Risorsa modificata con successo."																										);
+const QString	KCloud::Client::MSG_31("La risorsa non può essere modificata per un errore interno al server, riprova più tardi."												);
+const QString	KCloud::Client::MSG_32("La risorsa non può essere modificata perchè non è più disponibile."																		);
+const QString	KCloud::Client::MSG_33("I tuoi permessi non sono sufficienti per modificare questa risorsa."																	);
+const QString	KCloud::Client::MSG_34("Risorsa condivisa con successo."																										);
+const QString	KCloud::Client::MSG_35("I tuoi permessi non sono sufficienti per condividere questa risorsa."																	);
+const QString	KCloud::Client::MSG_36("La risorsa non può essere condivisa perchè non è più disponibile."																		);
+const QString	KCloud::Client::MSG_37("La risorsa non è stata condivisa con i seguenti utenti in quanto non registrati: "														);
+const QString	KCloud::Client::MSG_38("La risorsa non può essere condivisa per un errore interno al server, riprova più tardi."												);
+const QString	KCloud::Client::MSG_39("Errore interno al server, sicuramente causa di una ricorsione abbastanza lunga."														);
+const QString	KCloud::Client::MSG_40("Generalmente non dovrei ricevere risposte di questo tipo, il codice della risposta è: "													);
+
 KCloud::Client::Client(const KCloud::Client::WorkMode mode, QObject *parent) : Engine(parent){ ////OK
 
 	m_workMode = mode;
@@ -48,7 +90,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 		if(r == CommandPacket::NotLoggedUser){
 			throw NotLogged();
 		}else if(r == CommandPacket::ServerInternalError){
-			clog("Errore interno al server");
+			clog(MSG_39);
 			m_errors << m_packet->getLastError();
 			emit serverAnswer(r);
 			return;
@@ -60,23 +102,23 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 				switch (r){
 
 					case CommandPacket::LoginOk:
-						clog("Login OK!");
+						clog(MSG_02);
 						setSessionUser();
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::AlreadyLogged:
-						clog(QString("Errore nel login, utente già loggato"));
+						clog(MSG_05);
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::WrongEmail:
-						clog("Errore nel login, email non valida");
+						clog(MSG_03);
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::WrongPassword:
-						clog("Errore nel login, password non valida");
+						clog(MSG_04);
 						emit serverAnswer(r);
 						break;
 
@@ -91,12 +133,12 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				switch (r){
 						case CommandPacket::LogoutOk:
-							clog("Logout ok");
+							clog(MSG_06);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::LogoutFail:
-							clog("Errore nel logout");
+							clog(MSG_07);
 							emit serverAnswer(r);
 							break;
 
@@ -110,7 +152,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				switch (r){
 						case CommandPacket::ResourceUpOk:
-							clog(QString("Caricamento consentito"));
+							clog(MSG_10);
 							emit serverAnswer(r);
 							if(m_workMode == AsConsoleThread){
 								resourceUp();
@@ -118,38 +160,38 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 							break;
 
 						case CommandPacket::ResourceUpFail:
-							clog(QString("Caricamento rifiutato"));
+							clog(MSG_11);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceUpInvalidPerm:
-							clog(QString("Caricamento rifiutato, permessi insufficienti"));
+							clog(MSG_12);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceUpParentIsNotDir:
-							clog(QString("Caricamento rifiutato, il parent id è un file!"));
+							clog(MSG_14);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceUpAlreadyExists:
-							clog(QString("Caricamento rifiutato, presente file con lo stesso nome!"));
+							clog(MSG_15);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceUpSpaceExhausted:
-							clog(QString("Caricamento rifiutato, spazio sul server esaurito"));
+							clog(MSG_13);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceUpFinalizeOk:
-							clog(QString("Caricamento completato con successo"));
+							clog(MSG_16);
 							removeTempFile();
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceUpFinalizeFail:
-							clog(QString("Caricamento non finalizzato, per i seguenti utenti"));
+							clog(MSG_17);
 							foreach (QString err, m_packet->getLastError()){
 								m_errors << clog(err);
 							}
@@ -167,23 +209,23 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				switch (r){
 						case CommandPacket::ResourceDownOk:
-							clog("Scaricamento consentito");
+							clog(MSG_18);
 							emit serverAnswer(r);
 							resourceDown();
 							break;
 
 						case CommandPacket::ResourceDownInvalidId:
-							clog("Scaricamento Fallito, Id non valido");
+							clog(MSG_20);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceDownInvalidPerm:
-							clog("Scaricamento Fallito, permessi insufficienti");
+							clog(MSG_21);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceDownFail:
-							clog("Scaricamento fallito");
+							clog(MSG_19);
 							emit serverAnswer(r);
 							break;
 
@@ -198,13 +240,13 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 				switch (r){
 
 						case CommandPacket::ResourceTreeOk:
-							clog("Ricevuto albero delle risorse");
+							clog(MSG_08);
 							saveResourcesTree();
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceTreeError:
-							clog("Errore nella richiesta dell'albero delle risorse");
+							clog(MSG_09);
 							emit serverAnswer(r);
 							break;
 
@@ -218,17 +260,17 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				switch (r){
 						case CommandPacket::ResourceDelOk:
-							clog("Cancellazione avvenuta con successo");
+							clog(MSG_22);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceDelInvalidPerm:
-							clog("Cancellazione non riuscita, permessi insufficienti!");
+							clog(MSG_24);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::ResourceDelFail:
-							clog("Cancellazione non riuscita!");
+							clog(MSG_23);
 							emit serverAnswer(r);
 							break;
 
@@ -242,17 +284,17 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				switch (r){
 						case CommandPacket::UserRegisterOk:
-							clog("Registrazione avvenuta con successo");
+							clog(MSG_25);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::UsernameAlreadyInUse:
-							clog("Registrazione fallita, username già in uso!");
+							clog(MSG_26);
 							emit serverAnswer(r);
 							break;
 
 						case CommandPacket::UserRegisterFail:
-							clog("Registrazione fallita:");
+							clog(MSG_27);
 							emit serverAnswer(r);
 							break;
 
@@ -265,12 +307,12 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				switch (r){
 					case CommandPacket::PasswordChangeOk:
-						clog("Cambio password avvenuto con successo");
+						clog(MSG_28);
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::PasswordChangeFail:
-						clog("Cambio password non riucito!");
+						clog(MSG_29);
 						emit serverAnswer(r);
 						break;
 
@@ -284,21 +326,21 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				switch (r){
 					case CommandPacket::ResourceModOk:
-						clog("Modifica della risorsa evvenuta con successo");
+						clog(MSG_30);
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::ResourceModInvalidId:
-						clog("Modifica della risorsa, id non valido!");
+						clog(MSG_32);
 						emit serverAnswer(r);
 						break;
 					case CommandPacket::ResourceModInvalidPerm:
-						clog("Modifica della risorsa, permessi insufficienti per la modifica richiesta");
+						clog(MSG_33);
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::ResourceModFail:
-						clog("Modifica della risorsa, fallita!");
+						clog(MSG_31);
 						emit serverAnswer(r);
 						break;
 
@@ -312,22 +354,22 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 
 				switch (r){
 					case CommandPacket::ResourceSharingOk:
-						clog("Condivisione della risorsa evvenuta con successo");
+						clog(MSG_34);
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::ResourceSharingInvalidPerm:
-						clog("Condivisione della risorsa, permessi insufficienti!");
+						clog(MSG_35);
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::ResourceSharingInvalidId:
-						clog("Condivisione della risorsa, id non valido!");
+						clog(MSG_36);
 						emit serverAnswer(r);
 						break;
 
 					case CommandPacket::ResourceSharingErrors:
-						clog("Condivisione della risorsa, Errore nella condivisione");
+						clog(MSG_37);
 						foreach (QString err, m_packet->getLastError()){
 							m_errors << clog(err);
 						}
@@ -335,7 +377,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 						break;
 
 					case CommandPacket::ResourceSharingFail:
-						clog("Condivisione della risorsa, Errore nella condivisione");
+						clog(MSG_38);
 						emit serverAnswer(r);
 						break;
 
@@ -345,7 +387,7 @@ void KCloud::Client::parse() throw (KCloud::Exception){
 				}
 				break;
 			default:
-				trace << " Non ancora implementate!";
+				trace << MSG_40;
 				break;
 		}
 	}catch(Exception &e){

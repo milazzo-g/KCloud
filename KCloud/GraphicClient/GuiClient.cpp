@@ -1,7 +1,7 @@
 #include "GuiClient.h"
 #include "ui_GuiClient.h"
 
-
+const QString GuiClient::PARSER("KCloud::Parser");
 
 GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClient){
 
@@ -16,6 +16,10 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	m_loader			= new Loader(this);
 	m_waiter			= new Waiter(this);
 	m_player			= new QMediaPlayer(this);
+	m_userSpaceBar		= ui->spaceBar;
+	m_freeSpace			= ui->freeSpace;
+	m_busySpace			= ui->busySpace;
+	m_totalSpace		= ui->totalSpace;
 
 	QFile::copy(":/sounds/sounds/bell.mp3", m_dir.path() + QString("/bell.mp3"));
 	m_player->setMedia(QUrl::fromLocalFile(m_dir.path() + QString("/bell.mp3")));
@@ -95,6 +99,13 @@ void GuiClient::refreshTree(){
 		return;
 	}
 
+	qint64 free = ___4GB___ - m_user->getSpace();
+	m_busySpace->setText(QString::number(m_user->getSpace()));
+	m_freeSpace->setText(QString::number(free));
+	m_totalSpace->setText(QString::number(___4GB___));
+	double ratio = (static_cast<double>(m_user->getSpace()) / ___4GB___) * 100;
+	m_userSpaceBar->setValue(ratio);
+
 	m_tree->clear();
 	m_resourceMap.clear();
 
@@ -105,7 +116,7 @@ void GuiClient::refreshTree(){
 			}
 		}else{
 			if(head.getName() == m_user->getEmail()){
-				m_resourceMap.insert(head.getId(), new GraphicResourceHeader(head, m_tree));
+				m_resourceMap.insert(head.getId(), new GraphicResourceHeader(head, m_tree, GraphicResourceHeader::SessionUser));
 			}else{
 				if(head.getPermission(m_user->getEmail()) != ResourceHeader::PermUndef){
 					ResourceHeader tmp(head.getParentId(), this);
@@ -168,97 +179,159 @@ void GuiClient::showLoader(){
 
 void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 
-	switch (serv){
-		case CommandPacket::ResourceUpOk:
-			m_waiter->setMessage("Comprimo i file...");
-			QTimer::singleShot(1000, m_client, SLOT(resourceUp()));
-			break;
-		case CommandPacket::ResourceUpFail:
-			restoreMain();
-			QMessageBox::critical(this, "KCloudParser", "Il caricamento non può essere effettuato"
-														" per motivi interni al server...");
-			break;
-		case CommandPacket::ResourceUpInvalidPerm:
-			restoreMain();
-			QMessageBox::information(this, "KCloudParser", "I tuoi permessi non sono sufficienti "
-														   "per caricare in questa cartella...");
-			break;
-		case CommandPacket::ResourceUpParentIsNotDir:
-			restoreMain();
-			QMessageBox::critical(this, "KCloudParser", "La risorsa selezionata è in realtà un file, "
-														"non posso caricare...");
-			break;
-		case CommandPacket::ResourceUpAlreadyExists:
-			restoreMain();
-			QMessageBox::information(this, "KCloudParser", "Non puoi caricare due risorse con lo stesso "
-														   "nome nello stesso percorso...");
-			break;
-		case CommandPacket::ResourceUpSpaceExhausted:
-			restoreMain();
-			QMessageBox::information(this, "KCloudParser", "Non hai abbastanza spazio per caricare la "
-														   "risorsa, elimina qualche file...");
-			break;
-		case CommandPacket::ResourceUpFinalizeOk:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "Risorsa caricata correttamente!");
-			requestTree();
-			break;
-		case CommandPacket::ResourceUpFinalizeFail:
-			restoreMain();
-			QMessageBox::critical(this, "KCloud::Parser", "Il server ha riscontrato un errore interno, "
-														  "il caricamento non è andato a buon fine!");
-			break;
-		case CommandPacket::ResourceDownOk:
-			m_loader->show();
-			break;
-		case CommandPacket::ResourceDownInvalidId:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "La risorna non è più disponibile, "
-															 "probabilmente è stata eliminata");
-			break;
-		case CommandPacket::ResourceDownInvalidPerm:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "I tuoi permessi sono insufficienti per "
-															 "scaricare questa risorsa");
-			break;
-		case CommandPacket::ResourceDownFail:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "Il download non può essere "
-															 "avviato, riprova più tardi");
-			break;
-		case CommandPacket::ResourceTreeOk:
-			restoreMain();
-			refreshTree();
-			break;
-		case CommandPacket::ResourceTreeError:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "Errore nell'albero delle "
-															 "risorse, riprova più tardi!");
-			break;
-		case CommandPacket::ResourceDelOk:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "Risorsa eliminata "
-															 "correttamente!");
-			requestTree();
-			break;
-		case CommandPacket::ResourceDelInvalidPerm:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "I tuoi permessi non sono sufficienti "
-															 "per eliminare questa risorsa...");
-			break;
-		case CommandPacket::ResourceDelFail:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "La cancellazione è fallita per "
-															 "un errore interno al server, riprova "
-															 "più tardi...");
-			break;
-		default:
-			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", QString("Non ancora implementato, risposta: ") +
-									 QString::number((qint32)serv));
-			break;
+	QString errors;
+
+	for(int i = 0; i < m_client->lastErrors().size(); i++){
+		errors += m_client->lastErrors()[i];
+		if(i == m_client->lastErrors().size() - 1){
+			errors += QString("."	);
+		}else{
+			errors += QString(", "	);
+		}
 	}
 
+	switch (serv){
+		case CommandPacket::UnsetAnswer					:
+		case CommandPacket::LoginOk						:
+		case CommandPacket::WrongEmail					:
+		case CommandPacket::WrongPassword				:
+		case CommandPacket::AlreadyLogged				:
+		case CommandPacket::LogoutOk					:
+		case CommandPacket::LogoutFail					:
+				break;
+
+		case CommandPacket::ResourceTreeOk				:
+				restoreMain();
+				refreshTree();
+				break;
+		case CommandPacket::ResourceTreeError			:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_09 + errors	);
+				break;
+		case CommandPacket::ResourceUpOk				:
+				m_waiter->setMessage(Client::MSG_10						);
+				QTimer::singleShot	(1000, m_client, SLOT(resourceUp())	);
+				break;
+		case CommandPacket::ResourceUpFail				:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_11 + errors	);
+				break;
+		case CommandPacket::ResourceUpInvalidPerm		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_12 + errors	);
+				break;
+		case CommandPacket::ResourceUpSpaceExhausted	:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_13 + errors	);
+				break;
+		case CommandPacket::ResourceUpParentIsNotDir	:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_14 + errors	);
+				break;
+		case CommandPacket::ResourceUpAlreadyExists		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_15 + errors	);
+				break;
+		case CommandPacket::ResourceUpFinalizeOk		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_16 + errors	);
+				requestTree();
+				break;
+		case CommandPacket::ResourceUpFinalizeFail		:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_17 + errors	);
+				break;
+		case CommandPacket::ResourceDownOk				:
+				m_loader->show();
+				break;
+		case CommandPacket::ResourceDownFail			:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_19 + errors	);
+				break;
+		case CommandPacket::ResourceDownInvalidId		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_20 + errors	);
+				break;
+		case CommandPacket::ResourceDownInvalidPerm		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_21 + errors	);
+				break;
+		case CommandPacket::ResourceDelOk				:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_22 + errors	);
+				requestTree();
+				break;
+		case CommandPacket::ResourceDelFail				:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_23 + errors	);
+				break;
+		case CommandPacket::ResourceDelInvalidPerm		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_24 + errors	);
+				break;
+		case CommandPacket::UserRegisterOk				:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_25 + errors	);
+		case CommandPacket::UsernameAlreadyInUse		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_26 + errors	);
+				break;
+		case CommandPacket::UserRegisterFail			:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_27 + errors	);
+				break;
+		case CommandPacket::PasswordChangeOk			:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_28 + errors	);
+		case CommandPacket::PasswordChangeFail			:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_29 + errors	);
+				break;
+		case CommandPacket::ResourceModOk				:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_30 + errors	);
+				break;
+		case CommandPacket::ResourceModFail				:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_31 + errors	);
+				break;
+		case CommandPacket::ResourceModInvalidId		:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_32 + errors	);
+				break;
+		case CommandPacket::ResourceModInvalidPerm		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_33 + errors	);
+				break;
+		case CommandPacket::ResourceSharingOk			:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_34 + errors	);
+				break;
+		case CommandPacket::ResourceSharingInvalidPerm	:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_35 + errors	);
+				break;
+		case CommandPacket::ResourceSharingInvalidId	:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_36 + errors	);
+				break;
+		case CommandPacket::ResourceSharingErrors		:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_37 + errors	);
+				break;
+		case CommandPacket::ResourceSharingFail			:
+				restoreMain();
+				QMessageBox::information	(this, PARSER, Client::MSG_38 + errors	);
+				break;
+		case CommandPacket::ServerInternalError			:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_39 + errors	);
+				break;
+		default:
+				restoreMain();
+				QMessageBox::critical		(this, PARSER, Client::MSG_40 + QString::number((qint32)serv));
+				break;
+	}
 }
 
 void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column){
@@ -312,7 +385,7 @@ void GuiClient::on_uploadButton_clicked(){
 	}
 
 	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem());
-	GraphicResourceHeader::ResourceType resourceType;
+//	GraphicResourceHeader::ResourceType resourceType;
 
 	if(tmp->getType() == GraphicResourceHeader::File){
 		QMessageBox::information(this, "KCloud::Info", tmp->getName() + QString(" è un file, non posso inserire oggetti all'interno..."));
@@ -331,10 +404,10 @@ void GuiClient::on_uploadButton_clicked(){
 	Q_UNUSED(cancelBtn);
 
 	if(info.clickedButton() == fileBtn){
-		resourceType	= GraphicResourceHeader::File;
+//		resourceType	= GraphicResourceHeader::File;
 		path			= QFileDialog::getOpenFileName(this, "KCloud::Upload", QDir::home().path());
 	}else if(info.clickedButton() == dirBtn){
-		resourceType = GraphicResourceHeader::Dir;
+//		resourceType = GraphicResourceHeader::Dir;
 		path			= QFileDialog::getExistingDirectory(this, "KCloud::Upload", QDir::home().path());
 	}else{
 		return;
@@ -343,8 +416,8 @@ void GuiClient::on_uploadButton_clicked(){
 	if(path.isEmpty()){
 		return;
 	}
-
-	PermSettings settings(m_user, resourceType, this);
+	GraphicResourceHeader fake(tmp->getHeader(), NULL);
+	PermSettings settings(m_user, &fake, this);
 
 	settings.exec();
 
@@ -400,12 +473,23 @@ void GuiClient::on_modifyButton_clicked(){
 	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem());
 
 	if(info.clickedButton() == permBtn){
+		PermSettings settings(m_user, tmp, this);
+
+		settings.exec();
+
+		if(settings.wasAccepted()){
+			m_client->resourceShare(settings.getNewHeader());
+		}else{
+			return;
+		}
 
 	}else if(info.clickedButton() == nameBtn){
 		RenameForm rename(tmp, this);
 		rename.exec();
 		if(rename.wasAccepted()){
-			m_client->reso
+			ResourceHeader newHeader(tmp->getHeader());
+			newHeader.setName(rename.getNewName());
+			m_client->resourceMod(newHeader);
 		}else{
 			return;
 		}

@@ -240,6 +240,11 @@ bool KCloud::ResourceHeader::operator==(const KCloud::ResourceHeader &cpy) const
 				m_permissionTable	== cpy.m_permissionTable);
 }
 
+KCloud::ResourceHeader KCloud::ResourceHeader::getThis() const{
+
+	return *this;
+}
+
 qint64 KCloud::ResourceHeader::calculateDirSize(const QString &path){
 
 	QDir dir(path);

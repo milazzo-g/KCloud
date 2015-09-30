@@ -20,11 +20,13 @@ namespace KCloud {
 				Public
 			};
 
-					GraphicResourceHeader(const ResourceHeader &header, QTreeWidget * view, const RootType type = SessionUser);
+					GraphicResourceHeader(const ResourceHeader &header, QTreeWidget * view, const RootType type);
 					GraphicResourceHeader(const ResourceHeader &header, GraphicResourceHeader * parent);
 					~GraphicResourceHeader();
 
-					QPixmap getImage();
+					ResourceHeader	getHeader() const;
+
+					QPixmap getImage() const;
 
 
 

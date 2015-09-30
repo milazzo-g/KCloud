@@ -1,23 +1,23 @@
 #include "PermSettings.h"
 #include "ui_PermSettings.h"
 
-PermSettings::PermSettings(const User * const user, const ResourceHeader::ResourceType type, QWidget *parent) : QDialog(parent), ui(new Ui::PermSettings){
+PermSettings::PermSettings(const User * const user, const GraphicResourceHeader * const res, QWidget *parent) : QDialog(parent), ui(new Ui::PermSettings){
 
 	ui->setupUi(this);
 
-	m_table			= ui->tableWidget;
-	m_opMode		= type;
-	m_publicRead	= ui->readRadio;
-	m_publicWrite	= ui->writeRadio;
-	m_public		= ui->publicChec;
-	m_user			= user->getEmail();
-	m_accepted		= false;
-	m_publicPerm	= GraphicResourceHeader::PermUndef;
+	m_table				= ui->tableWidget;
+	m_publicRead		= ui->readRadio;
+	m_publicWrite		= ui->writeRadio;
+	m_public			= ui->publicChec;
+	m_currentResource	= res;
+	m_user				= user->getEmail();
+	m_accepted			= false;
+	m_publicPerm		= GraphicResourceHeader::PermUndef;
 
 	ui->addUserBtn->setIcon(QIcon(":/icons/icons/user_add.png"));
 	ui->delUserBtn->setIcon(QIcon(":/icons/icons/user_del.png"));
 
-	if(m_opMode == GraphicResourceHeader::File){
+	if(m_currentResource->getType() == GraphicResourceHeader::File){
 		m_publicRead->setIcon(QIcon(":/icons/icons/read_file.png"));
 		m_publicWrite->setIcon(QIcon(":/icons/icons/write_file.png"));
 	}else{
@@ -48,6 +48,14 @@ GraphicResourceHeader::ResourcePerm PermSettings::getPublicPerm() const{
 	return m_publicPerm;
 }
 
+ResourceHeader PermSettings::getNewHeader() const{
+
+	ResourceHeader res(m_currentResource->getHeader());
+	res.setPermissionTable(getPermMap());
+	res.setPublicPermission(getPublicPerm());
+	return res;
+}
+
 QMap<QString, GraphicResourceHeader::ResourcePerm> PermSettings::getPermMap() const{
 
 	return m_map;
@@ -58,14 +66,14 @@ void PermSettings::on_tableWidget_itemClicked(QTableWidgetItem *item){
 		if(item->column() == 1){
 			if(item->text() == "Lettura"){
 				item->setText("Scrittura");
-				if(m_opMode == GraphicResourceHeader::File){
+				if(m_currentResource->getType() == GraphicResourceHeader::File){
 					item->setIcon(QIcon(":/icons/icons/write_file.png"));
 				}else{
 					item->setIcon(QIcon(":/icons/icons/write_dir.png"));
 				}
 			}else{
 				item->setText("Lettura");
-				if(m_opMode == GraphicResourceHeader::File){
+				if(m_currentResource->getType() == GraphicResourceHeader::File){
 					item->setIcon(QIcon(":/icons/icons/read_file.png"));
 				}else{
 					item->setIcon(QIcon(":/icons/icons/read_dir.png"));
@@ -95,7 +103,7 @@ void PermSettings::on_addUserBtn_clicked(){
 	m_table->insertRow(0);
 	QTableWidgetItem * user = new QTableWidgetItem("Inserisci email");
 	QTableWidgetItem * perm = new QTableWidgetItem("Lettura");
-	perm->setIcon(m_opMode == GraphicResourceHeader::File ? QIcon(":/icons/icons/read_file.png") : QIcon(":/icons/icons/read_dir.png"));
+	perm->setIcon(m_currentResource->getType() == GraphicResourceHeader::File ? QIcon(":/icons/icons/read_file.png") : QIcon(":/icons/icons/read_dir.png"));
 	user->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 	perm->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 	m_table->setItem(0, 0, user);

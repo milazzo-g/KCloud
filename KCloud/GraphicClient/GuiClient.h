@@ -18,6 +18,7 @@
 #include <QTemporaryDir>
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QProgressBar>
 
 #include "../Client/Client.h"
 
@@ -28,6 +29,7 @@
 #include "PermSettings.h"
 #include "FirstConfigForm.h"
 #include "GraphicResourceHeader.h"
+
 
 
 
@@ -58,15 +60,13 @@ class GuiClient : public QMainWindow{
 		void	restoreMainWithSound();
 		void	showLoader();
 
+		void onServerAnswer(const CommandPacket::ServerAnswer serv);
 
+		void on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
-		void	onServerAnswer(const CommandPacket::ServerAnswer serv);
+		void on_mainTreeWidget_itemSelectionChanged();
 
-		void	on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column);
-
-		void	on_mainTreeWidget_itemSelectionChanged();
-
-		void	on_downloadButton_clicked();
+		void on_downloadButton_clicked();
 
 		void on_uploadButton_clicked();
 
@@ -84,12 +84,19 @@ class GuiClient : public QMainWindow{
 		QTreeWidget	*							m_tree;
 		QMap<quint64, GraphicResourceHeader *>	m_resourceMap;
 		QGraphicsScene *						m_scene;
+		QGraphicsScene *						m_permScene;
 		Loader *								m_loader;
 		Waiter *								m_waiter;
 		QMediaPlayer *							m_player;
 		QTemporaryDir							m_dir;
 		QTableWidget *							m_resourceInfoTable;
 		QTableWidget *							m_permissionTable;
+		QProgressBar *							m_userSpaceBar;
+		QLabel *								m_freeSpace;
+		QLabel *								m_busySpace;
+		QLabel *								m_totalSpace;
+
+		static const QString					PARSER;
 };
 
 #endif // GUICLIENT_H

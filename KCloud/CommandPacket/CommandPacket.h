@@ -35,35 +35,35 @@ namespace KCloud{
 						ResourceTreeOk,				//8
 						ResourceTreeError,			//9
 						ResourceUpOk,				//10
-                        ResourceUpFail,
-                        ResourceUpInvalidPerm,
-						ResourceUpSpaceExhausted,
-						ResourceUpParentIsNotDir,
+						ResourceUpFail,				//11
+						ResourceUpInvalidPerm,		//12
+						ResourceUpSpaceExhausted,	//13
+						ResourceUpParentIsNotDir,	//14
 						ResourceUpAlreadyExists,	//15
-						ResourceUpFinalizeOk,
-						ResourceUpFinalizeFail,
-						ResourceDownOk,
-                        ResourceDownFail,
+						ResourceUpFinalizeOk,		//16
+						ResourceUpFinalizeFail,		//17
+						ResourceDownOk,				//18
+						ResourceDownFail,			//19
 						ResourceDownInvalidId,		//20
-						ResourceDownInvalidPerm,
-                        ResourceDelOk,
-                        ResourceDelFail,
-						ResourceDelInvalidPerm,
-						UserRegisterOk,
-						UsernameAlreadyInUse,
-						UserRegisterFail,
-						PasswordChangeOk,
-						PasswordChangeFail,
-						ResourceModOk,
-						ResourceModFail,
-						ResourceModInvalidId,
-						ResourceModInvalidPerm,
-						ResourceSharingOk,
-						ResourceSharingInvalidPerm,
-						ResourceSharingInvalidId,
-						ResourceSharingErrors,
-						ResourceSharingFail,
-						ServerInternalError
+						ResourceDownInvalidPerm,	//21
+						ResourceDelOk,				//22
+						ResourceDelFail,			//23
+						ResourceDelInvalidPerm,		//24
+						UserRegisterOk,				//25
+						UsernameAlreadyInUse,		//26
+						UserRegisterFail,			//27
+						PasswordChangeOk,			//28
+						PasswordChangeFail,			//29
+						ResourceModOk,				//30
+						ResourceModFail,			//31
+						ResourceModInvalidId,		//32
+						ResourceModInvalidPerm,		//33
+						ResourceSharingOk,			//34
+						ResourceSharingInvalidPerm,	//35
+						ResourceSharingInvalidId,	//36
+						ResourceSharingErrors,		//37
+						ResourceSharingFail,		//38
+						ServerInternalError			//39
 					};
 
 					enum ClientCommand{
