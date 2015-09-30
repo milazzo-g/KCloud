@@ -6,7 +6,7 @@ KCloud::CommandPacket::CommandPacket(QObject *parent) : NetObject(parent){
 }
 
 KCloud::CommandPacket::~CommandPacket(){
-	trace;
+//	trace;
 }
 
 void KCloud::CommandPacket::clear(){
@@ -23,7 +23,7 @@ void KCloud::CommandPacket::prepareForSend() throw(Exception){
 	NetObject::clear();
 	m_bytesCounter = (qint64)sizeof(getNetworkSize());
 	setReady();
-	trace;
+//	trace;
 }
 
 void KCloud::CommandPacket::prepareForRecv(){
@@ -237,16 +237,16 @@ void KCloud::CommandPacket::answerToResourceSharing(KCloud::CommandPacket::Serve
 void KCloud::CommandPacket::send(const qint64 block){
 
     if(block == 0){
-		trace;
-		qDebug() << "    [invio  dimensione] = " << m_bytesCounter;
+	//	trace;
+	//	qDebug() << "    [invio  dimensione] = " << m_bytesCounter;
         QDataStream stream(m_channel);
         stream << getNetworkSize();
         return;
     }
 
     m_bytesCounter = getNetworkSize();
-	trace;
-	qDebug() << "    [inizio ad inviare] = " << m_bytesCounter;
+//	trace;
+//	qDebug() << "    [inizio ad inviare] = " << m_bytesCounter;
 	QDataStream stream(m_channel);
 	stream << *this;
 
@@ -284,8 +284,8 @@ void KCloud::CommandPacket::behaviorOnSend(const qint64 dim) throw(Exception){
 
 
     m_bytesCounter -= dim;
-	trace;
-	qDebug() << " [byte    rimanenti] = " << m_bytesCounter;
+//	trace;
+//	qDebug() << " [byte    rimanenti] = " << m_bytesCounter;
 
 	if(m_bytesCounter == 0){
 
@@ -309,8 +309,8 @@ qint64 KCloud::CommandPacket::calculateNetworkSize() throw(Exception){
 	QByteArray tmp;
 	QDataStream stream(&tmp, QIODevice::ReadWrite);
 	stream << *this;
-	trace;
-	qDebug() << "    [dimensione   rete] = " << tmp.size();
+//	trace;
+//	qDebug() << "    [dimensione   rete] = " << tmp.size();
 	return tmp.size();
 }
 

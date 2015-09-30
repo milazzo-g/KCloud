@@ -18,19 +18,21 @@ KCloud::WorkerServer::WorkerServer(int sd, QObject *parent) : Engine(parent){
 	m_usersManager		= new UsersManager(keyLast(), this);
 	m_console			= new Console(this);
 
-	connect(m_socket	, SIGNAL(disconnected()		), this, SLOT(quit())									);
-	connect(m_resource	, SIGNAL(objectReceived()	), this, SLOT(finalizeUpload()	), Qt::UniqueConnection	);
-	connect(m_resource	, SIGNAL(objectSended()		), this, SLOT(finalizeDownload()), Qt::UniqueConnection	);
-	connect(m_packet	, SIGNAL(objectSended()		), this, SLOT(receiveCommand()	), Qt::UniqueConnection	);
+	connect(m_console	, SIGNAL(finished()			), m_console,	SLOT(deleteLater())								);
+	connect(m_socket	, SIGNAL(disconnected()		), this,		SLOT(quit())									);
+	connect(m_resource	, SIGNAL(objectReceived()	), this,		SLOT(finalizeUpload()	), Qt::UniqueConnection	);
+	connect(m_resource	, SIGNAL(objectSended()		), this,		SLOT(finalizeDownload()	), Qt::UniqueConnection	);
+	connect(m_packet	, SIGNAL(objectSended()		), this,		SLOT(receiveCommand()	), Qt::UniqueConnection	);
 }
 
 KCloud::WorkerServer::~WorkerServer(){
 
+	m_console->quit();
 	if(m_user){
 		forcedLogout();
 	}
 	recursiveRemove(m_dir.path());
-	qDebug() << address() << ": Job ended!";
+	//qDebug() << address() << ": Job ended!";
 //	emit removeFromActiveHandlers(address());
 }
 

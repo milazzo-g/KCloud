@@ -199,6 +199,14 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::share
 			close();
 			return UserNotFound;
 		}
+		if(!resourceExists(head.getId())){
+			close();
+			return ResourceNotExist;
+		}
+		if(head.getOwner() != usr.getEmail() || head.getName() == usr.getEmail()){
+			close();
+			return PermError;
+		}
 		ResourceHeader header(head);
 		foreach (QString user, header.getPermissionTable().keys()) {
 			if(!userExists(user)){
@@ -851,7 +859,7 @@ QList<KCloud::ResourceHeader> KCloud::ResourcesManager::getChilds(const quint64 
 		tryExec(query);
 		while(query.next()){
 			result << getHeader(query.value(res_Id).toULongLong());
-			trace << "result.size() = " << result.size();
+		//	trace << "result.size() = " << result.size();
 		}
 		return result;
 	}else{
@@ -946,8 +954,6 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 
 	QList<ResourceHeader> childrens = getChilds(head.getId(), OnlyFiles) + getChilds(head.getId(), OnlyDirs);
 
-	trace << head.getName() << " " << head.getId() << " " << (qint32)head.getPublicPermission();
-
 	deletePublic(head);
 	deleteAllSharing(head);
 
@@ -960,7 +966,6 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 			}
 			break;
 		case ResourceHeader::Read:
-			trace;
 			if(i == 0){
 				QMap<QString, ResourceHeader::ResourcePerm> filtered;
 				foreach (QString user, head.getPermissionTable().keys()) {
@@ -971,7 +976,6 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 				head.setPermissionTable(filtered);
 			}
 			setPublicPermission(head);
-			trace;
 			foreach (QString user, head.getPermissionTable().keys()) {
 				addSharing(head.getId(), user, ResourceHeader::Write);
 			}
@@ -980,19 +984,16 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 				child.setPublicPermission(ResourceHeader::Read);
 				recursiveShare(child, 1);
 			}
-			trace;
 			break;
 		default:
 			foreach (QString user, head.getPermissionTable().keys()) {
 				addSharing(head.getId(), user, head.getPermission(user));
 			}
-			trace;
 			foreach (ResourceHeader child, childrens){
 				child.setPermissionTable(head.getPermissionTable());
 				child.setPublicPermission(ResourceHeader::PermUndef);
 				recursiveShare(child);
 			}
-			trace;
 			break;
 	}
 	return;
