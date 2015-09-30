@@ -55,6 +55,8 @@ class PermSettings : public QDialog{
 
 		void on_writeRadio_clicked();
 
+		void on_cancelBtn_clicked();
+
 	private:
 				Ui::PermSettings *									ui;
 				QTableWidget *										m_table;

@@ -540,6 +540,7 @@ void KCloud::Client::disconnectFromHost(){
 
 QStringList KCloud::Client::lastErrors(){
 
+	clog(QString("NUMERO DI ERRORI : ") + QString::number(m_errors.size()));
 	QStringList err = m_errors;
 	m_errors.clear();
 	return err;
