@@ -27,8 +27,8 @@ const QString KCloud::ResourcesManager::queryResources_22(" UPDATE resources SET
 const QString KCloud::ResourcesManager::queryResources_23(" UPDATE publicResources SET permission = :permission WHERE resource = :id ");
 const QString KCloud::ResourcesManager::queryResources_24(" DELETE FROM sharing WHERE resource = :id AND user = :email");
 const QString KCloud::ResourcesManager::queryResources_25(" UPDATE sharing SET permission = :permission WHERE resource = :id AND user = :email ");
-const QString KCloud::ResourcesManager::queryResources_26(" DELETE FROM publicResources WHERE id = :id ");
-const QString KCloud::ResourcesManager::queryResources_27(" DELETE FROM sharing WHERE id = :id ");
+const QString KCloud::ResourcesManager::queryResources_26(" DELETE FROM publicResources WHERE resource = :id ");
+const QString KCloud::ResourcesManager::queryResources_27(" DELETE FROM sharing WHERE resource = :id ");
 
 KCloud::ResourcesManager::ResourcesManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
 
@@ -946,6 +946,8 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 
 	QList<ResourceHeader> childrens = getChilds(head.getId(), OnlyFiles) + getChilds(head.getId(), OnlyDirs);
 
+	trace << head.getName() << " " << head.getId() << " " << (qint32)head.getPublicPermission();
+
 	deletePublic(head);
 	deleteAllSharing(head);
 
@@ -958,7 +960,7 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 			}
 			break;
 		case ResourceHeader::Read:
-
+			trace;
 			if(i == 0){
 				QMap<QString, ResourceHeader::ResourcePerm> filtered;
 				foreach (QString user, head.getPermissionTable().keys()) {
@@ -969,6 +971,7 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 				head.setPermissionTable(filtered);
 			}
 			setPublicPermission(head);
+			trace;
 			foreach (QString user, head.getPermissionTable().keys()) {
 				addSharing(head.getId(), user, ResourceHeader::Write);
 			}
@@ -977,14 +980,19 @@ void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int 
 				child.setPublicPermission(ResourceHeader::Read);
 				recursiveShare(child, 1);
 			}
+			trace;
 			break;
 		default:
 			foreach (QString user, head.getPermissionTable().keys()) {
 				addSharing(head.getId(), user, head.getPermission(user));
 			}
-			foreach (ResourceHeader child, childrens) {
+			trace;
+			foreach (ResourceHeader child, childrens){
+				child.setPermissionTable(head.getPermissionTable());
+				child.setPublicPermission(ResourceHeader::PermUndef);
 				recursiveShare(child);
 			}
+			trace;
 			break;
 	}
 	return;

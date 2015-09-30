@@ -64,6 +64,7 @@ namespace KCloud{
 						QDir				m_dir;
 						QString				m_key1;
 						QString				m_key2;
+						Console *			m_console;
 
 
 	};

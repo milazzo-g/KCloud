@@ -155,6 +155,7 @@ KCloud::User KCloud::UsersManager::getUser(const QString &mail){
 		query.prepare(queryUser_1);
 		query.bindValue(placeHolder_mail, mail);
 		tryExec(query);
+		query.seek(0);
 		usrCopy(query);
 		close();
 		return m_user;
