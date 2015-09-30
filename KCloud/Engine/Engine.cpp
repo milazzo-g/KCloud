@@ -32,6 +32,7 @@ void KCloud::Engine::sendResource(){
 	trace;
 	QThread::msleep(500);
 	m_resource->prepareForSend();
+	QThread::msleep(500);
 	emit compressionEnd();
 	m_resource->sendThrough(m_socket);
 }

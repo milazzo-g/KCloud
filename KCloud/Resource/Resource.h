@@ -5,6 +5,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QThread>
 #include <QString>
 #include <QFileInfo>
 #include <QByteArray>

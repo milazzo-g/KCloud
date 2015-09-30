@@ -1,7 +1,6 @@
 #include "GuiClient.h"
-#include "LoginForm.h"
 #include "ui_GuiClient.h"
-#include "FirstConfigForm.h"
+
 
 
 GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClient){
@@ -62,6 +61,8 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 			this		, SLOT	(showLoader()									));
 	connect(m_loader	, SIGNAL(trasmissionEnd()								),
 			this		, SLOT	(restoreMainWithSound()							));
+	connect(m_waiter	, SIGNAL(serverTimeout()								),
+			this		, SLOT	(close()										));
 
 }
 
@@ -126,12 +127,14 @@ void GuiClient::refreshTree(){
 			}
 		}
 	}
+	m_tree->setCurrentItem(NULL);
 }
 
 void GuiClient::requestTree(){
 
+	disableMain();
 	m_waiter->setMessage("Richiedo l'albero delle risorse");
-
+	m_waiter->show();
 	QTimer::singleShot(500, m_client, SLOT(resourceTree()));
 
 }
@@ -172,23 +175,28 @@ void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 			break;
 		case CommandPacket::ResourceUpFail:
 			restoreMain();
-			QMessageBox::critical(this, "KCloudParser", "Il caricamento non può essere effettuato per motivi interni al server...");
+			QMessageBox::critical(this, "KCloudParser", "Il caricamento non può essere effettuato"
+														" per motivi interni al server...");
 			break;
 		case CommandPacket::ResourceUpInvalidPerm:
 			restoreMain();
-			QMessageBox::information(this, "KCloudParser", "I tuoi permessi non sono sufficienti per caricare in questa cartella...");
+			QMessageBox::information(this, "KCloudParser", "I tuoi permessi non sono sufficienti "
+														   "per caricare in questa cartella...");
 			break;
 		case CommandPacket::ResourceUpParentIsNotDir:
 			restoreMain();
-			QMessageBox::critical(this, "KCloudParser", "La risorsa selezionata è in realtà un file, non posso caricare...");
+			QMessageBox::critical(this, "KCloudParser", "La risorsa selezionata è in realtà un file, "
+														"non posso caricare...");
 			break;
 		case CommandPacket::ResourceUpAlreadyExists:
 			restoreMain();
-			QMessageBox::information(this, "KCloudParser", "Non puoi caricare due risorse con lo stesso nome nello stesso percorso...");
+			QMessageBox::information(this, "KCloudParser", "Non puoi caricare due risorse con lo stesso "
+														   "nome nello stesso percorso...");
 			break;
 		case CommandPacket::ResourceUpSpaceExhausted:
 			restoreMain();
-			QMessageBox::information(this, "KCloudParser", "Non hai abbastanza spazio per caricare la risorsa, elimina qualche file...");
+			QMessageBox::information(this, "KCloudParser", "Non hai abbastanza spazio per caricare la "
+														   "risorsa, elimina qualche file...");
 			break;
 		case CommandPacket::ResourceUpFinalizeOk:
 			restoreMain();
@@ -197,49 +205,57 @@ void GuiClient::onServerAnswer(const CommandPacket::ServerAnswer serv){
 			break;
 		case CommandPacket::ResourceUpFinalizeFail:
 			restoreMain();
-			QMessageBox::critical(this, "KCloud::Parser", "Il server ha riscontrato un errore interno, il caricamento non è andato a buon fine!");
+			QMessageBox::critical(this, "KCloud::Parser", "Il server ha riscontrato un errore interno, "
+														  "il caricamento non è andato a buon fine!");
 			break;
 		case CommandPacket::ResourceDownOk:
 			m_loader->show();
 			break;
 		case CommandPacket::ResourceDownInvalidId:
-
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", "La risorna non è più disponibile, "
+															 "probabilmente è stata eliminata");
 			break;
 		case CommandPacket::ResourceDownInvalidPerm:
-
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", "I tuoi permessi sono insufficienti per "
+															 "scaricare questa risorsa");
 			break;
 		case CommandPacket::ResourceDownFail:
-
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", "Il download non può essere "
+															 "avviato, riprova più tardi");
 			break;
 		case CommandPacket::ResourceTreeOk:
 			restoreMain();
 			refreshTree();
 			break;
 		case CommandPacket::ResourceTreeError:
-
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", "Errore nell'albero delle "
+															 "risorse, riprova più tardi!");
 			break;
 		case CommandPacket::ResourceDelOk:
 			restoreMain();
-			QMessageBox::information(this, "KCloud::Parser", "Risorsa eliminata correttamente!");
+			QMessageBox::information(this, "KCloud::Parser", "Risorsa eliminata "
+															 "correttamente!");
 			requestTree();
 			break;
 		case CommandPacket::ResourceDelInvalidPerm:
-
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", "I tuoi permessi non sono sufficienti "
+															 "per eliminare questa risorsa...");
 			break;
 		case CommandPacket::ResourceDelFail:
-
-			break;
-		case CommandPacket::UserRegisterOk:
-
-			break;
-		case CommandPacket::UsernameAlreadyInUse:
-
-			break;
-		case CommandPacket::UserRegisterFail:
-
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", "La cancellazione è fallita per "
+															 "un errore interno al server, riprova "
+															 "più tardi...");
 			break;
 		default:
-
+			restoreMain();
+			QMessageBox::information(this, "KCloud::Parser", QString("Non ancora implementato, risposta: ") +
+									 QString::number((qint32)serv));
 			break;
 	}
 
@@ -356,4 +372,45 @@ void GuiClient::on_deleteButton_clicked(){
 	if(msg.clickedButton() == btnYes){
 		m_client->resourceDel(tmp->getId());
 	}
+}
+
+void GuiClient::on_refreshBtn_clicked(){
+	requestTree();
+}
+
+void GuiClient::on_modifyButton_clicked(){
+
+	QMessageBox info;
+
+	if(m_tree->currentItem() == NULL){
+		return;
+	}
+
+	info.setText("Cosa vuoi modificare ?");
+	info.setIcon(QMessageBox::Question);
+	info.setWindowTitle("KCloud::Modifica");
+	QPushButton *permBtn = info.addButton("Permessi", QMessageBox::AcceptRole);
+	QPushButton *nameBtn = info.addButton("Rinomina", QMessageBox::AcceptRole);
+	QPushButton *cancelBtn = info.addButton("Annulla", QMessageBox::RejectRole);
+
+	Q_UNUSED(cancelBtn);
+
+	info.exec();
+
+	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(m_tree->currentItem());
+
+	if(info.clickedButton() == permBtn){
+
+	}else if(info.clickedButton() == nameBtn){
+		RenameForm rename(tmp, this);
+		rename.exec();
+		if(rename.wasAccepted()){
+			m_client->reso
+		}else{
+			return;
+		}
+	}else{
+		return;
+	}
+
 }

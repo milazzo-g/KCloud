@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     GraphicResourceHeader.cpp \
     Loader.cpp \
     Waiter.cpp \
-    PermSettings.cpp
+    PermSettings.cpp \
+    RenameForm.cpp
 
 HEADERS  += GuiClient.h \
     LoginForm.h \
@@ -30,14 +31,16 @@ HEADERS  += GuiClient.h \
     GraphicResourceHeader.h \
     Loader.h \
     Waiter.h \
-    PermSettings.h
+    PermSettings.h \
+    RenameForm.h
 
 FORMS    += GuiClient.ui \
     LoginForm.ui \
     FirstConfigForm.ui \
     Loader.ui \
     Waiter.ui \
-    PermSettings.ui
+    PermSettings.ui \
+    RenameForm.ui
 
 RESOURCES += \
     projectResources.qrc

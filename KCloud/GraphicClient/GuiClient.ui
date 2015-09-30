@@ -263,6 +263,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="refreshBtn">
+          <property name="text">
+           <string>Aggiorna</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="modifyButton">
           <property name="text">
            <string>Modifica</string>

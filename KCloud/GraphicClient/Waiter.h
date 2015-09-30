@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QDialog>
 #include <QCloseEvent>
+#include <QMessageBox>
 
 #include "../Client/Client.h"
 
@@ -25,22 +26,28 @@ class Waiter : public QDialog{
 		~Waiter();
 	signals:
 		void	waitComplete() const;
+		void	serverTimeout() const;
 
 	public slots:
 		void	waitForServer() const;
 		void	quit();
 		void	setMessage(const QString &message);
+	public slots:
+
+		void	show();
 	protected:
 		void	closeEvent(QCloseEvent * event);
 
 	private slots:
 		void	startLoader();
+		void	panic();
 
 	private:
 		Ui::Waiter *				ui;
 		QLabel *					m_loader;
 		QLabel *					m_message;
 		QMovie *					m_movie;
+		QTimer *					m_timer;
 		bool						m_close;
 };
 

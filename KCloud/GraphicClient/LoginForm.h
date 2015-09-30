@@ -23,6 +23,7 @@
 #include <QCryptographicHash>
 #include <QCloseEvent>
 #include <QMessageBox>
+#include <QTimer>
 namespace Ui{
 
 	class LoginForm;

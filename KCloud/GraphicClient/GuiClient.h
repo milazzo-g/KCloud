@@ -23,8 +23,13 @@
 
 #include "Waiter.h"
 #include "Loader.h"
+#include "LoginForm.h"
+#include "RenameForm.h"
 #include "PermSettings.h"
+#include "FirstConfigForm.h"
 #include "GraphicResourceHeader.h"
+
+
 
 namespace Ui {
 	class GuiClient;
@@ -66,6 +71,10 @@ class GuiClient : public QMainWindow{
 		void on_uploadButton_clicked();
 
 		void on_deleteButton_clicked();
+
+		void on_refreshBtn_clicked();
+
+		void on_modifyButton_clicked();
 
 	private:
 		Ui::GuiClient *							ui;

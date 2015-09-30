@@ -102,7 +102,7 @@ void KCloud::MainServer::incomingConnection(qintptr handle){
 
 	clog("New Connection Accepted!");
 	clog("Creating New Worker Server...");
-	WorkerServer * tmp = new WorkerServer(handle, this);
+	WorkerServer * tmp = new WorkerServer(handle);
 	clog("Worker Server Created!");
 	connect(tmp, SIGNAL(consoleOutRequest(QString)			) , m_console	, SLOT(output(QString)			));
 	connect(tmp, SIGNAL(removeFromActiveHandlers(QString)	) ,	this		, SLOT(removeHandler(QString)	));

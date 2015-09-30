@@ -83,7 +83,7 @@ void KCloud::Resource::prepareForSend() throw(Exception){
 
 	compress();
 	checkZip();
-
+	QThread::msleep(250);
 	if(isCompressed()){
 		m_zipFile = new QFile(getZipPath());
 		m_zipFile->open(QIODevice::ReadOnly);
