@@ -16,6 +16,7 @@ KCloud::WorkerServer::WorkerServer(int sd, QObject *parent) : Engine(parent){
 	m_dir.cd(keyFirst());
 	m_resourcesManager	= new ResourcesManager(keyFirst(), this);
 	m_usersManager		= new UsersManager(keyLast(), this);
+	m_console			= new Console(this);
 
 	connect(m_socket	, SIGNAL(disconnected()		), this, SLOT(quit())									);
 	connect(m_resource	, SIGNAL(objectReceived()	), this, SLOT(finalizeUpload()	), Qt::UniqueConnection	);
@@ -35,6 +36,7 @@ KCloud::WorkerServer::~WorkerServer(){
 
 void KCloud::WorkerServer::run(){
 
+	m_console->start();
 	clog("Spawned");
 	connect(m_packet, SIGNAL(objectReceived()), this, SLOT(parse()));
 	receiveCommand();
@@ -574,6 +576,7 @@ void KCloud::WorkerServer::clog(const QString &log){
 	QString str(Console::Green + this->metaObject()->className() + Console::Reset + QString(" [") + address() + QString("] :"));
 	str += " ";
 	str += log;
+	m_console->output(str);
 //	emit consoleOutRequest(str);
 }
 
