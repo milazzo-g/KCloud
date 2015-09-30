@@ -44,7 +44,7 @@ namespace KCloud{
 							ResourcesManagerAnswer			getResources(const User &usr, const QString &path, const ResourceHeader &resource, QStringList &filesMoved) throw (Exception);
 							ResourcesManagerAnswer			delResources(const User &usr, const ResourceHeader &head) throw (Exception);
 							ResourcesManagerAnswer			modResource(const User &usr, const ResourceHeader &head) throw (Exception);
-							ResourcesManagerAnswer			shareResource(const User &usr, const ResourceHeader &head, QStringList &errorUsersShare) throw (Exception);
+							ResourcesManagerAnswer			shareResource(const User &usr, const ResourceHeader &head, QStringList &errorUsersShare, int i = 0) throw (Exception);
 							QList<ResourceHeader>			resourceTree(const User &usr);
 		private:
 			enum SpaceUpdateMode{
@@ -90,6 +90,10 @@ namespace KCloud{
 							void										deleteSharing(const quint64 &id, const QString &user) throw (Exception);
 							void										updareSharing(const quint64 &id, const QString &user, ResourceHeader::ResourcePerm perm) throw (Exception);
 							void										addSharing(const quint64 &id, const QString &user, ResourceHeader::ResourcePerm perm) throw (Exception);
+							void										deletePublic(const quint64 &id) throw (Exception);
+							void										deletePublic(const ResourceHeader &head) throw (Exception);
+							void										deleteAllSharing(const ResourceHeader &head) throw (Exception);
+							void										recursiveShare(ResourceHeader &head, int i = 0);
 
 			const	static	QString							queryResources_1;
 			const	static	QString							queryResources_2;
@@ -116,6 +120,8 @@ namespace KCloud{
 			const	static	QString							queryResources_23;
 			const	static	QString							queryResources_24;
 			const	static	QString							queryResources_25;
+			const	static	QString							queryResources_26;
+			const	static	QString							queryResources_27;
 	};
 }
 

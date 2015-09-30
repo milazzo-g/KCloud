@@ -31,6 +31,30 @@ PermSettings::PermSettings(const User * const user, const GraphicResourceHeader 
 	m_public->setChecked(false);
 	m_publicRead->setEnabled(false);
 	m_publicWrite->setEnabled(false);
+
+	foreach (QString usr, m_currentResource->getPermissionTable().keys()){
+		m_table->insertRow(0);
+		QTableWidgetItem * user = new QTableWidgetItem(usr);
+		QTableWidgetItem * perm = new QTableWidgetItem(m_currentResource->getPermissionTable()[usr] == GraphicResourceHeader::Read ? "Lettura" : "Scrittura");
+		if(m_currentResource->getType() == GraphicResourceHeader::Dir){
+			perm->setIcon(perm->text() == "Lettura" ? QIcon(":/icons/icons/read_dir.png") : QIcon(":/icons/icons/write_dir.png"));
+		}else{
+			perm->setIcon(perm->text() == "Lettura" ? QIcon(":/icons/icons/read_file.png") : QIcon(":/icons/icons/write_file.png"));
+		}
+		user->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+		perm->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+		m_table->setItem(0, 0, user);
+		m_table->setItem(0, 1, perm);
+	}
+
+	if(m_currentResource->getPublicPermission() != GraphicResourceHeader::PermUndef){
+		m_public->setChecked(true);
+		m_publicRead->setEnabled(true);
+		m_publicWrite->setEnabled(true);
+		m_public->setChecked(true);
+		m_currentResource->getPublicPermission() == GraphicResourceHeader::Read ? m_publicRead->setChecked(true) : m_publicWrite->setChecked(true);
+	}
+
 }
 
 PermSettings::~PermSettings()

@@ -13,6 +13,7 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	m_resourceInfoTable = ui->resourceInfoTable;
 	m_permissionTable	= ui->permissionTable;
 	m_scene				= new QGraphicsScene(this);
+	m_permScene			= new QGraphicsScene(this);
 	m_loader			= new Loader(this);
 	m_waiter			= new Waiter(this);
 	m_player			= new QMediaPlayer(this);
@@ -31,6 +32,7 @@ GuiClient::GuiClient(QWidget *parent) : QMainWindow(parent), ui(new Ui::GuiClien
 	m_permissionTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
 	ui->graphicsView->setScene(m_scene);
+	ui->graphicsView_2->setScene(m_permScene);
 	m_client->start();
 
 	if(!appSettings.contains(T_STARTED)){
@@ -340,6 +342,8 @@ void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column)
 	int currentRow = 0;
 	GraphicResourceHeader * tmp = reinterpret_cast<GraphicResourceHeader *>(item);
 	m_scene->clear();
+	m_permScene->clear();
+	ui->publicPerm->clear();
 	m_scene->addPixmap(tmp->getImage());
 	m_resourceInfoTable->item(0, 1)->setText(tmp->getName());
 	m_resourceInfoTable->item(1, 1)->setText(QString::number(tmp->getSize()));
@@ -362,6 +366,14 @@ void GuiClient::on_mainTreeWidget_itemClicked(QTreeWidgetItem *item, int column)
 		m_permissionTable->setItem(currentRow, 0, userItem);
 		m_permissionTable->setItem(currentRow, 1, permItem);
 		currentRow++;
+	}
+	if(tmp->getPublicPermission() != GraphicResourceHeader::PermUndef){
+		if(tmp->getType() == GraphicResourceHeader::Dir){
+			m_permScene->addPixmap(tmp->getPublicPermission() == GraphicResourceHeader::Read ? QIcon(":/icons/icons/read_dir.png").pixmap(64, 64) : QIcon(":/icons/icons/write_dir.png").pixmap(64, 64));
+		}else{
+			m_permScene->addPixmap(tmp->getPublicPermission() == GraphicResourceHeader::Read ? QIcon(":/icons/icons/read_file.png").pixmap(64, 64) : QIcon(":/icons/icons/write_file.png").pixmap(64, 64));
+		}
+		ui->publicPerm->setText(tmp->getPublicPermission() == GraphicResourceHeader::Read ? "Lettura" : "Scrittura");
 	}
 }
 

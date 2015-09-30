@@ -27,6 +27,8 @@ const QString KCloud::ResourcesManager::queryResources_22(" UPDATE resources SET
 const QString KCloud::ResourcesManager::queryResources_23(" UPDATE publicResources SET permission = :permission WHERE resource = :id ");
 const QString KCloud::ResourcesManager::queryResources_24(" DELETE FROM sharing WHERE resource = :id AND user = :email");
 const QString KCloud::ResourcesManager::queryResources_25(" UPDATE sharing SET permission = :permission WHERE resource = :id AND user = :email ");
+const QString KCloud::ResourcesManager::queryResources_26(" DELETE FROM publicResources WHERE id = :id ");
+const QString KCloud::ResourcesManager::queryResources_27(" DELETE FROM sharing WHERE id = :id ");
 
 KCloud::ResourcesManager::ResourcesManager(const QString &name, QObject *parent) : DatabaseManager(name, parent){
 
@@ -190,60 +192,26 @@ KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::modRe
 	}
 }
 
-KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::shareResource(const KCloud::User &usr, const KCloud::ResourceHeader &head, QStringList &errorUsersShare) throw (Exception){
+KCloud::ResourcesManager::ResourcesManagerAnswer KCloud::ResourcesManager::shareResource(const KCloud::User &usr, const KCloud::ResourceHeader &head, QStringList &errorUsersShare, int i) throw (Exception){
 
 	if(open()){
-
-		if(!resourceExists(head.getId())){
+		if(!userExists(usr)){
 			close();
-			return ResourceNotExist;
+			return UserNotExists;
 		}
-		if(!isOwner(usr, head.getId()) || head.getName() == usr.getEmail()){
-			close();
-			return PermError;
-		}else{
-
-			if(head.getPublicPermission() != ResourceHeader::PermUndef){
-				//devo aggiungere i permessi pubblici
-				if(getPublicPermission(head.getId()) == ResourceHeader::PermUndef){
-					//li creo nuovi
-					setPublicPermission(head);
-				}else{
-					//li aggiorno
-					updatePublicPermission(head);
-				}
+		ResourceHeader header(head);
+		foreach (QString user, header.getPermissionTable().keys()) {
+			if(!userExists(user)){
+				errorUsersShare << user;
+				header.delPermission(user);
 			}
-			//permessi di condivisione
-			QMap<QString, ResourceHeader::ResourcePerm> newPerm = head.getPermissionTable();
-			QMap<QString, ResourceHeader::ResourcePerm> oldPerm = getSharedPermission(head.getId());
-
-			foreach (QString s, oldPerm.keys()){
-				if(!newPerm.contains(s)){
-					//elimino il permesso vecchio contenuto in oldPerm
-					deleteSharing(head.getId(), s);
-				}
-			}
-
-			foreach (QString s, newPerm.keys()){
-				if(!userExists(s)){
-					errorUsersShare << s;
-				}else{
-					if(oldPerm.contains(s) && oldPerm[s] != newPerm[s]){
-						//aggiorno i permessi per l'utente
-						updareSharing(head.getId(), s, newPerm[s]);
-
-					}else if(!oldPerm.contains(s)){
-						//aggiungo il singolo utente, permesso
-						addSharing(head.getId(), s, newPerm[s]);
-					}
-				}
-			}
-			close();
-			return SharingOk;
 		}
+		recursiveShare(header);
+		return SharingOk;
 	}else{
 		throw OpenFailure();
 	}
+
 }
 
 QList<KCloud::ResourceHeader> KCloud::ResourcesManager::resourceTree(const KCloud::User &usr){
@@ -418,17 +386,47 @@ void KCloud::ResourcesManager::updareSharing(const quint64 &id, const QString &u
 void KCloud::ResourcesManager::addSharing(const quint64 &id, const QString &user, KCloud::ResourceHeader::ResourcePerm perm) throw (Exception){
 
 	if(isOpen()){
-	QSqlQuery query(m_db);
-	query.prepare(queryResources_9);
-	query.bindValue(placeHolder_id, id);
-	query.bindValue(placeHolder_mail, user);
-	query.bindValue(placeHolder_permission, perm == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
-	tryExec(query);
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_9);
+		query.bindValue(placeHolder_id, id);
+		query.bindValue(placeHolder_mail, user);
+		query.bindValue(placeHolder_permission, perm == ResourceHeader::Read ? sqlEnumRead : sqlEnumWrite);
+		tryExec(query);
 	}else{
-	throw OpenFailure();
+		throw OpenFailure();
 	}
 
 }
+
+void KCloud::ResourcesManager::deletePublic(const quint64 &id) throw (Exception){
+
+	if(isOpen()){
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_26);
+		query.bindValue(placeHolder_id, id);
+		tryExec(query);
+	}else{
+		throw OpenFailure();
+	}
+}
+
+void KCloud::ResourcesManager::deletePublic(const KCloud::ResourceHeader &head) throw (Exception){
+
+	return deletePublic(head.getId());
+}
+
+void KCloud::ResourcesManager::deleteAllSharing(const KCloud::ResourceHeader &head){
+
+	if(isOpen()){
+		QSqlQuery query(m_db);
+		query.prepare(queryResources_27);
+		query.bindValue(placeHolder_id, head.getId());
+		tryExec(query);
+	}else{
+		throw OpenFailure();
+	}
+}
+
 /*
  * OK!!!!!!! -> Definitiva
  */
@@ -942,6 +940,54 @@ QList<KCloud::ResourceHeader> KCloud::ResourcesManager::getPublic() throw (Excep
 	}else{
 		throw OpenFailure();
 	}
+}
+
+void KCloud::ResourcesManager::recursiveShare(KCloud::ResourceHeader &head, int i){
+
+	QList<ResourceHeader> childrens = getChilds(head.getId(), OnlyFiles) + getChilds(head.getId(), OnlyDirs);
+
+	deletePublic(head);
+	deleteAllSharing(head);
+
+	switch (head.getPublicPermission()) {
+		case ResourceHeader::Write:
+			setPublicPermission(head);
+			foreach (ResourceHeader child, childrens) {
+				child.setPublicPermission(head.getPublicPermission());
+				recursiveShare(child);
+			}
+			break;
+		case ResourceHeader::Read:
+
+			if(i == 0){
+				QMap<QString, ResourceHeader::ResourcePerm> filtered;
+				foreach (QString user, head.getPermissionTable().keys()) {
+					if(head.getPermissionTable()[user] == ResourceHeader::Write){
+						filtered.insert(user, ResourceHeader::Write);
+					}
+				}
+				head.setPermissionTable(filtered);
+			}
+			setPublicPermission(head);
+			foreach (QString user, head.getPermissionTable()) {
+				addSharing(head.getId(), user, ResourceHeader::Write);
+			}
+			foreach (ResourceHeader child, childrens) {
+				child.setPermissionTable(head.getPermissionTable());
+				child.setPublicPermission(ResourceHeader::Read);
+				recursiveShare(child, 1);
+			}
+			break;
+		default:
+			foreach (QString user, head.getPermissionTable().keys()) {
+				addSharing(head.getId(), user, head.getPermission(user));
+			}
+			foreach (ResourceHeader child, childrens) {
+				recursiveShare(child);
+			}
+			break;
+	}
+	return;
 }
 
 
